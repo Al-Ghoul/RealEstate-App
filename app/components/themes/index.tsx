@@ -44,6 +44,7 @@ export function Theme(props: ThemeProps) {
           <StatusBar
             style={StatusBarTheme[theme].style}
             backgroundColor={StatusBarTheme[theme].background}
+            hidden
           />
           {props.children}
         </ThemeProviderActions.Provider>

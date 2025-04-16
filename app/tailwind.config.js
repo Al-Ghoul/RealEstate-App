@@ -7,10 +7,12 @@ module.exports = {
     "./components/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
-    colors: {
-      primary: "var(--color-primary)",
-      secondary: "var(--color-secondary)",
-      outstand: "var(--color-outstand)",
+    extend: {
+      colors: {
+        primary: "var(--color-primary)",
+        secondary: "var(--color-secondary)",
+        outstand: "var(--color-outstand)",
+      },
     },
   },
   presets: [require("nativewind/preset")],

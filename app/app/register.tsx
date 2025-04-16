@@ -1,0 +1,216 @@
+import { Text, TextInput, Pressable, View } from "react-native";
+import { router } from "expo-router";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { xiorInstance } from "@/lib/fetcher";
+import { useMutation } from "@tanstack/react-query";
+import { XiorError } from "xior";
+import { showMessage } from "react-native-flash-message";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { registerInputDTO, type RegisterInputDTO } from "@/lib/schemas";
+import Svg, { Ellipse } from "react-native-svg";
+import { useThemeContextValues } from "@/components/themes";
+
+export default function Register() {
+  const { theme } = useThemeContextValues();
+
+  const {
+    control: registerControl,
+    handleSubmit: registerHandleSubmit,
+    formState: { errors: registerErrors },
+    setError: setRegisterError,
+  } = useForm<RegisterInputDTO>({
+    values: {
+      email: "Abdo.AlGhouul@gmail.com",
+      password: "12345678",
+      confirmPassword: "12345678",
+      firstName: "Abdo",
+      lastName: "AlGhouul",
+    },
+    resolver: zodResolver(registerInputDTO),
+  });
+
+  const { mutate: submitRegister, isPending: isRegisterPending } = useMutation({
+    mutationFn: (data: RegisterInputDTO) =>
+      xiorInstance
+        .post("/auth/register", data)
+        .then((res) => Promise.resolve(res))
+        .catch((error) => Promise.reject(error)),
+    onSuccess: () => {
+      showMessage({
+        message: "Registered successfully",
+        type: "success",
+      });
+      router.replace("/login");
+    },
+    onError: (error) => {
+      if (error instanceof XiorError) {
+        if ("errors" in error.response?.data) {
+          error.response?.data.errors.map(
+            (error: { path: RegisterInputDTO & "root"; message: string }) =>
+              setRegisterError(error.path, { message: error.message }),
+          );
+        } else {
+          showMessage({
+            message: error.response?.data.message,
+            type: "warning",
+          });
+        }
+      } else {
+        showMessage({
+          message: "An error occurred",
+          description: error.message,
+          type: "danger",
+        });
+      }
+    },
+  });
+
+  return (
+    <SafeAreaView className="flex-1 bg-secondary">
+      <View className="absolute z-10">
+        <Svg width={252} height={241}>
+          <Ellipse
+            cx={71}
+            cy={63}
+            fill={theme === "light" ? "#7dd1fc" : "#0c496e"}
+            opacity={0.6}
+            rx={181}
+            ry={178}
+          />
+        </Svg>
+      </View>
+
+      <View className="flex-1 justify-center bg-secondary gap-4">
+        <View className="bg-secondary items-center justify-center px-24 gap-4">
+          <Controller
+            control={registerControl}
+            rules={{
+              required: true,
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                id="email"
+                className="w-full text-primary border border-primary p-2 rounded-lg"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                keyboardType="email-address"
+              />
+            )}
+            name="email"
+          />
+          {registerErrors.email ? (
+            <Text className="text-red-500 text-center">
+              {registerErrors.email.message}
+            </Text>
+          ) : null}
+          
+          <Controller
+            control={registerControl}
+            rules={{
+              required: true,
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                id="password"
+                className="w-full text-primary border border-primary p-2 rounded-lg"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                secureTextEntry
+              />
+            )}
+            name="password"
+          />
+          {registerErrors.password ? (
+            <Text className="text-red-500 text-center">
+              {registerErrors.password.message}
+            </Text>
+          ) : null}
+          <Controller
+            control={registerControl}
+            rules={{
+              required: true,
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                id="confirmPassword"
+                className="w-full text-primary border border-primary p-2 rounded-lg"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                secureTextEntry
+              />
+            )}
+            name="confirmPassword"
+          />
+          {registerErrors.confirmPassword ? (
+            <Text className="text-red-500 text-center">
+              {registerErrors.confirmPassword.message}
+            </Text>
+          ) : null}
+          <Controller
+            control={registerControl}
+            rules={{
+              required: true,
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                id="firstName"
+                className="w-full text-primary border border-primary p-2 rounded-lg"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+              />
+            )}
+            name="firstName"
+          />
+          {registerErrors.firstName ? (
+            <Text className="text-red-500 text-center">
+              {registerErrors.firstName.message}
+            </Text>
+          ) : null}
+          <Controller
+            control={registerControl}
+            rules={{
+              required: true,
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                id="lastName"
+                className="w-full text-primary border border-primary p-2 rounded-lg"
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+              />
+            )}
+            name="lastName"
+          />
+          {registerErrors.lastName ? (
+            <Text className="text-red-500 text-center">
+              {registerErrors.lastName.message}
+            </Text>
+          ) : null}
+
+          <Pressable
+            className="bg-outstand w-32 h-8 rounded-lg"
+            onPress={registerHandleSubmit((data) => submitRegister(data))}
+            disabled={isRegisterPending}
+          >
+            <Text className="text-center my-auto text-primary ">Register</Text>
+          </Pressable>
+        </View>
+
+        <View className="bg-secondary flex-row self-center gap-2">
+          <Text className="text-center text-primary">
+            Already have an account?
+          </Text>
+          <Pressable onPress={() => router.push("/login")}>
+            <Text className="text-center text-outstand font-bold">Login</Text>
+          </Pressable>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
