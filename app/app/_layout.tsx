@@ -4,7 +4,6 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import AnimationScreen from "@/components/AnimationScreen";
-import { SessionProvider } from "@/components/AuthContext";
 import { Theme } from "@/components/themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import FlashMessage from "react-native-flash-message";
@@ -30,25 +29,26 @@ export default function RootLayout() {
   }
 
   return (
-    <SessionProvider>
-      <SafeAreaProvider>
-        <Theme>
-          <QueryClientProvider client={queryClient}>
-            {showAnimation ? (
-              <AnimationScreen setShowAnimation={setShowAnimation} />
-            ) : (
-              <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="get-started" options={{ headerShown: false }} />
-                <Stack.Screen name="login" options={{ headerShown: false }} />
-                <Stack.Screen name="register" options={{ headerShown: false }} />
-                <Stack.Screen name="+not-found" />
-              </Stack>
-            )}
-            <FlashMessage position="top" />
-          </QueryClientProvider>
-        </Theme>
-      </SafeAreaProvider>
-    </SessionProvider>
+    <SafeAreaProvider>
+      <Theme>
+        <QueryClientProvider client={queryClient}>
+          {showAnimation ? (
+            <AnimationScreen setShowAnimation={setShowAnimation} />
+          ) : (
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="get-started"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen name="login" options={{ headerShown: false }} />
+              <Stack.Screen name="register" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+          )}
+          <FlashMessage position="top" />
+        </QueryClientProvider>
+      </Theme>
+    </SafeAreaProvider>
   );
 }

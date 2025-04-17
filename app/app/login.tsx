@@ -1,4 +1,3 @@
-import { useSession } from "@/components/AuthContext";
 import { Text, TextInput, Pressable, View } from "react-native";
 import { router } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
@@ -11,9 +10,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { loginInputDTO, type LoginInputDTO } from "@/lib/schemas";
 import Svg, { Ellipse } from "react-native-svg";
 import { useThemeContextValues } from "@/components/themes";
+import { useAuthStore } from "@/lib/stores/authStore";
 
 export default function Login() {
-  const { login } = useSession();
+  const login = useAuthStore((state) => state.login);
   const { theme } = useThemeContextValues();
 
   const {
@@ -42,6 +42,7 @@ export default function Login() {
       });
       const tokens = res.data.data as JWTPayload;
       login(tokens);
+      router.dismissAll();
       router.replace("/");
     },
     onError: (error) => {
