@@ -1,16 +1,9 @@
-import { Pressable, Text, View } from "react-native";
-import { ThemeSwitcher } from "@/components/themes/ThemeSwitcher";
-import { useAuthStore } from "@/lib/stores/authStore";
+import { Text, View } from "react-native";
 
 export default function HomeScreen() {
-  const logout = useAuthStore((state) => state.logout);
   return (
-    <View className="flex-1 bg-secondary items-center justify-center">
-      <Text className="text-primary">Welcome</Text>
-      <Pressable className="bg-gray-500" onPress={() => logout()}>
-        <Text>Log Out</Text>
-      </Pressable>
-      <ThemeSwitcher />
+    <View className="flex-1 dark:bg-black bg-white">
+      <Text className="dark:text-white text-black">Welcome</Text>
     </View>
   );
 }

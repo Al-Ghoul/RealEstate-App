@@ -1,20 +1,22 @@
-import { Redirect, Tabs } from "expo-router";
+import { Redirect, router, Tabs } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Platform } from "react-native";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { addAuthHeader, xiorInstance } from "@/lib/fetcher";
 import { XiorResponse } from "xior";
 import errorRetry from "xior/plugins/error-retry";
 import setupTokenRefresh from "xior/plugins/token-refresh";
 import LottieView from "lottie-react-native";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Pressable, TouchableOpacity, View, Text } from "react-native";
+import { useColorScheme } from "nativewind";
 
 export default function TabLayout() {
   const session = useAuthStore((state) => state.session);
   const logout = useAuthStore((state) => state.logout);
   const login = useAuthStore((state) => state.login);
   const [isLoading, setIsLoading] = useState(true);
-
-  if (!session) return <Redirect href="/get-started" />;
+  const { toggleColorScheme, colorScheme } = useColorScheme();
 
   useEffect(() => {
     if (session) addAuthHeader(session.accessToken);
@@ -61,9 +63,8 @@ export default function TabLayout() {
             refreshToken: session?.refreshToken,
           });
           if (status === 200 && data) {
-            login(data);
-            xiorInstance.interceptors.request.clear();
-            addAuthHeader(data.accessToken);
+            login(data.data);
+            addAuthHeader(data.data.accessToken);
           } else {
             logout();
             throw error;
@@ -81,7 +82,9 @@ export default function TabLayout() {
       xiorInstance.interceptors.request.clear();
       xiorInstance.interceptors.response.clear();
     };
-  }, [session]);
+  }, [session, login, logout]);
+
+  if (!session) return <Redirect href="/get-started" />;
 
   if (isLoading) {
     return (
@@ -102,19 +105,74 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
-        tabBarStyle: Platform.select({
-          ios: {
-            position: "absolute",
-          },
-          default: {},
-        }),
+        headerShown: true,
+        headerTitleAllowFontScaling: true,
+        headerStyle: {
+          backgroundColor: colorScheme === "light" ? "#fff" : "#000",
+        },
+        headerShadowVisible: false,
+        headerTintColor: colorScheme === "light" ? "#000" : "#fff",
+        tabBarActiveTintColor: colorScheme === "light" ? "#000" : "#fff",
+        tabBarInactiveTintColor: "gray",
+        tabBarStyle: {
+          backgroundColor: colorScheme === "light" ? "#fff" : "#000",
+        },
+        tabBarShowLabel: true,
+        headerRight: () => (
+          <Pressable onPress={toggleColorScheme}>
+            <Text className="dark:text-white text-black">Toggle Theme</Text>
+          </Pressable>
+        ),
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "Index",
+          title: "Home",
+          tabBarIcon: ({ color }) => (
+            <FontAwesome5 size={28} name="home" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          headerTitleAlign: "center",
+          headerRight: () => (
+            <View className="mr-12">
+              <TouchableOpacity
+                className="dark:bg-gray-900 bg-gray-300 items-center justify-center w-10 h-10 rounded-full"
+                onPress={() =>
+                  router.push("/edit-profile", { withAnchor: true })
+                }
+              >
+                <Ionicons
+                  name="settings"
+                  size={18}
+                  color={colorScheme === "light" ? "#000" : "#fff"}
+                />
+              </TouchableOpacity>
+            </View>
+          ),
+
+          tabBarIcon: ({ color }) => (
+            <FontAwesome5 size={28} name="user" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="edit-profile"
+        options={{
+          title: "Edit Profile",
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="change-password"
+        options={{
+          title: "Change Password",
+          href: null,
         }}
       />
     </Tabs>

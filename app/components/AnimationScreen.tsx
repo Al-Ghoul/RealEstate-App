@@ -11,14 +11,17 @@ export default function AnimationScreen({
 }: AnimatedScreenProps) {
   return (
     <Animated.View
-      key="somekeyyyy"
       exiting={FadeOut.duration(1000)}
       style={styles.animationContainer}
+      className="dark:bg-black bg-white"
     >
       <LottieView
         autoPlay
         loop={false}
-        style={{ width: "50%", height: "50%" }}
+        style={{
+          width: "50%",
+          height: "50%",
+        }}
         source={require("../assets/lottie/house-animation.json")}
         onAnimationFinish={() => setShowAnimation(false)}
         onAnimationFailure={(e) => console.error("Error occurred animating", e)}

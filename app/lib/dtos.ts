@@ -42,3 +42,40 @@ export const registerInputDTO = loginInputDTO
   });
 
 export type RegisterInputDTO = z.infer<typeof registerInputDTO>;
+
+export const updateProfileInputDTO = z.object({
+  email: z.string().email(),
+  firstName: z.string(),
+  lastName: z.string(),
+});
+
+export type UpdateProfileInputDTO = z.infer<typeof updateProfileInputDTO>;
+
+export const changePasswordDTO = z
+  .object({
+    currentPassword: z.string(),
+    newPassword: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters long" })
+      .max(255, { message: "Password must be less than 255 characters long" })
+      .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$/, {
+        message:
+          "Password must only contain letters, numbers, and special characters",
+      }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type ChangePasswordDTO = z.infer<typeof changePasswordDTO>;
+
+export const verifyInputDTO = z.object({
+  code: z
+    .string()
+    .regex(/^[a-zA-Z0-9]{3}-[a-zA-Z0-9]{3}$/)
+    .transform((code) => code.toUpperCase()),
+});
+
+export type VerifyInputDTO = z.infer<typeof verifyInputDTO>;
