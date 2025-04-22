@@ -51,7 +51,7 @@ export const updateProfileInputDTO = z.object({
 
 export type UpdateProfileInputDTO = z.infer<typeof updateProfileInputDTO>;
 
-export const changePasswordDTO = z
+export const changePasswordInputDTO = z
   .object({
     currentPassword: z.string(),
     newPassword: z
@@ -69,7 +69,26 @@ export const changePasswordDTO = z
     path: ["confirmPassword"],
   });
 
-export type ChangePasswordDTO = z.infer<typeof changePasswordDTO>;
+export type ChangePasswordInputDTO = z.infer<typeof changePasswordInputDTO>;
+
+export const setPasswordInputDTO = z
+  .object({
+    newPassword: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters long" })
+      .max(255, { message: "Password must be less than 255 characters long" })
+      .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$/, {
+        message:
+          "Password must only contain letters, numbers, and special characters",
+      }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type SetPasswordInputDTO = z.infer<typeof setPasswordInputDTO>;
 
 export const verifyInputDTO = z.object({
   code: z

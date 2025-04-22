@@ -39,7 +39,20 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "react-native-fbsdk-next",
+        {
+          "appID": "200512010539718",
+          "clientToken": "f22c843d4f139cd1ad31d692a160d775",
+          "displayName": "Real Estate",
+          "scheme": "fb200512010539718",
+          "advertiserIDCollectionEnabled": false,
+          "autoLogAppEventsEnabled": false,
+          "isAutoInitEnabled": true,
+          "iosUserTrackingPermission":  false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

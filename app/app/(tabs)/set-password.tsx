@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { xiorInstance } from "@/lib/fetcher";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { changePasswordInputDTO, type ChangePasswordInputDTO } from "@/lib/dtos";
+import { setPasswordInputDTO, type SetPasswordInputDTO } from "@/lib/dtos";
 import {
   TextInput,
   Text,
@@ -19,21 +19,23 @@ import { XiorError } from "xior";
 import { router, Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import GenericView from "@/components/GenericView";
+import { useCurrentUser } from "@/lib/queries/useCurrentUser";
 
-export default function ChangePassword() {
+export default function SetPassword() {
   const { colorScheme } = useColorScheme();
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const updateUserPassword = useMutation({
-    mutationKey: ["changePassword"],
-    mutationFn: (data: ChangePasswordInputDTO) =>
-      xiorInstance.post("/auth/change-password", data),
+  const currentUser = useCurrentUser();
+  const setUserPassword = useMutation({
+    mutationKey: ["setPassword"],
+    mutationFn: (data: SetPasswordInputDTO) =>
+      xiorInstance.post("/auth/set-password", data),
     onSuccess: () => {
       showMessage({
-        message: "Changed password successfully",
+        message: "Password set successfully",
         type: "success",
       });
       reset();
+     currentUser.refetch(); 
       router.replace("/profile");
     },
     onError: (error) => {
@@ -66,10 +68,9 @@ export default function ChangePassword() {
     formState: { errors, isDirty },
     setError,
     reset,
-  } = useForm<ChangePasswordInputDTO>({
-    resolver: zodResolver(changePasswordInputDTO),
+  } = useForm<SetPasswordInputDTO>({
+    resolver: zodResolver(setPasswordInputDTO),
     defaultValues: {
-      currentPassword: "",
       newPassword: "",
       confirmPassword: "",
     },
@@ -113,7 +114,7 @@ export default function ChangePassword() {
     <GenericView>
       <Tabs.Screen
         options={{
-          title: "Change Password",
+          title: "Set Password",
           headerLeft: () => (
             <TouchableOpacity
               className="items-center justify-center w-10 h-10 rounded-full"
@@ -130,39 +131,6 @@ export default function ChangePassword() {
         }}
       />
       <View className="flex-1 mx-8 justify-center gap-4">
-        <Controller
-          control={control}
-          rules={{
-            required: true,
-          }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <View className="flex-row dark:bg-white bg-black px-4 items-center h-12 rounded-3xl">
-              <TextInput
-                id="currentPassword"
-                className="dark:text-black text-white placeholder:text-gray-500 h-full w-full"
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Current Password"
-                secureTextEntry={!showCurrentPassword}
-              />
-              <Feather
-                name={showCurrentPassword ? "eye-off" : "eye"}
-                onPress={() => setShowCurrentPassword(!showCurrentPassword)}
-                size={24}
-                color={colorScheme === "light" ? "#fff" : "#000"}
-                className="absolute right-2"
-              />
-            </View>
-          )}
-          name="currentPassword"
-        />
-        {errors.currentPassword ? (
-          <Text className="text-red-500 text-center">
-            {errors.currentPassword.message}
-          </Text>
-        ) : null}
-
         <Controller
           control={control}
           rules={{
@@ -231,11 +199,11 @@ export default function ChangePassword() {
 
         <TouchableOpacity
           className="self-center dark:bg-white bg-black disabled:bg-gray-500 w-36 h-8 rounded-lg"
-          onPress={handleSubmit((data) => updateUserPassword.mutate(data))}
-          disabled={!isDirty || updateUserPassword.isPending}
+          onPress={handleSubmit((data) => setUserPassword.mutate(data))}
+          disabled={!isDirty || setUserPassword.isPending}
         >
           <Text className="text-center my-auto dark:text-black text-white">
-            Change Password
+            Set Password
           </Text>
         </TouchableOpacity>
       </View>

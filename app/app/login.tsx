@@ -25,6 +25,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useEffect } from "react";
+import SocialAuth from "@/components/SocialAuth";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -78,6 +79,7 @@ export default function Login() {
       }
     },
   });
+
   const progress = useSharedValue(0);
 
   useEffect(() => {
@@ -187,6 +189,8 @@ export default function Login() {
             </Text>
           </Pressable>
         </View>
+
+        <SocialAuth />
       </View>
     </SafeAreaView>
   );

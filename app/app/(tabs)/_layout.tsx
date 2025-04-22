@@ -45,7 +45,7 @@ export default function TabLayout() {
       );
     }
 
-    xiorInstance.plugins.use(
+    const handle = xiorInstance.plugins.use(
       errorRetry({
         enableRetry: (_, error) => {
           if (error?.response && shouldRefresh(error.response)) {
@@ -79,6 +79,7 @@ export default function TabLayout() {
     setIsLoading(false);
 
     return () => {
+      xiorInstance.plugins.eject(handle);
       xiorInstance.interceptors.request.clear();
       xiorInstance.interceptors.response.clear();
     };
@@ -172,6 +173,13 @@ export default function TabLayout() {
         name="change-password"
         options={{
           title: "Change Password",
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="set-password"
+        options={{
+          title: "Set Password",
           href: null,
         }}
       />

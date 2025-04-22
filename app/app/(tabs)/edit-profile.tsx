@@ -1,5 +1,5 @@
 import { useCurrentUser } from "@/lib/queries/useCurrentUser";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { xiorInstance } from "@/lib/fetcher";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +18,7 @@ import {
   BackHandler,
   ScrollView,
   RefreshControl,
+  Pressable,
 } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { Image } from "expo-image";
@@ -27,11 +28,13 @@ import { router, Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { showMessage } from "react-native-flash-message";
 import { XiorError } from "xior";
-import { ProfileSkeleton } from "@/components/ui/profile/Skeleton";
-import GenericView from "@/components/ui/GenericView";
+import { ProfileSkeleton } from "@/components/profile/Skeleton";
+import GenericView from "@/components/GenericView";
 import { TrueSheet } from "@lodev09/react-native-true-sheet";
 import VerificationViews from "@/components/VerificationViews";
 import Octicons from "@expo/vector-icons/Octicons";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import { AccessToken, LoginManager } from "react-native-fbsdk-next";
 
 export default function EditProfile() {
   const currentUser = useCurrentUser();
@@ -191,6 +194,62 @@ export default function EditProfile() {
     if (!currentUser.data?.emailVerified) sheet.current?.present();
   }, [currentUser.data, currentUser.data?.emailVerified]);
 
+  const accounts = useQuery({
+    queryKey: ["accounts"],
+    queryFn: async () => xiorInstance.get("/auth/accounts"),
+  });
+  const linkAccount = useMutation({
+    mutationFn: (data: { accessToken: string; provider: string }) =>
+      xiorInstance.post("/auth/accounts/link", data),
+    onSuccess: (res) => {
+      showMessage({
+        message: "Account was linked successfully",
+        type: "success",
+      });
+    },
+    onError: (error) => {
+      if (error instanceof XiorError) {
+        showMessage({
+          message: error.response?.data.message,
+          description: error.response?.data.details,
+          type: "warning",
+        });
+      } else {
+        showMessage({
+          message: "An error occurred",
+          description: error.message,
+          type: "danger",
+        });
+      }
+    },
+  });
+
+  const unLinkAccount = useMutation({
+    mutationFn: (data: { provider: string }) =>
+      xiorInstance.delete(`/auth/accounts/unlink/${data.provider}`),
+    onSuccess: (res) => {
+      showMessage({
+        message: "Account was unlinked successfully",
+        type: "success",
+      });
+    },
+    onError: (error) => {
+      if (error instanceof XiorError) {
+        showMessage({
+          message: error.response?.data.message,
+          description: error.response?.data.details,
+          type: "warning",
+        });
+      } else {
+        showMessage({
+          message: "An error occurred",
+          description: error.message,
+          type: "danger",
+        });
+      }
+    },
+  });
+
   return (
     <GenericView>
       <Tabs.Screen
@@ -216,7 +275,10 @@ export default function EditProfile() {
         refreshControl={
           <RefreshControl
             refreshing={currentUser.isLoading}
-            onRefresh={currentUser.refetch}
+            onRefresh={() => {
+              accounts.refetch();
+              currentUser.refetch();
+            }}
           />
         }
       >
@@ -360,6 +422,52 @@ export default function EditProfile() {
             </TouchableOpacity>
           </View>
         )}
+
+        <View className="flex-row m-4 mx-auto gap-2">
+          <Pressable
+            className="flex-row bg-blue-500 px-2 gap-2 h-10 items-center justify-around rounded-lg"
+            onPress={() => {
+              if (
+                accounts.data?.data.data.find(
+                  (provider: { provider: string }) =>
+                    provider.provider === "facebook",
+                )
+              ) {
+                unLinkAccount.mutateAsync({
+                  provider: "facebook",
+                }).then(() => accounts.refetch());
+              } else {
+                LoginManager.logInWithPermissions(["public_profile", "email"])
+                  .then((result) => {
+                    if (!result.isCancelled) {
+                      AccessToken.getCurrentAccessToken().then((data) => {
+                        linkAccount.mutateAsync({
+                          accessToken: data?.accessToken ?? "",
+                          provider: "facebook",
+                        }).then(() => accounts.refetch());
+                      });
+                    }
+                  })
+                  .catch((error) =>
+                    showMessage({
+                      message: "An error occurred using facebook",
+                      type: "danger",
+                    }),
+                  );
+              }
+            }}
+          >
+            <FontAwesome5 name="facebook-f" size={20} color="#FFF" />
+            <Text className="text-white text-lg">
+              {accounts.data?.data.data.find(
+                (provider: { provider: string }) =>
+                  provider.provider === "facebook",
+              )
+                ? "Unlink"
+                : "Link"}
+            </Text>
+          </Pressable>
+        </View>
       </ScrollView>
       <TrueSheet
         ref={sheet}

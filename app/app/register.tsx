@@ -23,6 +23,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useEffect } from "react";
+import SocialAuth from "@/components/SocialAuth";
 
 const AnimatedEllipse = Animated.createAnimatedComponent(Ellipse);
 export default function Register() {
@@ -234,12 +235,13 @@ export default function Register() {
           <Text className="text-center dark:text-white text-black">
             Already have an account?
           </Text>
-          <Pressable onPress={() => router.push("/login")}>
+          <Pressable onPress={() => router.back()}>
             <Text className="text-center font-bold dark:text-gray-200 text-black">
               Login
             </Text>
           </Pressable>
         </View>
+        <SocialAuth />
       </View>
     </SafeAreaView>
   );

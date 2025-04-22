@@ -15,5 +15,6 @@ declare global {
     emailVerified: Date | null;
     createdAt: Date;
     updatedAt: Date;
+    hasPassword: boolean;
   };
 }

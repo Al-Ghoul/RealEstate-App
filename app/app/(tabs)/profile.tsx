@@ -16,9 +16,10 @@ import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { useColorScheme } from "nativewind";
 import { useCurrentUser } from "@/lib/queries/useCurrentUser";
-import { ProfileSkeleton } from "@/components/ui/profile/Skeleton";
+import { ProfileSkeleton } from "@/components/profile/Skeleton";
 import { router } from "expo-router";
-import GenericView from "@/components/ui/GenericView";
+import GenericView from "@/components/GenericView";
+import { LoginManager } from "react-native-fbsdk-next";
 
 export default function Profile() {
   const logout = useAuthStore((state) => state.logout);
@@ -137,10 +138,16 @@ export default function Profile() {
           ) : null}
           <Pressable
             className="self-center dark:bg-white bg-black disabled:bg-gray-500 h-10 px-2 rounded-lg"
-            onPress={() => router.push("/change-password")}
+            onPress={() => {
+              if (currentUser.data?.hasPassword)
+                router.push("/change-password");
+              else router.push("/set-password");
+            }}
           >
             <Text className="text-center my-auto dark:text-black text-white">
-              Change Password
+              {currentUser.data?.hasPassword
+                ? "Change Password"
+                : "Set Password"}
             </Text>
           </Pressable>
           <Pressable
@@ -148,6 +155,7 @@ export default function Profile() {
             onPress={() => {
               logoutMutation.mutateAsync().finally(() => {
                 logout();
+                LoginManager.logOut();
                 router.replace("/");
               });
             }}
