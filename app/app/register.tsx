@@ -241,7 +241,7 @@ export default function Register() {
             </Text>
           </Pressable>
         </View>
-        <SocialAuth />
+        <SocialAuth className="mx-20 gap-4" />
       </View>
     </SafeAreaView>
   );

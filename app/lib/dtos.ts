@@ -98,3 +98,16 @@ export const verifyInputDTO = z.object({
 });
 
 export type VerifyInputDTO = z.infer<typeof verifyInputDTO>;
+
+export const linkAccountDTO = z.discriminatedUnion("provider", [
+  z.object({
+    provider: z.literal("google"),
+    idToken: z.string(),
+  }),
+  z.object({
+    provider: z.literal("facebook"),
+    accessToken: z.string(),
+  }),
+]);
+
+export type LinkAccountDTO = z.infer<typeof linkAccountDTO>;

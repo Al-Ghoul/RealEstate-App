@@ -8,6 +8,7 @@ import {
   verifyInputDTO,
   type VerifyInputDTO,
   type UpdateProfileInputDTO,
+  type LinkAccountDTO,
 } from "@/lib/dtos";
 import {
   TextInput,
@@ -35,6 +36,13 @@ import VerificationViews from "@/components/VerificationViews";
 import Octicons from "@expo/vector-icons/Octicons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { AccessToken, LoginManager } from "react-native-fbsdk-next";
+import {
+  GoogleSignin,
+  isErrorWithCode,
+  isSuccessResponse,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
+import GoogleIcon from "../../assets/icons/google-logo.svg";
 
 export default function EditProfile() {
   const currentUser = useCurrentUser();
@@ -199,9 +207,9 @@ export default function EditProfile() {
     queryFn: async () => xiorInstance.get("/auth/accounts"),
   });
   const linkAccount = useMutation({
-    mutationFn: (data: { accessToken: string; provider: string }) =>
+    mutationFn: (data: LinkAccountDTO) =>
       xiorInstance.post("/auth/accounts/link", data),
-    onSuccess: (res) => {
+    onSuccess: () => {
       showMessage({
         message: "Account was linked successfully",
         type: "success",
@@ -249,6 +257,55 @@ export default function EditProfile() {
       }
     },
   });
+
+  const signInWithGoogle = useCallback(async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      if (isSuccessResponse(response)) {
+        linkAccount
+          .mutateAsync({
+            provider: "google",
+            idToken: response.data.idToken ?? "",
+          })
+          .then(() => {
+            accounts.refetch();
+          });
+      } else {
+        showMessage({
+          message: "Sign in cancelled",
+          type: "warning",
+        });
+      }
+    } catch (error) {
+      if (isErrorWithCode(error)) {
+        switch (error.code) {
+          case statusCodes.IN_PROGRESS:
+            showMessage({
+              message: "Sign in in progress",
+              type: "warning",
+            });
+            break;
+          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+            showMessage({
+              message: "Play services not available",
+              type: "warning",
+            });
+            break;
+          default:
+            showMessage({
+              message: "An error occurred",
+              type: "danger",
+            });
+        }
+      } else {
+        showMessage({
+          message: "An error occurred",
+          type: "danger",
+        });
+      }
+    }
+  }, [linkAccount, accounts]);
 
   return (
     <GenericView>
@@ -433,22 +490,26 @@ export default function EditProfile() {
                     provider.provider === "facebook",
                 )
               ) {
-                unLinkAccount.mutateAsync({
-                  provider: "facebook",
-                }).then(() => accounts.refetch());
+                unLinkAccount
+                  .mutateAsync({
+                    provider: "facebook",
+                  })
+                  .then(() => accounts.refetch());
               } else {
                 LoginManager.logInWithPermissions(["public_profile", "email"])
                   .then((result) => {
                     if (!result.isCancelled) {
                       AccessToken.getCurrentAccessToken().then((data) => {
-                        linkAccount.mutateAsync({
-                          accessToken: data?.accessToken ?? "",
-                          provider: "facebook",
-                        }).then(() => accounts.refetch());
+                        linkAccount
+                          .mutateAsync({
+                            accessToken: data?.accessToken ?? "",
+                            provider: "facebook",
+                          })
+                          .then(() => accounts.refetch());
                       });
                     }
                   })
-                  .catch((error) =>
+                  .catch(() =>
                     showMessage({
                       message: "An error occurred using facebook",
                       type: "danger",
@@ -462,6 +523,35 @@ export default function EditProfile() {
               {accounts.data?.data.data.find(
                 (provider: { provider: string }) =>
                   provider.provider === "facebook",
+              )
+                ? "Unlink"
+                : "Link"}
+            </Text>
+          </Pressable>
+          <Pressable
+            className="flex-row bg-white px-2 gap-2 h-10 items-center justify-around rounded-lg"
+            onPress={() => {
+              if (
+                accounts.data?.data.data.find(
+                  (provider: { provider: string }) =>
+                    provider.provider === "google",
+                )
+              ) {
+                unLinkAccount
+                  .mutateAsync({
+                    provider: "google",
+                  })
+                  .then(() => accounts.refetch());
+              } else {
+                signInWithGoogle();
+              }
+            }}
+          >
+            <GoogleIcon width={20} height={20} source={GoogleIcon} />
+            <Text className="text-black text-lg">
+              {accounts.data?.data.data.find(
+                (provider: { provider: string }) =>
+                  provider.provider === "google",
               )
                 ? "Unlink"
                 : "Link"}
