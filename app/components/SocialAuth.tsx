@@ -28,9 +28,7 @@ interface SocialAuthProps {
   className?: string;
 }
 
-export default function SocialAuth(
-  props: SocialAuthProps,
-) {
+export default function SocialAuth(props: SocialAuthProps) {
   const login = useAuthStore((state) => state.login);
   const facebookLogin = useMutation({
     mutationFn: (data: { accessToken: string }) =>
@@ -75,6 +73,7 @@ export default function SocialAuth(
       router.replace("/");
     },
     onError: (error) => {
+      GoogleSignin.signOut();
       if (error instanceof XiorError) {
         showMessage({
           message: error.response?.data.message,
@@ -91,50 +90,47 @@ export default function SocialAuth(
     },
   });
 
-  const signInWithGoogle = useCallback(
-    () => async () => {
-      try {
-        await GoogleSignin.hasPlayServices();
-        const response = await GoogleSignin.signIn();
-        if (isSuccessResponse(response)) {
-          googleLogin.mutate({ idToken: response.data.idToken ?? "" });
-        } else {
-          showMessage({
-            message: "Sign in cancelled",
-            type: "warning",
-          });
-        }
-      } catch (error) {
-        if (isErrorWithCode(error)) {
-          switch (error.code) {
-            case statusCodes.IN_PROGRESS:
-              showMessage({
-                message: "Sign in in progress",
-                type: "warning",
-              });
-              break;
-            case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-              showMessage({
-                message: "Play services not available",
-                type: "warning",
-              });
-              break;
-            default:
-              showMessage({
-                message: "An error occurred",
-                type: "danger",
-              });
-          }
-        } else {
-          showMessage({
-            message: "An error occurred",
-            type: "danger",
-          });
-        }
+  const signInWithGoogle = useCallback(async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      if (isSuccessResponse(response)) {
+        googleLogin.mutate({ idToken: response.data.idToken ?? "" });
+      } else {
+        showMessage({
+          message: "Sign in cancelled",
+          type: "warning",
+        });
       }
-    },
-    [googleLogin],
-  );
+    } catch (error) {
+      if (isErrorWithCode(error)) {
+        switch (error.code) {
+          case statusCodes.IN_PROGRESS:
+            showMessage({
+              message: "Sign in in progress",
+              type: "warning",
+            });
+            break;
+          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+            showMessage({
+              message: "Play services not available",
+              type: "warning",
+            });
+            break;
+          default:
+            showMessage({
+              message: "An error occurred",
+              type: "danger",
+            });
+        }
+      } else {
+        showMessage({
+          message: "An error occurred",
+          type: "danger",
+        });
+      }
+    }
+  }, [googleLogin]);
 
   return (
     <View className={props.className}>
