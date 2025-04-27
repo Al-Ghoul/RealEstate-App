@@ -1,13 +1,24 @@
-import { router } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import * as React from "react";
 import { Image } from "react-native";
 import Onboarding from "react-native-onboarding-swiper";
+import * as SecureStore from "expo-secure-store";
 
 export default function GetStarted() {
   const { colorScheme } = useColorScheme();
+  const readOnboarding = SecureStore.getItem("readOnboarding") === "true";
+
+  if (readOnboarding) return <Redirect href="/login" />;
+
+  const done = () => {
+    SecureStore.setItemAsync("readOnboarding", "true");
+    router.replace("/login");
+  };
+
   return (
     <Onboarding
+      onSkip={done}
+      onDone={done}
       pages={[
         {
           backgroundColor: colorScheme === "dark" ? "#000" : "#fff",
@@ -48,8 +59,6 @@ export default function GetStarted() {
           },
         },
       ]}
-      onDone={() => router.push("/login")}
-      onSkip={() => router.push("/login")}
     />
   );
 }
