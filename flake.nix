@@ -7,6 +7,7 @@
       url = "github:divnix/std";
       inputs = {
         devshell.url = "github:numtide/devshell";
+        nixago.url = "github:nix-community/nixago";
       };
     };
   };
@@ -26,6 +27,7 @@
       };
       cellBlocks = with std.blockTypes; [
         (devshells "shells")
+        (nixago "configs")
       ];
     } {
     };
