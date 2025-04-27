@@ -10,6 +10,8 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, TouchableOpacity, View, Text } from "react-native";
 import { useColorScheme } from "nativewind";
+import { Image } from "expo-image";
+import { useCurrentUser } from "@/lib/queries/useCurrentUser";
 
 export default function TabLayout() {
   const session = useAuthStore((state) => state.session);
@@ -17,6 +19,7 @@ export default function TabLayout() {
   const login = useAuthStore((state) => state.login);
   const [isLoading, setIsLoading] = useState(true);
   const { toggleColorScheme, colorScheme } = useColorScheme();
+  const currentUser = useCurrentUser();
 
   useEffect(() => {
     if (session) addAuthHeader(session.accessToken);
@@ -136,7 +139,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="(user)/profile"
         options={{
           title: "Profile",
           headerTitleAlign: "center",
@@ -157,27 +160,37 @@ export default function TabLayout() {
             </View>
           ),
 
-          tabBarIcon: ({ color }) => (
-            <FontAwesome5 size={28} name="user" color={color} />
+          tabBarIcon: ({ focused }) => (
+            <View className="border-2 dark:border-white border-black rounded-full  justify-center">
+              <Image
+                style={{
+                  width: focused ? 20 :28,
+                  height: focused ? 20 : 28,
+                  borderRadius: 50,
+                }}
+                source={currentUser.data?.image}
+                transition={500}
+              />
+            </View>
           ),
         }}
       />
       <Tabs.Screen
-        name="edit-profile"
+        name="(user)/edit-profile"
         options={{
           title: "Edit Profile",
           href: null,
         }}
       />
       <Tabs.Screen
-        name="change-password"
+        name="(user)/change-password"
         options={{
           title: "Change Password",
           href: null,
         }}
       />
       <Tabs.Screen
-        name="set-password"
+        name="(user)/set-password"
         options={{
           title: "Set Password",
           href: null,

@@ -54,7 +54,7 @@ export default function RootLayout() {
               ),
             }}
           >
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(app)" options={{ headerShown: false }} />
             <Stack.Screen
               name="get-started"
               options={{ title: "Get-Started", headerShown: false }}

@@ -42,7 +42,7 @@ import {
   isSuccessResponse,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
-import GoogleIcon from "../../assets/icons/google-logo.svg";
+import GoogleIcon from "../../../assets/icons/google-logo.svg";
 
 export default function EditProfile() {
   const currentUser = useCurrentUser();
@@ -529,7 +529,7 @@ export default function EditProfile() {
             </Text>
           </Pressable>
           <Pressable
-            className="flex-row bg-white px-2 gap-2 h-10 items-center justify-around rounded-lg"
+            className="flex-row bg-white px-2 gap-2 h-10 items-center justify-around rounded-lg shadow-lg"
             onPress={() => {
               if (
                 accounts.data?.data.data.find(
