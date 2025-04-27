@@ -20,6 +20,7 @@ import { ProfileSkeleton } from "@/components/profile/Skeleton";
 import { router } from "expo-router";
 import GenericView from "@/components/GenericView";
 import { LoginManager } from "react-native-fbsdk-next";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 export default function Profile() {
   const logout = useAuthStore((state) => state.logout);
@@ -155,6 +156,7 @@ export default function Profile() {
             onPress={() => {
               logoutMutation.mutateAsync().finally(() => {
                 logout();
+                GoogleSignin.signOut();
                 LoginManager.logOut();
                 router.replace("/");
               });
