@@ -204,7 +204,7 @@ export default function EditProfile() {
 
   const accounts = useQuery({
     queryKey: ["accounts"],
-    queryFn: async () => xiorInstance.get("/auth/accounts"),
+    queryFn: async () => xiorInstance.get("/auth/me/accounts"),
   });
   const linkAccount = useMutation({
     mutationFn: (data: LinkAccountDTO) =>
@@ -235,7 +235,7 @@ export default function EditProfile() {
   const unLinkAccount = useMutation({
     mutationFn: (data: { provider: string }) =>
       xiorInstance.delete(`/auth/accounts/unlink/${data.provider}`),
-    onSuccess: (res) => {
+    onSuccess: () => {
       showMessage({
         message: "Account was unlinked successfully",
         type: "success",
