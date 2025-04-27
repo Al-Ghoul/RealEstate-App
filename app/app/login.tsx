@@ -54,7 +54,6 @@ export default function Login() {
       });
       const tokens = res.data.data as JWTPayload;
       login(tokens);
-      router.dismissAll();
       router.replace("/");
     },
     onError: (error) => {

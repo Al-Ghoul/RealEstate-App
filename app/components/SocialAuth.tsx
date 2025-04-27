@@ -40,7 +40,6 @@ export default function SocialAuth(props: SocialAuthProps) {
       });
       const tokens = res.data.data as JWTPayload;
       login(tokens);
-      router.dismissAll();
       router.replace("/");
     },
     onError: (error) => {
@@ -69,7 +68,6 @@ export default function SocialAuth(props: SocialAuthProps) {
       });
       const tokens = res.data.data as JWTPayload;
       login(tokens);
-      router.dismissAll();
       router.replace("/");
     },
     onError: (error) => {
@@ -165,7 +163,7 @@ export default function SocialAuth(props: SocialAuthProps) {
         </TouchableOpacity>
 
         <TouchableOpacity
-          className="bg-white items-center justify-center w-12 h-12 rounded-full"
+          className="bg-white items-center justify-center w-12 h-12 rounded-full shadow-lg shadow-black"
           onPress={signInWithGoogle}
         >
           <GoogleIcon width={20} height={20} source={GoogleIcon} />
