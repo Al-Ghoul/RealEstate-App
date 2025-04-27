@@ -23,7 +23,7 @@ import { useCurrentUser } from "@/lib/queries/useCurrentUser";
 
 export default function SetPassword() {
   const { colorScheme } = useColorScheme();
-  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const currentUser = useCurrentUser();
   const setUserPassword = useMutation({
     mutationKey: ["setPassword"],
@@ -35,7 +35,7 @@ export default function SetPassword() {
         type: "success",
       });
       reset();
-     currentUser.refetch(); 
+      currentUser.refetch();
       router.replace("/profile");
     },
     onError: (error) => {
@@ -71,7 +71,7 @@ export default function SetPassword() {
   } = useForm<SetPasswordInputDTO>({
     resolver: zodResolver(setPasswordInputDTO),
     defaultValues: {
-      newPassword: "",
+      password: "",
       confirmPassword: "",
     },
   });
@@ -139,28 +139,28 @@ export default function SetPassword() {
           render={({ field: { onChange, onBlur, value } }) => (
             <View className="flex-row dark:bg-white bg-black px-4 items-center h-12 rounded-3xl">
               <TextInput
-                id="newPassword"
+                id="password"
                 className="dark:text-black text-white placeholder:text-gray-500 h-full w-full"
                 onChangeText={onChange}
                 onBlur={onBlur}
                 value={value}
-                placeholder="New Password"
-                secureTextEntry={!showNewPassword}
+                placeholder="Password"
+                secureTextEntry={!showPassword}
               />
               <Feather
-                name={showNewPassword ? "eye-off" : "eye"}
+                name={showPassword ? "eye-off" : "eye"}
                 size={24}
-                onPress={() => setShowNewPassword(!showNewPassword)}
+                onPress={() => setShowPassword(!showPassword)}
                 color={colorScheme === "light" ? "#fff" : "#000"}
                 className="absolute right-2"
               />
             </View>
           )}
-          name="newPassword"
+          name="password"
         />
-        {errors.newPassword ? (
+        {errors.password ? (
           <Text className="text-red-500 text-center">
-            {errors.newPassword.message}
+            {errors.password.message}
           </Text>
         ) : null}
 
@@ -178,12 +178,12 @@ export default function SetPassword() {
                 onBlur={onBlur}
                 value={value}
                 placeholder="Confirm Password"
-                secureTextEntry={!showNewPassword}
+                secureTextEntry={!showPassword}
               />
               <Feather
-                name={showNewPassword ? "eye-off" : "eye"}
+                name={showPassword ? "eye-off" : "eye"}
                 size={24}
-                onPress={() => setShowNewPassword(!showNewPassword)}
+                onPress={() => setShowPassword(!showPassword)}
                 color={colorScheme === "light" ? "#fff" : "#000"}
                 className="absolute right-2"
               />

@@ -70,7 +70,7 @@ export default function ChangePassword() {
     resolver: zodResolver(changePasswordInputDTO),
     defaultValues: {
       currentPassword: "",
-      newPassword: "",
+      password: "",
       confirmPassword: "",
     },
   });
@@ -171,7 +171,7 @@ export default function ChangePassword() {
           render={({ field: { onChange, onBlur, value } }) => (
             <View className="flex-row dark:bg-white bg-black px-4 items-center h-12 rounded-3xl">
               <TextInput
-                id="newPassword"
+                id="password"
                 className="dark:text-black text-white placeholder:text-gray-500 h-full w-full"
                 onChangeText={onChange}
                 onBlur={onBlur}
@@ -188,11 +188,11 @@ export default function ChangePassword() {
               />
             </View>
           )}
-          name="newPassword"
+          name="password"
         />
-        {errors.newPassword ? (
+        {errors.password ? (
           <Text className="text-red-500 text-center">
-            {errors.newPassword.message}
+            {errors.password.message}
           </Text>
         ) : null}
 
