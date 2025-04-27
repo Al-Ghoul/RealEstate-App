@@ -3,7 +3,6 @@
   cell,
 }: let
   inherit (inputs.std) lib std;
-  pkgs = inputs.nixpkgs.appendOverlays [inputs.nixgl.overlay];
 in
   builtins.mapAttrs (_: lib.dev.mkShell) {
     # Tool Homepage: https://numtide.github.io/devshell/
@@ -32,17 +31,6 @@ in
           package = androidComposition.platform-tools;
         }
 
-        {
-          package = pkgs.nixgl.nixGLIntel;
-          help = "NixGL for Intel graphics cards";
-        }
-
-        {
-          name = "dev";
-          command = "nixGLIntel $android/bin/run-test-emulator && npm run android";
-          help = "Starts the emulator and builds & runs the app.";
-        }
-
         {package = inputs.nixpkgs.jdk17;}
       ];
 
@@ -60,21 +48,6 @@ in
         {
           name = "ANDROID_NDK_ROOT";
           value = "${androidComposition.androidsdk}/libexec/android-sdk/ndk-bundle";
-        }
-
-        {
-          name = "android";
-          value = inputs.nixpkgs.androidenv.emulateApp {
-            configOptions = {
-              "hw.gpu.enabled" = "yes";
-            }; # Enable GPU acceleration
-            name = "AlGhoul's-Emulator";
-            platformVersion = "29";
-            abiVersion = "x86";
-            systemImageType = "google_apis_playstore";
-            # Resolution could be anything you want, keep the others if your Hardware supports KVM (for better performance)
-            androidEmulatorFlags = "-skin 480x800 -accel on -gpu host -qemu -enable-kvm";
-          };
         }
       ];
     };

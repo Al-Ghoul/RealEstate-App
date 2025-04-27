@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixpkgs-unstable";
-    nixgl.url = "github:guibou/nixGL";
     std = {
       url = "github:divnix/std";
       inputs = {
