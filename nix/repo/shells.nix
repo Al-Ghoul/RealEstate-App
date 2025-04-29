@@ -17,6 +17,11 @@ in
         includeNDK = true;
         ndkVersion = "26.1.10909125";
         cmakeVersions = ["3.22.1"];
+        useGoogleAPIs = false;
+        useGoogleTVAddOns = false;
+        includeEmulator = false;
+        includeSources = false;
+        includeSystemImages = false;
       };
     in {
       name = "Real-Estate App Dev Shell";
