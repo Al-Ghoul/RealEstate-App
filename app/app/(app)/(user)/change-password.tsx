@@ -2,7 +2,10 @@ import { useMutation } from "@tanstack/react-query";
 import { xiorInstance } from "@/lib/fetcher";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { changePasswordInputDTO, type ChangePasswordInputDTO } from "@/lib/dtos";
+import {
+  changePasswordInputDTO,
+  type ChangePasswordInputDTO,
+} from "@/lib/dtos";
 import {
   TextInput,
   Text,

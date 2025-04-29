@@ -164,7 +164,7 @@ export default function TabLayout() {
             <View className="border-2 dark:border-white border-black rounded-full  justify-center">
               <Image
                 style={{
-                  width: focused ? 20 :28,
+                  width: focused ? 20 : 28,
                   height: focused ? 20 : 28,
                   borderRadius: 50,
                 }}
