@@ -1,0 +1,39 @@
+name: Development Checks Pipeline
+
+on:
+  pull_request:
+    branches:
+      - develop
+  push:
+    branches:
+      - develop
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: std-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  discover:
+    outputs:
+      hits: ${{ steps.discovery.outputs.hits }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: nixbuild/nix-quick-install-action@master
+      - uses: divnix/std-action/discover@main
+        id: discovery
+
+  build:
+    needs: discover
+    name: ${{ matrix.target.jobName }}
+    runs-on: ubuntu-latest
+    if: fromJSON(needs.discover.outputs.hits).jobs.build != '{}'
+    strategy:
+      matrix:
+        target: ${{ fromJSON(needs.discover.outputs.hits).jobs.build }}
+    steps:
+      - uses: nixbuild/nix-quick-install-action@master
+      - uses: divnix/std-action/run@main
