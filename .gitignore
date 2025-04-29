@@ -4,3 +4,5 @@
 /lefthook.yml
 /.conform.yaml
 /treefmt.toml
+.cache
+result
