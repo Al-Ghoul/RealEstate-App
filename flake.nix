@@ -28,6 +28,9 @@
       cellBlocks = with std.blockTypes; [
         (devshells "shells")
         (nixago "configs")
+        (installables "packages")
+
+        (runnables "jobs" {ci.build = true;})
       ];
     } {
     };
