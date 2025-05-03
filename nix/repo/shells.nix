@@ -37,6 +37,7 @@ in
 
       commands = [
         {package = inputs.nixpkgs.nodejs;}
+        {package = inputs.nixpkgs.bun;}
 
         {
           # Expose platform tools (aka adb & other executables)
