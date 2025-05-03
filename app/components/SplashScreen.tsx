@@ -1,5 +1,6 @@
 import LottieView from "lottie-react-native";
 import { StyleSheet } from "react-native";
+import { useTheme } from "react-native-paper";
 import Animated, { FadeOut } from "react-native-reanimated";
 
 interface AnimatedScreenProps {
@@ -9,11 +10,14 @@ interface AnimatedScreenProps {
 export default function AnimationScreen({
   setShowAnimation,
 }: AnimatedScreenProps) {
+  const theme = useTheme();
   return (
     <Animated.View
       exiting={FadeOut.duration(1000)}
-      style={styles.animationContainer}
-      className="dark:bg-black bg-white"
+      style={[
+        styles.animationContainer,
+        { backgroundColor: theme.colors.background },
+      ]}
     >
       <LottieView
         autoPlay

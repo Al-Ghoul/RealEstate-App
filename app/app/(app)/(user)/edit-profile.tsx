@@ -1,171 +1,73 @@
-import { useCurrentUser } from "@/lib/queries/useCurrentUser";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { xiorInstance } from "@/lib/fetcher";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  updateProfileInputDTO,
-  verifyInputDTO,
-  type VerifyInputDTO,
-  type UpdateProfileInputDTO,
-  type LinkAccountDTO,
-} from "@/lib/dtos";
+  useCurrentUser,
+  useCurrentUserProfile,
+  useUserAccounts,
+} from "@/lib/queries/user";
 import {
-  TextInput,
-  Text,
-  View,
   TouchableOpacity,
   Alert,
   BackHandler,
   ScrollView,
   RefreshControl,
-  Pressable,
+  View,
+  Text,
 } from "react-native";
-import Feather from "@expo/vector-icons/Feather";
 import { Image } from "expo-image";
-import { useColorScheme } from "nativewind";
-import { useCallback, useEffect, useRef } from "react";
-import { router, Tabs } from "expo-router";
+import React, { useCallback, useEffect, useRef } from "react";
+import { router, Tabs, usePathname } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { showMessage } from "react-native-flash-message";
-import { XiorError } from "xior";
 import { ProfileSkeleton } from "@/components/profile/Skeleton";
-import GenericView from "@/components/GenericView";
+import GenericView from "@/components/WaveDecoratedView";
 import { TrueSheet } from "@lodev09/react-native-true-sheet";
-import VerificationViews from "@/components/VerificationViews";
-import Octicons from "@expo/vector-icons/Octicons";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { AccessToken, LoginManager } from "react-native-fbsdk-next";
+import LinkAccounts from "@/components/profile/LinkAccounts";
+import EmailVerification from "@/components/profile/EmailVerification";
+import ChangeEmail from "@/components/profile/ChangeEmail";
+import UpdateUserProfile from "@/components/profile/UpdateUserProfile";
+import { useForm } from "react-hook-form";
 import {
-  GoogleSignin,
-  isErrorWithCode,
-  isSuccessResponse,
-  statusCodes,
-} from "@react-native-google-signin/google-signin";
-import GoogleIcon from "../../../assets/icons/google-logo.svg";
+  updateEmailDTO,
+  updateProfileDTO,
+  type UpdateProfileDTO,
+  type UpdateEmailDTO,
+} from "@/lib/dtos";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Banner, Divider, useTheme } from "react-native-paper";
 
 export default function EditProfile() {
+  const currentPath = usePathname();
   const currentUser = useCurrentUser();
+  const currentUserProfile = useCurrentUserProfile();
+  const accounts = useUserAccounts();
+  const theme = useTheme();
   const sheet = useRef<TrueSheet>(null);
-  const { colorScheme } = useColorScheme();
-  const updateUserProfile = useMutation({
-    mutationKey: ["profileImage"],
-    mutationFn: async (data: UpdateProfileInputDTO) =>
-      await xiorInstance.patch("/users/me", data),
-    onSuccess: () => {
-      showMessage({
-        message: "Updated successfully",
-        type: "success",
-      });
-      router.replace("/profile");
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        if (
-          typeof error.response?.data === "object" &&
-          "errors" in error.response?.data
-        ) {
-          error.response?.data.errors.map((error: { message: string }) =>
-            setError("root", { message: error.message }),
-          );
-        } else {
-          showMessage({
-            message: error.response?.data.message || "An error occurred",
-            type: "warning",
-          });
-        }
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-        });
-      }
-    },
-  });
-  const requestEmailVerificationCode = useMutation({
-    mutationKey: ["requestEmailVerificationCode"],
-    mutationFn: async () =>
-      await xiorInstance.post("/auth/request-email-verification-code"),
-    onSuccess: () => {
-      showMessage({
-        message: "Verification code sent successfully",
-        type: "success",
-      });
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        showMessage({
-          message: error.response?.data.message || "An error occurred",
-          type: "warning",
-        });
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-        });
-      }
-    },
-  });
   const {
-    control: emailVerificationControl,
-    handleSubmit: handleEmailVerificationSubmit,
-    formState: { errors: emailVerificationErrors },
-    setError: setEmailVerificationError,
-  } = useForm<VerifyInputDTO>({
-    resolver: zodResolver(verifyInputDTO),
-  });
-  const verifyEmail = useMutation({
-    mutationKey: ["verifyEmail"],
-    mutationFn: async (data: VerifyInputDTO) =>
-      await xiorInstance.post("/auth/verify", data),
-    onSuccess: () => {
-      showMessage({
-        message: "Email was verified successfully",
-        type: "success",
-      });
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        if (
-          typeof error.response?.data === "object" &&
-          "errors" in error.response?.data
-        ) {
-          error.response?.data.errors.map((error: { message: string }) =>
-            setEmailVerificationError("root", { message: error.message }),
-          );
-        } else {
-          showMessage({
-            message: error.response?.data.message || "An error occurred",
-            type: "warning",
-          });
-        }
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-        });
-      }
-    },
-  });
-  const {
-    control,
-    handleSubmit,
-    formState: { errors, isDirty },
-    setError,
-    reset,
-  } = useForm<UpdateProfileInputDTO>({
+    control: updateEmailControl,
+    handleSubmit: updateEmailHandleSubmit,
+    formState: { isDirty: updateEmailIsDirty },
+    reset: updateEmailReset,
+  } = useForm<UpdateEmailDTO>({
     values: {
       email: currentUser.data?.email ?? "",
-      firstName: currentUser.data?.firstName ?? "",
-      lastName: currentUser.data?.lastName ?? "",
     },
-    resolver: zodResolver(updateProfileInputDTO),
+    resolver: zodResolver(updateEmailDTO),
   });
+
+  const {
+    control: profileControl,
+    handleSubmit: profileHandleSubmit,
+    formState: { isDirty: profileIsDirty },
+    reset: profileReset,
+  } = useForm<UpdateProfileDTO>({
+    values: {
+      firstName: currentUserProfile.data?.firstName ?? "",
+      lastName: currentUserProfile.data?.lastName ?? "",
+      bio: currentUserProfile.data?.bio ?? "",
+    },
+    resolver: zodResolver(updateProfileDTO),
+  });
+
   const backAction = useCallback(() => {
-    if (isDirty) {
+    if (updateEmailIsDirty || profileIsDirty) {
       Alert.alert(
         "Unsaved changes",
         "Are you sure you want to discard these changes?",
@@ -178,7 +80,8 @@ export default function EditProfile() {
           {
             text: "Discard",
             onPress: () => {
-              reset();
+              updateEmailReset();
+              profileReset();
               router.replace("/profile");
             },
           },
@@ -188,7 +91,7 @@ export default function EditProfile() {
       router.replace("/profile");
     }
     return true;
-  }, [isDirty, reset]);
+  }, [updateEmailIsDirty, updateEmailReset, profileIsDirty, profileReset]);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -199,113 +102,16 @@ export default function EditProfile() {
   }, [backAction]);
 
   useEffect(() => {
-    if (!currentUser.data?.emailVerified) sheet.current?.present();
-  }, [currentUser.data, currentUser.data?.emailVerified]);
-
-  const accounts = useQuery({
-    queryKey: ["accounts"],
-    queryFn: async () => xiorInstance.get("/auth/me/accounts"),
-  });
-  const linkAccount = useMutation({
-    mutationFn: (data: LinkAccountDTO) =>
-      xiorInstance.post("/auth/accounts/link", data),
-    onSuccess: () => {
-      showMessage({
-        message: "Account was linked successfully",
-        type: "success",
-      });
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        showMessage({
-          message: error.response?.data.message,
-          description: error.response?.data.details,
-          type: "warning",
-        });
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-        });
-      }
-    },
-  });
-
-  const unLinkAccount = useMutation({
-    mutationFn: (data: { provider: string }) =>
-      xiorInstance.delete(`/auth/accounts/unlink/${data.provider}`),
-    onSuccess: () => {
-      showMessage({
-        message: "Account was unlinked successfully",
-        type: "success",
-      });
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        showMessage({
-          message: error.response?.data.message,
-          description: error.response?.data.details,
-          type: "warning",
-        });
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-        });
-      }
-    },
-  });
-
-  const signInWithGoogle = useCallback(async () => {
-    try {
-      await GoogleSignin.hasPlayServices();
-      const response = await GoogleSignin.signIn();
-      if (isSuccessResponse(response)) {
-        linkAccount
-          .mutateAsync({
-            provider: "google",
-            idToken: response.data.idToken ?? "",
-          })
-          .then(() => {
-            accounts.refetch();
-          });
-      } else {
-        showMessage({
-          message: "Sign in cancelled",
-          type: "warning",
-        });
-      }
-    } catch (error) {
-      if (isErrorWithCode(error)) {
-        switch (error.code) {
-          case statusCodes.IN_PROGRESS:
-            showMessage({
-              message: "Sign in in progress",
-              type: "warning",
-            });
-            break;
-          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-            showMessage({
-              message: "Play services not available",
-              type: "warning",
-            });
-            break;
-          default:
-            showMessage({
-              message: "An error occurred",
-              type: "danger",
-            });
-        }
-      } else {
-        showMessage({
-          message: "An error occurred",
-          type: "danger",
-        });
-      }
+    if (!currentUser.data?.emailVerified && currentPath === "/edit-profile") {
+      sheet.current?.present();
     }
-  }, [linkAccount, accounts]);
+  }, [currentUser.data?.emailVerified, currentPath]);
+
+  const onRefresh = () => {
+    accounts.refetch();
+    currentUser.refetch();
+    currentUserProfile.refetch();
+  };
 
   return (
     <GenericView>
@@ -314,13 +120,18 @@ export default function EditProfile() {
           title: "Edit Profile",
           headerLeft: () => (
             <TouchableOpacity
-              className="items-center justify-center w-10 h-10 rounded-full"
+              style={{
+                width: 40,
+                height: 40,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
               onPress={backAction}
             >
               <Ionicons
                 name="arrow-back"
                 size={18}
-                color={colorScheme === "light" ? "#000" : "#fff"}
+                color={theme.colors.primary}
               />
             </TouchableOpacity>
           ),
@@ -328,327 +139,112 @@ export default function EditProfile() {
         }}
       />
       <ScrollView
-        className="flex-1"
         refreshControl={
           <RefreshControl
-            refreshing={currentUser.isLoading}
-            onRefresh={() => {
-              accounts.refetch();
-              currentUser.refetch();
-            }}
+            refreshing={
+              currentUser.isLoading ||
+              currentUser.isFetching ||
+              accounts.isLoading ||
+              accounts.isFetching ||
+              currentUserProfile.isLoading ||
+              currentUserProfile.isFetching
+            }
+            onRefresh={onRefresh}
           />
         }
       >
-        {currentUser.isLoading ? (
-          <View className="h-36 mx-auto">
-            <ProfileSkeleton />
-          </View>
-        ) : (
-          <View className="mx-4 gap-8">
-            <Image
-              source={currentUser.data?.image}
+        <Banner
+          visible={
+            (currentUser.isError ||
+              currentUserProfile.isError ||
+              accounts.isError) &&
+            (!currentUser.isFetching ||
+              !currentUserProfile.isFetching ||
+              !accounts.isFetching)
+          }
+          style={{
+            backgroundColor: theme.colors.error,
+            marginBottom: 8,
+          }}
+          theme={{
+            colors: {
+              primary: theme.colors.onError,
+            },
+          }}
+          actions={[
+            {
+              label: "Retry",
+              onPress: onRefresh,
+            },
+          ]}
+        >
+          <Text style={{ color: theme.colors.onError }}>
+            {currentUser.isError
+              ? "An error occurred while fetching user data"
+              : currentUserProfile.isError
+              ? "An error occurred while fetching user profile data"
+              : accounts.isError
+              ? "An error occurred while fetching user accounts data"
+              : null}
+          </Text>
+        </Banner>
+
+        <View
+          style={{
+            gap: 24,
+            marginHorizontal: 8,
+          }}
+        >
+          {currentUser.isLoading ? (
+            <View style={{ alignItems: "center" }}>
+              <ProfileSkeleton />
+            </View>
+          ) : (
+            <View
               style={{
-                width: 96,
-                height: 96,
-                borderRadius: 100,
-                marginHorizontal: "auto",
+                marginHorizontal: 8,
               }}
-              transition={500}
-            />
-
-            <Controller
-              control={control}
-              rules={{
-                required: true,
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <View className="flex-row dark:bg-white bg-black px-4 items-center h-12 rounded-3xl">
-                  <TextInput
-                    id="email"
-                    className="dark:text-black text-white placeholder:text-gray-500 h-full w-full"
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                    placeholder="Email"
-                    keyboardType="email-address"
-                  />
-                  {!currentUser.data?.emailVerified ? (
-                    <TouchableOpacity
-                      className="dark:bg-black bg-white disabled:bg-gray-500 w-28 h-8 rounded-lg absolute right-20"
-                      onPress={() => sheet.current?.present()}
-                      disabled={
-                        currentUser.isLoading ||
-                        !!currentUser.data?.emailVerified
-                      }
-                    >
-                      <Text className="text-center my-auto dark:text-white text-black">
-                        Verify
-                      </Text>
-                    </TouchableOpacity>
-                  ) : null}
-                  <Feather
-                    name="mail"
-                    size={24}
-                    color={colorScheme === "light" ? "#fff" : "#000"}
-                    className="absolute right-2"
-                  />
-                </View>
-              )}
-              name="email"
-            />
-            {errors.email ? (
-              <Text className="text-red-500 text-center">
-                {errors.email.message}
-              </Text>
-            ) : null}
-
-            <Controller
-              control={control}
-              rules={{
-                required: true,
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <View className="flex-row dark:bg-white bg-black px-4 items-center h-12 rounded-3xl">
-                  <TextInput
-                    id="firstName"
-                    className="dark:text-black text-white placeholder:text-gray-500 h-full w-full"
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                    placeholder="First Name"
-                  />
-                  <Feather
-                    name="user"
-                    size={24}
-                    color={colorScheme === "light" ? "#fff" : "#000"}
-                    className="absolute right-2"
-                  />
-                </View>
-              )}
-              name="firstName"
-            />
-            {errors.firstName ? (
-              <Text className="text-red-500 text-center">
-                {errors.firstName.message}
-              </Text>
-            ) : null}
-
-            <Controller
-              control={control}
-              rules={{
-                required: true,
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <View className="flex-row dark:bg-white bg-black px-4 items-center h-12 rounded-3xl">
-                  <TextInput
-                    id="lastName"
-                    className="dark:text-black text-white placeholder:text-gray-500 h-full w-full"
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                    placeholder="Last Name"
-                  />
-                  <Feather
-                    name="user"
-                    size={24}
-                    color={colorScheme === "light" ? "#fff" : "#000"}
-                    className="absolute right-2"
-                  />
-                </View>
-              )}
-              name="lastName"
-            />
-            {errors.lastName ? (
-              <Text className="text-red-500 text-center">
-                {errors.lastName.message}
-              </Text>
-            ) : null}
-
-            <TouchableOpacity
-              className="self-center dark:bg-white bg-black disabled:bg-gray-500 w-32 h-8 rounded-lg"
-              onPress={handleSubmit((data) =>
-                updateUserProfile
-                  .mutateAsync(data)
-                  .then(() => currentUser.refetch()),
-              )}
-              disabled={!isDirty || updateUserProfile.isPending}
             >
-              <Text className="text-center my-auto dark:text-black text-white">
-                Save Changes
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+              <Image
+                source={currentUserProfile.data?.image}
+                style={{
+                  width: 96,
+                  height: 96,
+                  borderRadius: 100,
+                  marginHorizontal: "auto",
+                }}
+                transition={500}
+              />
+            </View>
+          )}
 
-        <View className="flex-row m-4 mx-auto gap-2">
-          <Pressable
-            className="flex-row bg-blue-500 px-2 gap-2 h-10 items-center justify-around rounded-lg"
-            onPress={() => {
-              if (
-                accounts.data?.data.data.find(
-                  (provider: { provider: string }) =>
-                    provider.provider === "facebook",
-                )
-              ) {
-                unLinkAccount
-                  .mutateAsync({
-                    provider: "facebook",
-                  })
-                  .then(() => accounts.refetch());
-              } else {
-                LoginManager.logInWithPermissions(["public_profile", "email"])
-                  .then((result) => {
-                    if (!result.isCancelled) {
-                      AccessToken.getCurrentAccessToken().then((data) => {
-                        linkAccount
-                          .mutateAsync({
-                            accessToken: data?.accessToken ?? "",
-                            provider: "facebook",
-                          })
-                          .then(() => accounts.refetch());
-                      });
-                    }
-                  })
-                  .catch(() =>
-                    showMessage({
-                      message: "An error occurred using facebook",
-                      type: "danger",
-                    }),
-                  );
-              }
-            }}
-          >
-            <FontAwesome5 name="facebook-f" size={20} color="#FFF" />
-            <Text className="text-white text-lg">
-              {accounts.data?.data.data.find(
-                (provider: { provider: string }) =>
-                  provider.provider === "facebook",
-              )
-                ? "Unlink"
-                : "Link"}
-            </Text>
-          </Pressable>
-          <Pressable
-            className="flex-row bg-white px-2 gap-2 h-10 items-center justify-around rounded-lg shadow-lg"
-            onPress={() => {
-              if (
-                accounts.data?.data.data.find(
-                  (provider: { provider: string }) =>
-                    provider.provider === "google",
-                )
-              ) {
-                unLinkAccount
-                  .mutateAsync({
-                    provider: "google",
-                  })
-                  .then(() => accounts.refetch());
-              } else {
-                signInWithGoogle();
-              }
-            }}
-          >
-            <GoogleIcon width={20} height={20} source={GoogleIcon} />
-            <Text className="text-black text-lg">
-              {accounts.data?.data.data.find(
-                (provider: { provider: string }) =>
-                  provider.provider === "google",
-              )
-                ? "Unlink"
-                : "Link"}
-            </Text>
-          </Pressable>
+          <ChangeEmail
+            sheet={sheet}
+            control={updateEmailControl}
+            handleSubmit={updateEmailHandleSubmit}
+            isDirty={updateEmailIsDirty}
+          />
+
+          <Divider style={{ flex: 1, marginHorizontal: 16 }} />
+
+          <UpdateUserProfile
+            control={profileControl}
+            handleSubmit={profileHandleSubmit}
+            isDirty={profileIsDirty}
+          />
+          <LinkAccounts />
         </View>
       </ScrollView>
       <TrueSheet
         ref={sheet}
         sizes={["small"]}
         cornerRadius={20}
+        backgroundColor={theme.colors.background}
         contentContainerStyle={{
-          flex: 1,
-          borderRadius: 20,
-          backgroundColor: colorScheme === "light" ? "#000" : "#fff",
+          padding: 16,
         }}
       >
-        <VerificationViews
-          view1={({ switchView }) => (
-            <View className="flex-row mx-auto my-auto gap-4">
-              <TouchableOpacity
-                className="dark:bg-black bg-white px-4 py-2 rounded-lg"
-                onPress={() => {
-                  requestEmailVerificationCode.mutate();
-                  switchView("view2");
-                }}
-              >
-                <Text className="dark:text-white text-black">Send Code</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="border border-red-800 px-4 py-2 rounded-lg"
-                onPress={() => sheet.current?.dismiss()}
-              >
-                <Text className="dark:text-black text-white text-center">
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-          view2={() => (
-            <View className="flex-1 mx-4 my-auto gap-4">
-              <Controller
-                control={emailVerificationControl}
-                rules={{
-                  required: true,
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <View className="flex-row px-4 items-center h-12 rounded-3xl mx-8 dark:bg-black bg-white">
-                    <TextInput
-                      id="code"
-                      className="dark:text-white text-black placeholder:text-gray-500 h-full w-full"
-                      onChangeText={onChange}
-                      onBlur={onBlur}
-                      value={value}
-                      placeholder="Verification Code"
-                    />
-                    <Octicons
-                      name="number"
-                      size={24}
-                      color={colorScheme === "light" ? "#000" : "#fff"}
-                      className="absolute right-2"
-                    />
-                  </View>
-                )}
-                name="code"
-              />
-              {emailVerificationErrors.code ? (
-                <Text className="text-red-500 text-center">
-                  {emailVerificationErrors.code.message}
-                </Text>
-              ) : null}
-              <View className="flex-row mx-auto gap-4">
-                <TouchableOpacity
-                  className="w-24 dark:bg-black bg-white px-4 py-2 rounded-lg"
-                  onPress={handleEmailVerificationSubmit((data) =>
-                    verifyEmail
-                      .mutateAsync(data)
-                      .then(() => sheet.current?.dismiss()),
-                  )}
-                >
-                  <Text className="dark:text-white text-black text-center">
-                    Verify
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  className="border border-red-800 px-4 py-2 rounded-lg"
-                  onPress={() => sheet.current?.dismiss()}
-                >
-                  <Text className="dark:text-black text-white text-center">
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-        />
+        <EmailVerification sheet={sheet} />
       </TrueSheet>
     </GenericView>
   );

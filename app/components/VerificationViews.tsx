@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, Dimensions } from "react-native";
+import { Dimensions, View, Text } from "react-native";
+import { useTheme } from "react-native-paper";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -11,7 +12,9 @@ interface VerificationViewsProps {
   view1: (props: { switchView: (view: string) => void }) => React.ReactNode;
   view2: (props: { switchView: (view: string) => void }) => React.ReactNode;
 }
+
 const ViewTransition = ({ view1, view2 }: VerificationViewsProps) => {
+  const theme = useTheme();
   const offset = useSharedValue(0);
   const width = Dimensions.get("window").width;
 
@@ -50,17 +53,26 @@ const ViewTransition = ({ view1, view2 }: VerificationViewsProps) => {
   });
 
   return (
-    <View className="flex-1 mt-4 dark:bg-white bg-black">
-      <Animated.View style={view1Style} className="flex-1">
-        <Text className="dark:text-black text-white text-2xl mx-auto">
+    <View
+      style={{
+        backgroundColor: theme.colors.background,
+        marginTop: 8,
+      }}
+    >
+      <Animated.View style={view1Style}>
+        <Text
+          style={{
+            textAlign: "center",
+            fontSize: 18,
+            color: theme.colors.secondary,
+          }}
+        >
           Email is not verified
         </Text>
         {view1({ switchView })}
       </Animated.View>
 
-      <Animated.View style={view2Style} className="flex-1">
-        {view2({ switchView })}
-      </Animated.View>
+      <Animated.View style={view2Style}>{view2({ switchView })}</Animated.View>
     </View>
   );
 };

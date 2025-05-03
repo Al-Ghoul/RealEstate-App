@@ -1,32 +1,29 @@
 import { xiorInstance } from "@/lib/fetcher";
-import { useAuthStore } from "@/lib/stores/authStore";
 import { useMutation } from "@tanstack/react-query";
 import {
-  Pressable,
   RefreshControl,
   ScrollView,
-  Text,
   TouchableOpacity,
   View,
+  Text,
 } from "react-native";
 import { Image } from "expo-image";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { useColorScheme } from "nativewind";
-import { useCurrentUser } from "@/lib/queries/useCurrentUser";
+import { useCurrentUser, useCurrentUserProfile } from "@/lib/queries/user";
 import { ProfileSkeleton } from "@/components/profile/Skeleton";
-import { router } from "expo-router";
-import GenericView from "@/components/GenericView";
-import { LoginManager } from "react-native-fbsdk-next";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import GenericView from "@/components/WaveDecoratedView";
+import ProfileImage from "@/components/profile/Image";
+import { Banner, Button, Divider, useTheme } from "react-native-paper";
+import { XiorError } from "xior";
+import { showMessage } from "react-native-flash-message";
 
 export default function Profile() {
-  const logout = useAuthStore((state) => state.logout);
-  const { colorScheme } = useColorScheme();
   const currentUser = useCurrentUser();
-
+  const currentUserProfile = useCurrentUserProfile();
+  const theme = useTheme();
   const updateUserProfileImage = useMutation({
     mutationKey: ["profileImage"],
     mutationFn: async () => {
@@ -37,12 +34,34 @@ export default function Profile() {
         type: image?.mimeType,
         name: image?.fileName,
       });
-      return await xiorInstance.put("/users/me/profile-image", formData);
+      const res = await xiorInstance.put("/users/me/profile/image", formData);
+      return res.data.data;
+    },
+    onError: (error) => {
+      if (error instanceof XiorError) {
+        showMessage({
+          message: error.response?.data.message,
+          description: error.response?.data.details,
+          type: "warning",
+          style: {
+            backgroundColor: theme.colors.secondaryContainer,
+          },
+        });
+      } else {
+        showMessage({
+          message: "An error occurred",
+          description: error.message,
+          type: "danger",
+          style: {
+            backgroundColor: theme.colors.errorContainer,
+          },
+        });
+      }
     },
   });
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [1, 1],
@@ -53,119 +72,198 @@ export default function Profile() {
       setImage(result.assets[0]);
     }
   };
-  const logoutMutation = useMutation({
-    mutationFn: async () => await xiorInstance.post("/auth/logout"),
-  });
+
+  const onRefresh = () => {
+    currentUser.refetch();
+    currentUserProfile.refetch();
+  };
 
   return (
     <GenericView>
       <ScrollView
-        className="flex-1"
+        contentContainerStyle={{
+          marginTop: 40,
+        }}
         refreshControl={
           <RefreshControl
-            refreshing={currentUser.isLoading}
-            onRefresh={currentUser.refetch}
+            refreshing={
+              currentUser.isLoading ||
+              currentUserProfile.isLoading ||
+              currentUser.isFetching ||
+              currentUserProfile.isFetching
+            }
+            onRefresh={onRefresh}
           />
         }
       >
+        <Banner
+          visible={
+            (currentUser.isError || currentUserProfile.isError) &&
+            (!currentUser.isFetching || !currentUserProfile.isFetching)
+          }
+          style={{
+            backgroundColor: theme.colors.error,
+            marginBottom: 8,
+          }}
+          theme={{
+            colors: {
+              primary: theme.colors.onError,
+            },
+          }}
+          actions={[
+            {
+              label: "Retry",
+              onPress: onRefresh,
+            },
+          ]}
+        >
+          <Text
+            style={{
+              color: theme.colors.onError,
+            }}
+          >
+            {currentUser.isError
+              ? "An error occurred while fetching user data"
+              : currentUserProfile.isError
+              ? "An error occurred while fetching user profile data"
+              : null}
+          </Text>
+        </Banner>
         {currentUser.isLoading ? (
-          <View className="h-36 mx-auto">
+          <View style={{ alignItems: "center" }}>
             <ProfileSkeleton />
           </View>
         ) : (
-          <View className="items-center gap-2">
-            <View>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              gap: 24,
+            }}
+          >
+            <View
+              style={{
+                gap: 8,
+              }}
+            >
               {image ? (
                 <TouchableOpacity
                   onPress={() => setImage(null)}
-                  className="z-10"
+                  style={{
+                    width: 96,
+                    height: 96,
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    borderRadius: 50,
+                    position: "absolute",
+                    zIndex: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  <Feather
-                    name="x"
-                    size={24}
-                    color={"white"}
-                    className="absolute self-center top-10"
-                  />
+                  <Feather name="x" size={24} color="white" />
                 </TouchableOpacity>
               ) : null}
 
-              <Image
-                source={image ? { uri: image.uri } : currentUser.data?.image}
-                style={{
-                  width: 96,
-                  height: 96,
-                  borderRadius: 50,
-                  marginHorizontal: "auto",
-                }}
-                transition={500}
-              />
-
-              {image ? (
-                <View className="absolute w-28 h-28 rounded-full bg-black/30" />
-              ) : null}
-              <View className="dark:bg-gray-900 bg-gray-300 absolute bottom-0 right-0 justify-center w-9 h-9 rounded-full">
-                <TouchableOpacity onPress={pickImage}>
-                  <MaterialCommunityIcons
-                    name="camera-plus"
-                    size={18}
-                    color={colorScheme === "light" ? "black" : "white"}
-                    className="mx-auto"
+              <View style={{ width: 96, height: 96, borderRadius: 50 }}>
+                {image ? (
+                  <Image
+                    source={{ uri: image.uri }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: 50,
+                    }}
+                    transition={500}
                   />
-                </TouchableOpacity>
+                ) : (
+                  <ProfileImage />
+                )}
+                {!image ? (
+                  <TouchableOpacity
+                    onPress={pickImage}
+                    style={{
+                      position: "absolute",
+                      width: 32,
+                      height: 32,
+                      bottom: 0,
+                      right: 0,
+                      backgroundColor: theme.colors.onPrimary,
+                      borderRadius: 50,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <MaterialCommunityIcons
+                      name="camera-plus"
+                      size={18}
+                      color={theme.colors.primary}
+                    />
+                  </TouchableOpacity>
+                ) : null}
               </View>
             </View>
-            <Text className="dark:text-white text-black">
-              {currentUser.data?.firstName} {currentUser.data?.lastName}
-            </Text>
-          </View>
-        )}
-        <View className="flex-1 gap-8 mt-4">
-          {image ? (
-            <Pressable
-              className="self-center dark:bg-white bg-black disabled:bg-gray-500 h-10 px-2 rounded-lg"
-              disabled={!image}
-              onPress={() => {
-                updateUserProfileImage.mutateAsync().then(() => {
-                  Image.clearDiskCache();
-                  setImage(null);
-                  currentUser.refetch();
-                });
+
+            <View
+              style={{
+                marginTop: 4,
               }}
             >
-              <Text className="text-center my-auto dark:text-black text-white">
-                Save image
+              <Text
+                style={{
+                  color: theme.colors.onBackground,
+                  fontWeight: "bold",
+                }}
+              >
+                {currentUserProfile.data?.firstName}{" "}
+                {currentUserProfile.data?.lastName}
               </Text>
-            </Pressable>
+              <Text
+                style={{
+                  color: theme.colors.onBackground,
+                  width: 300,
+                }}
+              >
+                {currentUserProfile.data?.bio?.replace(/\\n/g, "\n")}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        <Divider
+          style={{
+            flex: 1,
+            marginTop: 8,
+          }}
+        />
+
+        <View
+          style={{
+            flex: 1,
+            gap: 8,
+            marginTop: 40,
+          }}
+        >
+          {image ? (
+            <Button
+              style={{
+                marginHorizontal: "auto",
+                width: 150,
+                borderRadius: 8,
+              }}
+              buttonColor={theme.colors.primary}
+              textColor={theme.colors.onPrimary}
+              disabled={!image || updateUserProfileImage.isPending}
+              onPress={() => {
+                updateUserProfileImage.mutateAsync().then(async () => {
+                  await currentUserProfile.refetch();
+                  setImage(null);
+                });
+              }}
+              loading={updateUserProfileImage.isPending}
+            >
+              Save Image
+            </Button>
           ) : null}
-          <Pressable
-            className="self-center dark:bg-white bg-black disabled:bg-gray-500 h-10 px-2 rounded-lg"
-            onPress={() => {
-              if (currentUser.data?.hasPassword)
-                router.push("/change-password");
-              else router.push("/set-password");
-            }}
-          >
-            <Text className="text-center my-auto dark:text-black text-white">
-              {currentUser.data?.hasPassword
-                ? "Change Password"
-                : "Set Password"}
-            </Text>
-          </Pressable>
-          <Pressable
-            className="self-center dark:bg-white bg-black disabled:bg-gray-500 h-10 px-2 rounded-lg"
-            onPress={() => {
-              logoutMutation.mutateAsync().finally(() => {
-                logout();
-                GoogleSignin.signOut();
-                LoginManager.logOut();
-                router.replace("/");
-              });
-            }}
-          >
-            <Text className="text-center my-auto dark:text-black text-white">
-              Log Out
-            </Text>
-          </Pressable>
         </View>
       </ScrollView>
     </GenericView>

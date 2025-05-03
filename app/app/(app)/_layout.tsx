@@ -1,26 +1,29 @@
-import { Redirect, router, Tabs } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { Redirect, Tabs } from "expo-router";
+import React, { useEffect } from "react";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { addAuthHeader, xiorInstance } from "@/lib/fetcher";
 import { XiorResponse } from "xior";
 import errorRetry from "xior/plugins/error-retry";
 import setupTokenRefresh from "xior/plugins/token-refresh";
-import LottieView from "lottie-react-native";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { Pressable, TouchableOpacity, View, Text } from "react-native";
-import { useColorScheme } from "nativewind";
-import { Image } from "expo-image";
-import { useCurrentUser } from "@/lib/queries/useCurrentUser";
+import { Pressable, Appearance, View, Text } from "react-native";
+import ProfileImage from "@/components/profile/Image";
+import { useThemeStore } from "@/lib/stores/themeStore";
+import { useTheme } from "react-native-paper";
+import { useCurrentUser } from "@/lib/queries/user";
+import { ProfileImageSkeleton } from "@/components/profile/Skeleton";
 
 export default function TabLayout() {
   const session = useAuthStore((state) => state.session);
   const logout = useAuthStore((state) => state.logout);
   const login = useAuthStore((state) => state.login);
-  const [isLoading, setIsLoading] = useState(true);
-  const { toggleColorScheme, colorScheme } = useColorScheme();
+  const setTheme = useThemeStore((state) => state.setTheme);
   const currentUser = useCurrentUser();
-
+  const theme = useTheme();
+  const currentTheme =
+    useThemeStore((state) => state.theme) ??
+    Appearance.getColorScheme() ??
+    "light";
   useEffect(() => {
     if (session) addAuthHeader(session.accessToken);
 
@@ -35,7 +38,6 @@ export default function TabLayout() {
         ) {
           logout();
         }
-
         return Promise.reject(error);
       },
     );
@@ -79,8 +81,6 @@ export default function TabLayout() {
       },
     });
 
-    setIsLoading(false);
-
     return () => {
       xiorInstance.plugins.eject(handle);
       xiorInstance.interceptors.request.clear();
@@ -90,41 +90,35 @@ export default function TabLayout() {
 
   if (!session) return <Redirect href="/get-started" />;
 
-  if (isLoading) {
-    return (
-      <LottieView
-        autoPlay
-        style={{
-          width: "50%",
-          height: "50%",
-          marginHorizontal: "auto",
-          marginVertical: "auto",
-        }}
-        source={require("../../assets/lottie/loading.json")}
-        onAnimationFailure={(e) => console.error("Error occurred animating", e)}
-      />
-    );
-  }
-
   return (
     <Tabs
       screenOptions={{
         headerShown: true,
         headerTitleAllowFontScaling: true,
         headerStyle: {
-          backgroundColor: colorScheme === "light" ? "#fff" : "#000",
+          backgroundColor: theme.colors.background,
         },
-        headerShadowVisible: false,
-        headerTintColor: colorScheme === "light" ? "#000" : "#fff",
-        tabBarActiveTintColor: colorScheme === "light" ? "#000" : "#fff",
+        headerShadowVisible: true,
+        headerTintColor: theme.colors.primary,
+        tabBarActiveTintColor: theme.colors.onBackground,
         tabBarInactiveTintColor: "gray",
         tabBarStyle: {
-          backgroundColor: colorScheme === "light" ? "#fff" : "#000",
+          backgroundColor: theme.colors.background,
         },
         tabBarShowLabel: true,
         headerRight: () => (
-          <Pressable onPress={toggleColorScheme}>
-            <Text className="dark:text-white text-black">Toggle Theme</Text>
+          <Pressable
+            onPress={() =>
+              setTheme(currentTheme === "light" ? "dark" : "light")
+            }
+          >
+            <Text
+              style={{
+                color: theme.colors.primary,
+              }}
+            >
+              Toggle Theme
+            </Text>
           </Pressable>
         ),
       }}
@@ -133,6 +127,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
+          headerShown: false,
           tabBarIcon: ({ color }) => (
             <FontAwesome5 size={28} name="home" color={color} />
           ),
@@ -143,34 +138,16 @@ export default function TabLayout() {
         options={{
           title: "Profile",
           headerTitleAlign: "center",
-          headerRight: () => (
-            <View className="mr-12">
-              <TouchableOpacity
-                className="dark:bg-gray-900 bg-gray-300 items-center justify-center w-10 h-10 rounded-full"
-                onPress={() =>
-                  router.push("/edit-profile", { withAnchor: true })
-                }
-              >
-                <Ionicons
-                  name="settings"
-                  size={18}
-                  color={colorScheme === "light" ? "#000" : "#fff"}
-                />
-              </TouchableOpacity>
-            </View>
-          ),
-
+          headerShown: false,
+          animation: "shift",
           tabBarIcon: ({ focused }) => (
-            <View className="border-2 dark:border-white border-black rounded-full  justify-center">
-              <Image
-                style={{
-                  width: focused ? 20 : 28,
-                  height: focused ? 20 : 28,
-                  borderRadius: 50,
-                }}
-                source={currentUser.data?.image}
-                transition={500}
-              />
+            <View
+              style={{
+                width: focused ? 20 : 28,
+                height: focused ? 20 : 28,
+              }}
+            >
+              {currentUser.data ? <ProfileImage /> : <ProfileImageSkeleton />}
             </View>
           ),
         }}

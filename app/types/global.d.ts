@@ -1,3 +1,4 @@
+import { SvgProps } from "react-native-svg";
 export {};
 
 declare global {
@@ -9,12 +10,24 @@ declare global {
   type User = {
     id: string;
     email: string;
-    firstName: string;
-    lastName: string;
-    image: string;
     emailVerified: Date | null;
     createdAt: Date;
     updatedAt: Date;
     hasPassword: boolean;
   };
+
+  type Profile = {
+    firstName: string;
+    lastName: string;
+    bio: string | null;
+    image: string;
+    imageBlurHash: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+
+  declare module "*.svg" {
+    const content: React.FC<SvgProps>;
+    export default content;
+  }
 }

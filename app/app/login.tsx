@@ -1,19 +1,11 @@
-import {
-  Text,
-  TextInput,
-  Pressable,
-  View,
-  TouchableOpacity,
-} from "react-native";
 import { router } from "expo-router";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { xiorInstance } from "@/lib/fetcher";
 import { useMutation } from "@tanstack/react-query";
 import { XiorError } from "xior";
 import { showMessage } from "react-native-flash-message";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { loginInputDTO, type LoginInputDTO } from "@/lib/dtos";
+import { loginDTO, type LoginDTO } from "@/lib/dtos";
 import Svg, { Circle, Ellipse } from "react-native-svg";
 import { useAuthStore } from "@/lib/stores/authStore";
 import Animated, {
@@ -26,26 +18,26 @@ import Animated, {
 } from "react-native-reanimated";
 import { useEffect } from "react";
 import SocialAuth from "@/components/SocialAuth";
+import { Button, useTheme } from "react-native-paper";
+import { View, Text } from "react-native";
+import ControlledInput from "@/components/ControlledInput";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export default function Login() {
   const login = useAuthStore((state) => state.login);
-  const {
-    control: loginControl,
-    handleSubmit: loginHandleSubmit,
-    formState: { errors: loginErrors },
-    setError: setLoginError,
-  } = useForm<LoginInputDTO>({
-    defaultValues: {
-      email: "Abdo.AlGhouul@gmail.com",
-      password: "12345678",
-    },
-    resolver: zodResolver(loginInputDTO),
-  });
+  const theme = useTheme();
+  const { control: loginControl, handleSubmit: loginHandleSubmit } =
+    useForm<LoginDTO>({
+      defaultValues: {
+        email: "Abdo.AlGhouul@gmail.com",
+        password: "12345678",
+      },
+      resolver: zodResolver(loginDTO),
+    });
 
   const { mutate: submitLogin, isPending: isLoginPending } = useMutation({
-    mutationFn: async (data: LoginInputDTO) =>
+    mutationFn: async (data: LoginDTO) =>
       await xiorInstance.post("/auth/login", data),
     onSuccess: (res) => {
       showMessage({
@@ -58,22 +50,21 @@ export default function Login() {
     },
     onError: (error) => {
       if (error instanceof XiorError) {
-        if ("errors" in error.response?.data) {
-          error.response?.data.errors.map(
-            (error: { path: LoginInputDTO & "root"; message: string }) =>
-              setLoginError(error.path, { message: error.message }),
-          );
-        } else {
-          showMessage({
-            message: error.response?.data.message,
-            type: "warning",
-          });
-        }
+        showMessage({
+          message: error.response?.data.message,
+          type: "warning",
+          style: {
+            backgroundColor: theme.colors.secondaryContainer,
+          },
+        });
       } else {
         showMessage({
           message: "An error occurred",
           description: error.message,
           type: "danger",
+          style: {
+            backgroundColor: theme.colors.errorContainer,
+          },
         });
       }
     },
@@ -101,96 +92,120 @@ export default function Login() {
   });
 
   return (
-    <SafeAreaView className="flex-1 dark:bg-black bg-white">
-      <View className="absolute">
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <View
+        style={{
+          position: "absolute",
+        }}
+      >
         <Svg width={252} height={241}>
-          <Ellipse cx={71} cy={63} fill={"gray"} rx={181} ry={178} />
+          <Ellipse
+            cx={71}
+            cy={63}
+            opacity={0.9}
+            fill={theme.colors.primary}
+            rx={181}
+            ry={178}
+          />
         </Svg>
       </View>
-      <View className="flex-1 justify-center gap-4 mx-8">
-        <View className="absolute -z-10 right-0">
+      <View
+        style={{
+          flex: 1,
+          marginHorizontal: 16,
+          justifyContent: "center",
+          gap: 8,
+        }}
+      >
+        <View
+          style={{
+            position: "absolute",
+            right: 0,
+          }}
+        >
           <Svg height="300" width="300" viewBox="0 0 100 100">
             <AnimatedCircle
               cx="20"
               cy="20"
               r="5"
-              fill={"gray"}
+              opacity={0.9}
+              fill={theme.colors.primary}
               animatedProps={floatingProps}
             />
           </Svg>
         </View>
 
-        <Controller
+        <ControlledInput
           control={loginControl}
-          rules={{
-            required: true,
-          }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              id="email"
-              className="w-full dark:text-white text-black placeholder:text-gray-500 border dark:border-white border-black p-2 rounded-lg"
-              onChangeText={onChange}
-              onBlur={onBlur}
-              value={value}
-              placeholder="Email"
-              keyboardType="email-address"
-            />
-          )}
           name="email"
-        />
-        {loginErrors.email ? (
-          <Text className="text-red-500 text-center">
-            {loginErrors.email.message}
-          </Text>
-        ) : null}
-
-        <Controller
-          control={loginControl}
-          rules={{
-            required: true,
+          id="email"
+          placeholder="Email"
+          keyboardType="email-address"
+          style={{
+            width: "100%",
+            borderWidth: 1,
+            borderColor: theme.colors.primary,
+            borderRadius: 8,
+            padding: 8,
           }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              id="password"
-              className="w-full dark:text-white text-black placeholder:text-gray-500 border dark:border-white border-black p-2 rounded-lg"
-              onChangeText={onChange}
-              onBlur={onBlur}
-              value={value}
-              placeholder="Password"
-              secureTextEntry
-            />
-          )}
-          name="password"
         />
-        {loginErrors.password ? (
-          <Text className="text-red-500 text-center">
-            {loginErrors.password.message}
-          </Text>
-        ) : null}
 
-        <TouchableOpacity
-          className="dark:bg-white bg-black disabled:bg-gray-500 w-32 h-8 rounded-lg mx-auto"
-          onPress={loginHandleSubmit((data) => submitLogin(data))}
+        <ControlledInput
+          control={loginControl}
+          id="password"
+          name="password"
+          placeholder="Password"
+          keyboardType="default"
+          secureTextEntry
+          style={{
+            width: "100%",
+            borderWidth: 1,
+            borderColor: theme.colors.primary,
+            borderRadius: 8,
+            padding: 8,
+          }}
+        />
+
+        <Button
+          style={{
+            marginHorizontal: 24,
+          }}
+          buttonColor={theme.colors.primary}
+          textColor={theme.colors.onPrimary}
           disabled={isLoginPending}
+          onPress={loginHandleSubmit((data) => submitLogin(data))}
+          loading={isLoginPending}
         >
-          <Text className="text-center my-auto dark:text-black text-white">
-            Login
-          </Text>
-        </TouchableOpacity>
+          Login
+        </Button>
 
-        <View className="flex-row self-center gap-2">
-          <Text className="text-center dark:text-white text-black">
+        <View
+          style={{
+            flexDirection: "row",
+            alignSelf: "center",
+            gap: 4,
+          }}
+        >
+          <Text
+            style={{
+              color: theme.colors.secondary,
+            }}
+          >
             Don't have an account?
           </Text>
-          <Pressable onPress={() => router.push("/register")}>
-            <Text className="text-center font-bold dark:text-gray-200 text-black">
-              Register
-            </Text>
-          </Pressable>
+          <Text
+            style={{
+              fontWeight: "bold",
+              color: theme.colors.primary,
+            }}
+            onPress={() => router.push("/register")}
+          >
+            Register
+          </Text>
         </View>
 
         <SocialAuth />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

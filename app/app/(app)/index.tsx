@@ -1,9 +1,25 @@
-import { Text, View } from "react-native";
+import { View, Text } from "react-native";
+import { useTheme } from "react-native-paper";
 
 export default function HomeScreen() {
+  const theme = useTheme();
   return (
-    <View className="flex-1 dark:bg-black bg-white">
-      <Text className="dark:text-white text-black">Welcome</Text>
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        backgroundColor: theme.colors.background,
+      }}
+    >
+      <Text
+        style={{
+          textAlign: "center",
+          fontSize: 30,
+          color: theme.colors.secondary,
+        }}
+      >
+        Welcome
+      </Text>
     </View>
   );
 }

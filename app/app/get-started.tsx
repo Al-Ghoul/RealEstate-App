@@ -1,17 +1,17 @@
 import { Redirect, router } from "expo-router";
-import { useColorScheme } from "nativewind";
 import { Image } from "react-native";
 import Onboarding from "react-native-onboarding-swiper";
 import * as SecureStore from "expo-secure-store";
+import { useTheme } from "react-native-paper";
 
 export default function GetStarted() {
-  const { colorScheme } = useColorScheme();
-  const readOnboarding = SecureStore.getItem("readOnboarding") === "true";
+  const readIntro = SecureStore.getItem("readIntro") === "true";
+  const theme = useTheme();
 
-  if (readOnboarding) return <Redirect href="/login" />;
+  if (readIntro) return <Redirect href="/login" />;
 
   const done = () => {
-    SecureStore.setItemAsync("readOnboarding", "true");
+    SecureStore.setItemAsync("readIntro", "true");
     router.replace("/login");
   };
 
@@ -21,7 +21,7 @@ export default function GetStarted() {
       onDone={done}
       pages={[
         {
-          backgroundColor: colorScheme === "dark" ? "#000" : "#fff",
+          backgroundColor: theme.colors.background,
           image: <Image source={require("../assets/intro/step1.png")} />,
           title: "سئمت من الوسطاء و أسعارهم؟",
           subtitle: "مكانك الجديد في انتظارك. لا وسطاء، لا هراء.",
@@ -30,7 +30,7 @@ export default function GetStarted() {
           },
         },
         {
-          backgroundColor: colorScheme === "dark" ? "#000" : "#fff",
+          backgroundColor: theme.colors.background,
           image: <Image source={require("../assets/intro/step2.png")} />,
           title: "جد مكانك، المثالي.",
           subtitle:
@@ -40,7 +40,7 @@ export default function GetStarted() {
           },
         },
         {
-          backgroundColor: colorScheme === "dark" ? "#000" : "#fff",
+          backgroundColor: theme.colors.background,
           image: <Image source={require("../assets/intro/step3.png")} />,
           title: "بع بطريقة ذكية، و وفر جهود الدعاية.",
           subtitle:
@@ -50,7 +50,7 @@ export default function GetStarted() {
           },
         },
         {
-          backgroundColor: colorScheme === "dark" ? "#000" : "#fff",
+          backgroundColor: theme.colors.background,
           image: <Image source={require("../assets/intro/step2.png")} />,
           title: "إنسي الوسطاء و حافظ علي ربحك بالكامل",
           subtitle: "لا يوجد وسطاء ولا سمسرة.",

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const loginInputDTO = z.object({
+export const loginDTO = z.object({
   email: z
     .string({
       required_error: "Email is required",
@@ -15,15 +15,13 @@ export const loginInputDTO = z.object({
     .min(8, "Password must be at least 8 characters"),
 });
 
-const baseInputDTO = loginInputDTO.extend({
-  password: z.string({
-    required_error: "Password is required",
-    invalid_type_error: "Password must be a string",
-  }),
-  confirmPassword: z.string({
-    required_error: "Confirm password is required",
-    invalid_type_error: "Confirm password must be a string",
-  }),
+const baseDTO = loginDTO.extend({
+  confirmPassword: z
+    .string({
+      required_error: "Confirm password is required",
+      invalid_type_error: "Confirm password must be a string",
+    })
+    .min(8, "Password must be at least 8 characters"),
   firstName: z.string({
     required_error: "First name is required",
     invalid_type_error: "First name must be a string",
@@ -34,7 +32,7 @@ const baseInputDTO = loginInputDTO.extend({
   }),
 });
 
-export const registerInputDTO = baseInputDTO.refine(
+export const registerDTO = baseDTO.refine(
   (data) => data.password === data.confirmPassword,
   {
     message: "Passwords do not match",
@@ -42,23 +40,29 @@ export const registerInputDTO = baseInputDTO.refine(
   },
 );
 
-export const updateProfileInputDTO = z.object({
-  email: z.string().email(),
-  firstName: z.string(),
-  lastName: z.string(),
+export const updateEmailDTO = loginDTO.pick({
+  email: true,
 });
 
-export const changePasswordInputDTO = baseInputDTO
+export const updateProfileDTO = z.object({
+  firstName: z.string(),
+  lastName: z.string(),
+  bio: z.string().optional(),
+});
+
+export const changePasswordDTO = baseDTO
   .pick({ password: true, confirmPassword: true })
   .extend({
-    currentPassword: z.string(),
+    currentPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
 
-export const setPasswordInputDTO = baseInputDTO
+export const setPasswordDTO = baseDTO
   .pick({
     password: true,
     confirmPassword: true,
@@ -68,7 +72,7 @@ export const setPasswordInputDTO = baseInputDTO
     path: ["confirmPassword"],
   });
 
-export const verifyInputDTO = z.object({
+export const verifyDTO = z.object({
   code: z
     .string()
     .regex(/^[a-zA-Z0-9]{3}-[a-zA-Z0-9]{3}$/)
@@ -86,10 +90,11 @@ export const linkAccountDTO = z.discriminatedUnion("provider", [
   }),
 ]);
 
-export type LoginInputDTO = z.infer<typeof loginInputDTO>;
-export type RegisterInputDTO = z.infer<typeof registerInputDTO>;
-export type UpdateProfileInputDTO = z.infer<typeof updateProfileInputDTO>;
-export type ChangePasswordInputDTO = z.infer<typeof changePasswordInputDTO>;
-export type SetPasswordInputDTO = z.infer<typeof setPasswordInputDTO>;
-export type VerifyInputDTO = z.infer<typeof verifyInputDTO>;
+export type LoginDTO = z.infer<typeof loginDTO>;
+export type RegisterDTO = z.infer<typeof registerDTO>;
+export type UpdateProfileDTO = z.infer<typeof updateProfileDTO>;
+export type UpdateEmailDTO = z.infer<typeof updateEmailDTO>;
+export type ChangePasswordDTO = z.infer<typeof changePasswordDTO>;
+export type SetPasswordDTO = z.infer<typeof setPasswordDTO>;
+export type VerifyDTO = z.infer<typeof verifyDTO>;
 export type LinkAccountDTO = z.infer<typeof linkAccountDTO>;

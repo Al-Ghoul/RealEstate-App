@@ -1,19 +1,11 @@
-import {
-  Text,
-  TextInput,
-  Pressable,
-  View,
-  TouchableOpacity,
-} from "react-native";
 import { router } from "expo-router";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { xiorInstance } from "@/lib/fetcher";
 import { useMutation } from "@tanstack/react-query";
 import { XiorError } from "xior";
 import { showMessage } from "react-native-flash-message";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { registerInputDTO, type RegisterInputDTO } from "@/lib/dtos";
+import { registerDTO, type RegisterDTO } from "@/lib/dtos";
 import Svg, { Ellipse } from "react-native-svg";
 import Animated, {
   Easing,
@@ -24,27 +16,27 @@ import Animated, {
 } from "react-native-reanimated";
 import { useEffect } from "react";
 import SocialAuth from "@/components/SocialAuth";
+import { View, Text } from "react-native";
+import { Button, useTheme } from "react-native-paper";
+import ControlledInput from "@/components/ControlledInput";
 
 const AnimatedEllipse = Animated.createAnimatedComponent(Ellipse);
 export default function Register() {
-  const {
-    control: registerControl,
-    handleSubmit: registerHandleSubmit,
-    formState: { errors: registerErrors },
-    setError: setRegisterError,
-  } = useForm<RegisterInputDTO>({
-    defaultValues: {
-      email: "Abdo.AlGhouul@gmail.com",
-      password: "12345678",
-      confirmPassword: "12345678",
-      firstName: "Abdo",
-      lastName: "AlGhouul",
-    },
-    resolver: zodResolver(registerInputDTO),
-  });
+  const theme = useTheme();
+  const { control: registerControl, handleSubmit: registerHandleSubmit } =
+    useForm<RegisterDTO>({
+      defaultValues: {
+        email: "Abdo.AlGhouul@gmail.com",
+        password: "12345678",
+        confirmPassword: "12345678",
+        firstName: "Abdo",
+        lastName: "AlGhouul",
+      },
+      resolver: zodResolver(registerDTO),
+    });
 
   const { mutate: submitRegister, isPending: isRegisterPending } = useMutation({
-    mutationFn: async (data: RegisterInputDTO) =>
+    mutationFn: async (data: RegisterDTO) =>
       await xiorInstance.post("/auth/register", data),
     onSuccess: () => {
       showMessage({
@@ -55,22 +47,21 @@ export default function Register() {
     },
     onError: (error) => {
       if (error instanceof XiorError) {
-        if ("errors" in error.response?.data) {
-          error.response?.data.errors.map(
-            (error: { path: RegisterInputDTO & "root"; message: string }) =>
-              setRegisterError(error.path, { message: error.message }),
-          );
-        } else {
-          showMessage({
-            message: error.response?.data.message,
-            type: "warning",
-          });
-        }
+        showMessage({
+          message: error.response?.data.message,
+          type: "warning",
+          style: {
+            backgroundColor: theme.colors.secondaryContainer,
+          },
+        });
       } else {
         showMessage({
           message: "An error occurred",
           description: error.message,
           type: "danger",
+          style: {
+            backgroundColor: theme.colors.errorContainer,
+          },
         });
       }
     },
@@ -94,155 +85,151 @@ export default function Register() {
   }));
 
   return (
-    <SafeAreaView className="flex-1 dark:bg-black bg-white">
-      <View className="absolute right-0">
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <View style={{ position: "absolute", right: 0 }}>
         <Svg width={252} height={241}>
           <AnimatedEllipse
             animatedProps={animatedProps}
             cx={181}
             cy={22}
-            fill={"gray"}
+            opacity={0.9}
+            fill={theme.colors.primary}
             rx={181}
             ry={178}
           />
         </Svg>
       </View>
 
-      <View className="flex-1 justify-center gap-4">
-        <View className="items-center justify-center px-24 gap-4">
-          <Controller
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+        }}
+      >
+        <View
+          style={{
+            marginTop: 16,
+            marginHorizontal: 16,
+            gap: 8,
+          }}
+        >
+          <ControlledInput
             control={registerControl}
-            rules={{
-              required: true,
-            }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                id="email"
-                className="w-full dark:text-white text-black border dark:border-white border-black p-2 rounded-lg"
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                keyboardType="email-address"
-              />
-            )}
             name="email"
-          />
-          {registerErrors.email ? (
-            <Text className="text-red-500 text-center">
-              {registerErrors.email.message}
-            </Text>
-          ) : null}
-
-          <Controller
-            control={registerControl}
-            rules={{
-              required: true,
+            id="email"
+            placeholder="Email"
+            keyboardType="email-address"
+            style={{
+              width: "100%",
+              borderWidth: 1,
+              borderColor: theme.colors.primary,
+              borderRadius: 8,
+              padding: 8,
             }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                id="password"
-                className="w-full dark:text-white text-black border dark:border-white border-black p-2 rounded-lg"
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                secureTextEntry
-              />
-            )}
+          />
+
+          <ControlledInput
+            control={registerControl}
+            id="password"
             name="password"
-          />
-          {registerErrors.password ? (
-            <Text className="text-red-500 text-center">
-              {registerErrors.password.message}
-            </Text>
-          ) : null}
-          <Controller
-            control={registerControl}
-            rules={{
-              required: true,
+            placeholder="Password"
+            keyboardType="default"
+            secureTextEntry
+            style={{
+              width: "100%",
+              borderWidth: 1,
+              borderColor: theme.colors.primary,
+              borderRadius: 8,
+              padding: 8,
             }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                id="confirmPassword"
-                className="w-full dark:text-white text-black border dark:border-white border-black p-2 rounded-lg"
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                secureTextEntry
-              />
-            )}
+          />
+
+          <ControlledInput
+            control={registerControl}
+            id="confirmPassword"
             name="confirmPassword"
-          />
-          {registerErrors.confirmPassword ? (
-            <Text className="text-red-500 text-center">
-              {registerErrors.confirmPassword.message}
-            </Text>
-          ) : null}
-          <Controller
-            control={registerControl}
-            rules={{
-              required: true,
+            placeholder="Confirm Password"
+            keyboardType="default"
+            secureTextEntry
+            style={{
+              width: "100%",
+              borderWidth: 1,
+              borderColor: theme.colors.primary,
+              borderRadius: 8,
+              padding: 8,
             }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                id="firstName"
-                className="w-full dark:text-white text-black border dark:border-white border-black p-2 rounded-lg"
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-              />
-            )}
+          />
+
+          <ControlledInput
+            control={registerControl}
+            id="firstName"
             name="firstName"
-          />
-          {registerErrors.firstName ? (
-            <Text className="text-red-500 text-center">
-              {registerErrors.firstName.message}
-            </Text>
-          ) : null}
-          <Controller
-            control={registerControl}
-            rules={{
-              required: true,
+            placeholder="First Name"
+            keyboardType="default"
+            style={{
+              width: "100%",
+              borderWidth: 1,
+              borderColor: theme.colors.primary,
+              borderRadius: 8,
+              padding: 8,
             }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                id="lastName"
-                className="w-full dark:text-white text-black border dark:border-white border-black p-2 rounded-lg"
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-              />
-            )}
-            name="lastName"
           />
-          {registerErrors.lastName ? (
-            <Text className="text-red-500 text-center">
-              {registerErrors.lastName.message}
-            </Text>
-          ) : null}
 
-          <TouchableOpacity
-            className="dark:bg-white bg-black disabled:bg-gray-500 w-32 h-8 rounded-lg"
-            onPress={registerHandleSubmit((data) => submitRegister(data))}
+          <ControlledInput
+            control={registerControl}
+            id="lastName"
+            name="lastName"
+            placeholder="Last Name"
+            keyboardType="default"
+            style={{
+              width: "100%",
+              borderWidth: 1,
+              borderColor: theme.colors.primary,
+              borderRadius: 8,
+              padding: 8,
+            }}
+          />
+
+          <Button
+            style={{
+              marginHorizontal: 24,
+            }}
+            buttonColor={theme.colors.primary}
+            textColor={theme.colors.onPrimary}
             disabled={isRegisterPending}
+            loading={isRegisterPending}
+            onPress={registerHandleSubmit((data) => submitRegister(data))}
           >
-            <Text className="text-center my-auto dark:text-black text-white">
-              Register
-            </Text>
-          </TouchableOpacity>
-        </View>
+            Register
+          </Button>
 
-        <View className="bg-secondary flex-row self-center gap-2">
-          <Text className="text-center dark:text-white text-black">
-            Already have an account?
-          </Text>
-          <Pressable onPress={() => router.back()}>
-            <Text className="text-center font-bold dark:text-gray-200 text-black">
+          <View
+            style={{
+              flexDirection: "row",
+              alignSelf: "center",
+              gap: 4,
+            }}
+          >
+            <Text
+              style={{
+                color: theme.colors.secondary,
+              }}
+            >
+              Already have an account?
+            </Text>
+            <Text
+              style={{
+                fontWeight: "bold",
+                color: theme.colors.primary,
+              }}
+              onPress={() => router.back()}
+            >
               Login
             </Text>
-          </Pressable>
+          </View>
+          <SocialAuth />
         </View>
-        <SocialAuth className="mx-20 gap-4" />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

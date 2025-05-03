@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { LoginManager, AccessToken } from "react-native-fbsdk-next";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { useMutation } from "@tanstack/react-query";
@@ -15,6 +15,7 @@ import {
 } from "@react-native-google-signin/google-signin";
 import GoogleIcon from "../assets/icons/google-logo.svg";
 import { useCallback } from "react";
+import { Divider, useTheme } from "react-native-paper";
 
 GoogleSignin.configure({
   webClientId:
@@ -24,11 +25,8 @@ GoogleSignin.configure({
   profileImageSize: 120,
 });
 
-interface SocialAuthProps {
-  className?: string;
-}
-
-export default function SocialAuth(props: SocialAuthProps) {
+export default function SocialAuth() {
+  const theme = useTheme();
   const login = useAuthStore((state) => state.login);
   const facebookLogin = useMutation({
     mutationFn: (data: { accessToken: string }) =>
@@ -77,12 +75,18 @@ export default function SocialAuth(props: SocialAuthProps) {
           message: error.response?.data.message,
           description: error.response?.data.details,
           type: "warning",
+          style: {
+            backgroundColor: theme.colors.secondaryContainer,
+          },
         });
       } else {
         showMessage({
           message: "An error occurred",
           description: error.message,
           type: "danger",
+          style: {
+            backgroundColor: theme.colors.errorContainer,
+          },
         });
       }
     },
@@ -98,6 +102,9 @@ export default function SocialAuth(props: SocialAuthProps) {
         showMessage({
           message: "Sign in cancelled",
           type: "warning",
+          style: {
+            backgroundColor: theme.colors.secondaryContainer,
+          },
         });
       }
     } catch (error) {
@@ -128,18 +135,55 @@ export default function SocialAuth(props: SocialAuthProps) {
         });
       }
     }
+    // WARN: CAREFULL EDITING THIS
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleLogin]);
 
   return (
-    <View className={props.className}>
-      <View className="flex-row gap-2 items-center mx-4">
-        <View className="flex-1 h-1 border-b-2 dark:border-b-white border-b-black" />
-        <Text className="dark:text-white text-black text-center">OR</Text>
-        <View className="flex-1 h-1 border-b-2 dark:border-b-white border-b-black" />
+    <View style={{ gap: 4 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 4,
+        }}
+      >
+        <Divider style={{ flex: 1, height: 2 }} />
+        <Text
+          style={{
+            color: theme.colors.secondary,
+          }}
+        >
+          OR
+        </Text>
+        <Divider style={{ flex: 1, height: 2 }} />
       </View>
-      <View className="flex-row mx-14 gap-4 items-center justify-center">
-        <TouchableOpacity
-          className="bg-blue-600 items-center justify-center w-12 h-12 rounded-full"
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <Pressable
+          style={{
+            backgroundColor: "#3b5998",
+            width: 42,
+            height: 42,
+            borderRadius: 50,
+            justifyContent: "center",
+            alignItems: "center",
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: 2,
+            },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+
+            elevation: 5,
+          }}
           onPress={() => {
             LoginManager.logInWithPermissions(["public_profile", "email"])
               .then((result) => {
@@ -160,14 +204,30 @@ export default function SocialAuth(props: SocialAuthProps) {
           }}
         >
           <FontAwesome5 name="facebook-f" size={20} color="#FFF" />
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity
-          className="bg-white items-center justify-center w-12 h-12 rounded-full shadow-lg shadow-black"
+        <Pressable
+          style={{
+            backgroundColor: "#FFF",
+            width: 42,
+            height: 42,
+            borderRadius: 50,
+            justifyContent: "center",
+            alignItems: "center",
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: 2,
+            },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+
+            elevation: 5,
+          }}
           onPress={signInWithGoogle}
         >
-          <GoogleIcon width={20} height={20} source={GoogleIcon} />
-        </TouchableOpacity>
+          <GoogleIcon width={20} height={20} />
+        </Pressable>
       </View>
     </View>
   );
