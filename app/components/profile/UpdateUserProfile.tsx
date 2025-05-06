@@ -93,6 +93,7 @@ export default function UpdateUserProfile({
         placeholder="Bio"
         keyboardType="default"
         multiline
+        maxLength={255}
         style={{
           width: "100%",
           borderWidth: 1,
