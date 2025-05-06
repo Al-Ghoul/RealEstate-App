@@ -23,24 +23,23 @@ import ControlledInput from "@/components/ControlledInput";
 const AnimatedEllipse = Animated.createAnimatedComponent(Ellipse);
 export default function Register() {
   const theme = useTheme();
-  const { control: registerControl, handleSubmit: registerHandleSubmit } =
-    useForm<RegisterDTO>({
-      defaultValues: {
-        email: "Abdo.AlGhouul@gmail.com",
-        password: "12345678",
-        confirmPassword: "12345678",
-        firstName: "Abdo",
-        lastName: "AlGhouul",
-      },
-      resolver: zodResolver(registerDTO),
-    });
+  const { control, handleSubmit } = useForm<RegisterDTO>({
+    defaultValues: {
+      email: "Abdo.AlGhouul@gmail.com",
+      password: "12345678",
+      confirmPassword: "12345678",
+      firstName: "Abdo",
+      lastName: "AlGhouul",
+    },
+    resolver: zodResolver(registerDTO),
+  });
 
-  const { mutate: submitRegister, isPending: isRegisterPending } = useMutation({
-    mutationFn: async (data: RegisterDTO) =>
-      await xiorInstance.post("/auth/register", data),
-    onSuccess: () => {
+  const { mutate: registerSubmit, isPending } = useMutation({
+    mutationFn: (data: RegisterDTO) =>
+      xiorInstance.post("/auth/register", data),
+    onSuccess: (res) => {
       showMessage({
-        message: "Registered successfully",
+        message: res.data.message,
         type: "success",
       });
       router.replace("/login");
@@ -114,7 +113,7 @@ export default function Register() {
           }}
         >
           <ControlledInput
-            control={registerControl}
+            control={control}
             name="email"
             id="email"
             placeholder="Email"
@@ -129,7 +128,7 @@ export default function Register() {
           />
 
           <ControlledInput
-            control={registerControl}
+            control={control}
             id="password"
             name="password"
             placeholder="Password"
@@ -145,7 +144,7 @@ export default function Register() {
           />
 
           <ControlledInput
-            control={registerControl}
+            control={control}
             id="confirmPassword"
             name="confirmPassword"
             placeholder="Confirm Password"
@@ -161,7 +160,7 @@ export default function Register() {
           />
 
           <ControlledInput
-            control={registerControl}
+            control={control}
             id="firstName"
             name="firstName"
             placeholder="First Name"
@@ -176,7 +175,7 @@ export default function Register() {
           />
 
           <ControlledInput
-            control={registerControl}
+            control={control}
             id="lastName"
             name="lastName"
             placeholder="Last Name"
@@ -196,9 +195,9 @@ export default function Register() {
             }}
             buttonColor={theme.colors.primary}
             textColor={theme.colors.onPrimary}
-            disabled={isRegisterPending}
-            loading={isRegisterPending}
-            onPress={registerHandleSubmit((data) => submitRegister(data))}
+            disabled={isPending}
+            loading={isPending}
+            onPress={handleSubmit((data) => registerSubmit(data))}
           >
             Register
           </Button>

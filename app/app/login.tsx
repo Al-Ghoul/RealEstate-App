@@ -27,21 +27,19 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 export default function Login() {
   const login = useAuthStore((state) => state.login);
   const theme = useTheme();
-  const { control: loginControl, handleSubmit: loginHandleSubmit } =
-    useForm<LoginDTO>({
-      defaultValues: {
-        email: "Abdo.AlGhouul@gmail.com",
-        password: "12345678",
-      },
-      resolver: zodResolver(loginDTO),
-    });
+  const { control, handleSubmit } = useForm<LoginDTO>({
+    defaultValues: {
+      email: "Abdo.AlGhouul@gmail.com",
+      password: "12345678",
+    },
+    resolver: zodResolver(loginDTO),
+  });
 
-  const { mutate: submitLogin, isPending: isLoginPending } = useMutation({
-    mutationFn: async (data: LoginDTO) =>
-      await xiorInstance.post("/auth/login", data),
+  const { mutate: loginSubmit, isPending } = useMutation({
+    mutationFn: (data: LoginDTO) => xiorInstance.post("/auth/login", data),
     onSuccess: (res) => {
       showMessage({
-        message: "Logged in successfully",
+        message: res.data.message,
         type: "success",
       });
       const tokens = res.data.data as JWTPayload;
@@ -136,7 +134,7 @@ export default function Login() {
         </View>
 
         <ControlledInput
-          control={loginControl}
+          control={control}
           name="email"
           id="email"
           placeholder="Email"
@@ -151,7 +149,7 @@ export default function Login() {
         />
 
         <ControlledInput
-          control={loginControl}
+          control={control}
           id="password"
           name="password"
           placeholder="Password"
@@ -172,9 +170,9 @@ export default function Login() {
           }}
           buttonColor={theme.colors.primary}
           textColor={theme.colors.onPrimary}
-          disabled={isLoginPending}
-          onPress={loginHandleSubmit((data) => submitLogin(data))}
-          loading={isLoginPending}
+          disabled={isPending}
+          onPress={handleSubmit((data) => loginSubmit(data))}
+          loading={isPending}
         >
           Login
         </Button>
