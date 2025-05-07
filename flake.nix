@@ -10,6 +10,9 @@
         nixago.url = "github:nix-community/nixago";
       };
     };
+    bun2nix = {
+      url = "github:baileyluTCD/bun2nix";
+    };
   };
 
   nixConfig = {
