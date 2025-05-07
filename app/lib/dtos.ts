@@ -3,7 +3,6 @@ import { z } from "zod";
 
 export function configureZodI18n(L: TranslationFunctions) {
   const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
-    console.log(issue, ctx);
     switch (issue.code) {
       case z.ZodIssueCode.custom:
         if (issue.path[0] === "confirmPassword") {

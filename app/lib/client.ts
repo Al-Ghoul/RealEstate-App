@@ -17,7 +17,6 @@ export const queryClient = new QueryClient({
           type: "danger",
         });
       }
-      console.log(error);
     },
     onSuccess: (data) => {
       const { message } = data as { message: string };
