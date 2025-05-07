@@ -1,6 +1,7 @@
 import type { BaseTranslation } from "../i18n-types";
 
 const en = {
+  WELCOME: "Welcome {name}!",
   // BUTTONS & ETC
   LOGIN: "Login",
   RESET: "Reset",

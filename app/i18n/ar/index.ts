@@ -1,6 +1,7 @@
 import type { Translation } from "../i18n-types";
 
 const ar = {
+  WELCOME: "مرحبا {name}!",
   // BUTTONS & ETC
   LOGIN: "سجل الدخول",
   RESET: "أعد تعينها",
