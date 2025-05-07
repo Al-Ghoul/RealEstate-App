@@ -15,6 +15,7 @@ in {
     doCheck = true;
     checkPhase = ''
       runHook preCheck
+      bun ./node_modules/typesafe-i18n/cli/typesafe-i18n.mjs --no-watch
       bun lint
       runHook postCheck
     '';
