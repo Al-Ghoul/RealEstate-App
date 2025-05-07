@@ -6,17 +6,17 @@ import { setPasswordDTO, type SetPasswordDTO } from "@/lib/dtos";
 import { TouchableOpacity, Alert, BackHandler, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { useCallback, useEffect, useState } from "react";
-import { showMessage } from "react-native-flash-message";
-import { XiorError } from "xior";
 import { router, Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import GenericView from "@/components/WaveDecoratedView";
 import { useCurrentUser } from "@/lib/queries/user";
 import ControlledInput from "@/components/ControlledInput";
 import { Button, useTheme } from "react-native-paper";
+import { useI18nContext } from "@/i18n/i18n-react";
 
 export default function SetPassword() {
   const [showPassword, setShowPassword] = useState(false);
+  const { LL } = useI18nContext();
   const currentUser = useCurrentUser();
   const theme = useTheme();
   const {
@@ -32,59 +32,35 @@ export default function SetPassword() {
     },
   });
 
-  const setUserPassword = useMutation({
-    mutationKey: ["setPassword"],
-    mutationFn: (data: SetPasswordDTO) =>
-      xiorInstance.post("/auth/me/set-password", data),
-    onSuccess: () => {
-      showMessage({
-        message: "Password set successfully",
-        type: "success",
-      });
-      reset();
-      currentUser.refetch();
-      router.replace("/profile");
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        showMessage({
-          message: error.response?.data.message || "An error occurred",
-          type: "warning",
-        });
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-        });
-      }
-    },
-  });
+  const { mutateAsync: setUserPassword, isPending: isSetPasswordPending } =
+    useMutation({
+      mutationKey: ["setPassword"],
+      mutationFn: (data: SetPasswordDTO) =>
+        xiorInstance
+          .post("/auth/me/set-password", data)
+          .then((res) => res.data),
+    });
   const backAction = useCallback(() => {
     if (isDirty) {
-      Alert.alert(
-        "Unsaved changes",
-        "Are you sure you want to discard these changes?",
-        [
-          {
-            text: "Cancel",
-            onPress: () => null,
-            style: "cancel",
+      Alert.alert(LL.UNSAVED_CHANGES(), LL.UNSAVED_CHANGES_PROMPT(), [
+        {
+          text: LL.CANCEL(),
+          onPress: () => null,
+          style: "cancel",
+        },
+        {
+          text: LL.DISCARD(),
+          onPress: () => {
+            reset();
+            router.replace("/profile");
           },
-          {
-            text: "Discard",
-            onPress: () => {
-              reset();
-              router.replace("/profile");
-            },
-          },
-        ],
-      );
+        },
+      ]);
     } else {
       router.replace("/profile");
     }
     return true;
-  }, [isDirty, , reset]);
+  }, [isDirty, , reset, LL]);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -180,9 +156,15 @@ export default function SetPassword() {
             marginHorizontal: 16,
           }}
           buttonColor={theme.colors.primaryContainer}
-          onPress={handleSubmit((data) => setUserPassword.mutate(data))}
-          disabled={!isDirty || setUserPassword.isPending}
-          loading={setUserPassword.isPending}
+          onPress={handleSubmit((data) =>
+            setUserPassword(data).then(() => {
+              reset();
+              currentUser.refetch();
+              router.replace("/profile");
+            }),
+          )}
+          disabled={!isDirty || isSetPasswordPending}
+          loading={isSetPasswordPending}
         >
           Set Password
         </Button>

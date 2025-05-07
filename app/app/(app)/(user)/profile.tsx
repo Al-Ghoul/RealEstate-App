@@ -17,46 +17,33 @@ import { ProfileSkeleton } from "@/components/profile/Skeleton";
 import GenericView from "@/components/WaveDecoratedView";
 import ProfileImage from "@/components/profile/Image";
 import { Banner, Button, Divider, useTheme } from "react-native-paper";
-import { XiorError } from "xior";
-import { showMessage } from "react-native-flash-message";
+import { useI18nContext } from "@/i18n/i18n-react";
 
 export default function Profile() {
+  const theme = useTheme();
+  const { LL } = useI18nContext();
   const currentUser = useCurrentUser();
   const currentUserProfile = useCurrentUserProfile();
-  const theme = useTheme();
-  const updateUserProfileImage = useMutation({
+  const {
+    mutateAsync: updateUserProfileImage,
+    isPending: isUpdateUserProfileImagePending,
+  } = useMutation({
     mutationKey: ["profileImage"],
     mutationFn: async () => {
       const formData = new FormData();
+
+      if (!image || !image.uri || !image.mimeType || !image.fileName)
+        throw new Error("Image is corrupted or not selected");
+
       // @ts-expect-error
       formData.append("image", {
         uri: image?.uri,
         type: image?.mimeType,
         name: image?.fileName,
       });
+
       const res = await xiorInstance.put("/users/me/profile/image", formData);
-      return res.data.data;
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        showMessage({
-          message: error.response?.data.message,
-          description: error.response?.data.details,
-          type: "warning",
-          style: {
-            backgroundColor: theme.colors.secondaryContainer,
-          },
-        });
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-          style: {
-            backgroundColor: theme.colors.errorContainer,
-          },
-        });
-      }
+      return res.data;
     },
   });
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
@@ -252,16 +239,16 @@ export default function Profile() {
               }}
               buttonColor={theme.colors.primary}
               textColor={theme.colors.onPrimary}
-              disabled={!image || updateUserProfileImage.isPending}
+              disabled={!image || isUpdateUserProfileImagePending}
               onPress={() => {
-                updateUserProfileImage.mutateAsync().then(async () => {
+                updateUserProfileImage().then(async () => {
                   await currentUserProfile.refetch();
                   setImage(null);
                 });
               }}
-              loading={updateUserProfileImage.isPending}
+              loading={isUpdateUserProfileImagePending}
             >
-              Save Image
+              {LL.SAVE_IMAGE()}
             </Button>
           ) : null}
         </View>

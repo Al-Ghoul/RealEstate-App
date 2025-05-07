@@ -21,6 +21,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
+import { useI18nContext } from "@/i18n/i18n-react";
 
 type InputProps = {
   id: string;
@@ -48,6 +49,8 @@ const Input = ({
   maxLength,
 }: InputProps) => {
   const theme = useTheme();
+  const { locale } = useI18nContext();
+  const forceRTL = locale === "ar";
 
   return (
     <View style={style}>
@@ -55,6 +58,7 @@ const Input = ({
         style={{
           width: "100%",
           color: theme.colors.secondary,
+          textAlign: forceRTL ? "right" : "left",
         }}
         id={id}
         placeholderTextColor={theme.colors.secondary}

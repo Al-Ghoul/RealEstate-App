@@ -12,18 +12,21 @@ import { useThemeStore } from "@/lib/stores/themeStore";
 import { useTheme } from "react-native-paper";
 import { useCurrentUser } from "@/lib/queries/user";
 import { ProfileImageSkeleton } from "@/components/profile/Skeleton";
+import { useI18nContext } from "@/i18n/i18n-react";
 
 export default function TabLayout() {
+  const theme = useTheme();
+  const { LL } = useI18nContext();
   const session = useAuthStore((state) => state.session);
   const logout = useAuthStore((state) => state.logout);
   const login = useAuthStore((state) => state.login);
   const setTheme = useThemeStore((state) => state.setTheme);
   const currentUser = useCurrentUser();
-  const theme = useTheme();
   const currentTheme =
     useThemeStore((state) => state.theme) ??
     Appearance.getColorScheme() ??
     "light";
+
   useEffect(() => {
     if (session) addAuthHeader(session.accessToken);
 
@@ -126,7 +129,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: LL.HOME(),
           headerShown: false,
           tabBarIcon: ({ color }) => (
             <FontAwesome5 size={28} name="home" color={color} />
@@ -136,7 +139,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="(user)/profile"
         options={{
-          title: "Profile",
+          title: LL.PROFILE(),
           headerTitleAlign: "center",
           headerShown: false,
           animation: "shift",
@@ -155,7 +158,6 @@ export default function TabLayout() {
       <Tabs.Screen
         name="(user)/edit-profile"
         options={{
-          title: "Edit Profile",
           href: null,
         }}
       />

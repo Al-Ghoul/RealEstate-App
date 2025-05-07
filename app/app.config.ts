@@ -2,17 +2,19 @@ import { ExpoConfig, ConfigContext } from "expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  slug: "real-estate",
   name: "Real Estate",
+  slug: "real-estate",
   version: "1.0.0",
+  scheme: "myapp",
+  jsEngine: "hermes",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
-  scheme: "myapp",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
   ios: {
     supportsTablet: true,
     infoPlist: {
+      CFBundleAllowMixedLocalizations: true,
       SKAdNetworkItems: [
         {
           SKAdNetworkIdentifier: "v9wttpbfk9.skadnetwork",
@@ -79,5 +81,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ],
   experiments: {
     typedRoutes: true,
+  },
+  locales: {
+    ar: "./assets/i18n/arabic.json",
   },
 });

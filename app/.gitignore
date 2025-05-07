@@ -39,3 +39,7 @@ app-example
 
 android
 ios
+
+i18n/*.tsx
+i18n/*.ts
+!i18n/formatters.ts

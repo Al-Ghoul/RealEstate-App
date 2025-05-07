@@ -6,44 +6,28 @@ import { changePasswordDTO, type ChangePasswordDTO } from "@/lib/dtos";
 import { TouchableOpacity, Alert, BackHandler, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { useCallback, useEffect, useState } from "react";
-import { showMessage } from "react-native-flash-message";
-import { XiorError } from "xior";
 import { router, Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import GenericView from "@/components/WaveDecoratedView";
 import { Button, useTheme } from "react-native-paper";
 import ControlledInput from "@/components/ControlledInput";
+import { useI18nContext } from "@/i18n/i18n-react";
 
 export default function ChangePassword() {
+  const theme = useTheme();
+  const { LL, locale } = useI18nContext();
+  const forceRTL = locale === "ar";
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const theme = useTheme();
-  const updateUserPassword = useMutation({
+  const {
+    mutateAsync: updateUserPassword,
+    isPending: isUpdateUserPasswordPending,
+  } = useMutation({
     mutationKey: ["changePassword"],
     mutationFn: (data: ChangePasswordDTO) =>
-      xiorInstance.post("/auth/change-password", data),
-    onSuccess: () => {
-      showMessage({
-        message: "Changed password successfully",
-        type: "success",
-      });
-      reset();
-      router.replace("/profile");
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        showMessage({
-          message: error.response?.data.message || "An error occurred",
-          type: "warning",
-        });
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-        });
-      }
-    },
+      xiorInstance
+        .post("/auth/me/change-password", data)
+        .then((res) => res.data),
   });
   const {
     control,
@@ -61,29 +45,25 @@ export default function ChangePassword() {
 
   const backAction = useCallback(() => {
     if (isDirty) {
-      Alert.alert(
-        "Unsaved changes",
-        "Are you sure you want to discard these changes?",
-        [
-          {
-            text: "Cancel",
-            onPress: () => null,
-            style: "cancel",
+      Alert.alert(LL.UNSAVED_CHANGES(), LL.UNSAVED_CHANGES_PROMPT(), [
+        {
+          text: LL.CANCEL(),
+          onPress: () => null,
+          style: "cancel",
+        },
+        {
+          text: LL.DISCARD(),
+          onPress: () => {
+            reset();
+            router.replace("/profile");
           },
-          {
-            text: "Discard",
-            onPress: () => {
-              reset();
-              router.replace("/profile");
-            },
-          },
-        ],
-      );
+        },
+      ]);
     } else {
       router.replace("/profile");
     }
     return true;
-  }, [isDirty, , reset]);
+  }, [isDirty, reset, LL]);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -97,7 +77,7 @@ export default function ChangePassword() {
     <GenericView style={{}}>
       <Tabs.Screen
         options={{
-          title: "Change Password",
+          title: LL.CHANGE_PASSWORD(),
           headerLeft: () => (
             <TouchableOpacity
               style={{
@@ -130,7 +110,7 @@ export default function ChangePassword() {
           control={control}
           id="currentPassword"
           name="currentPassword"
-          placeholder="Password"
+          placeholder={LL.CURRENT_PASSWORD()}
           keyboardType="default"
           secureTextEntry={!showCurrentPassword}
           style={{
@@ -146,21 +126,18 @@ export default function ChangePassword() {
               flexDirection: "row",
               gap: 4,
               position: "absolute",
-              right: 20,
+              right: !forceRTL ? 20 : undefined,
+              left: forceRTL ? 20 : undefined,
             }}
           >
             <TouchableOpacity
               onPress={() => setShowCurrentPassword(!showCurrentPassword)}
             >
-              {showCurrentPassword ? (
-                <Feather
-                  name="eye-off"
-                  size={20}
-                  color={theme.colors.primary}
-                />
-              ) : (
-                <Feather name="eye" size={20} color={theme.colors.primary} />
-              )}
+              <Feather
+                name={showCurrentPassword ? "eye-off" : "eye"}
+                size={20}
+                color={theme.colors.primary}
+              />
             </TouchableOpacity>
           </View>
         </ControlledInput>
@@ -169,7 +146,7 @@ export default function ChangePassword() {
           control={control}
           id="password"
           name="password"
-          placeholder="New Password"
+          placeholder={LL.NEW_PASSWORD()}
           keyboardType="default"
           secureTextEntry={!showNewPassword}
           style={{
@@ -185,21 +162,18 @@ export default function ChangePassword() {
               flexDirection: "row",
               gap: 4,
               position: "absolute",
-              right: 20,
+              right: !forceRTL ? 20 : undefined,
+              left: forceRTL ? 20 : undefined,
             }}
           >
             <TouchableOpacity
               onPress={() => setShowNewPassword(!showNewPassword)}
             >
-              {showNewPassword ? (
-                <Feather
-                  name="eye-off"
-                  size={20}
-                  color={theme.colors.primary}
-                />
-              ) : (
-                <Feather name="eye" size={20} color={theme.colors.primary} />
-              )}
+              <Feather
+                name={showNewPassword ? "eye-off" : "eye"}
+                size={20}
+                color={theme.colors.primary}
+              />
             </TouchableOpacity>
           </View>
         </ControlledInput>
@@ -208,7 +182,7 @@ export default function ChangePassword() {
           control={control}
           id="confirmPassword"
           name="confirmPassword"
-          placeholder="Confirm Password"
+          placeholder={LL.CONFIRM_PASSWORD()}
           keyboardType="default"
           secureTextEntry={!showNewPassword}
           style={{
@@ -225,11 +199,16 @@ export default function ChangePassword() {
             marginHorizontal: 16,
           }}
           buttonColor={theme.colors.primaryContainer}
-          onPress={handleSubmit((data) => updateUserPassword.mutate(data))}
-          disabled={!isDirty || updateUserPassword.isPending}
-          loading={updateUserPassword.isPending}
+          onPress={handleSubmit((data) =>
+            updateUserPassword(data).then(() => {
+              reset();
+              router.replace("/profile");
+            }),
+          )}
+          disabled={!isDirty || isUpdateUserPasswordPending}
+          loading={isUpdateUserPasswordPending}
         >
-          Change Password
+          {LL.SAVE_CHANGES()}
         </Button>
       </View>
     </GenericView>

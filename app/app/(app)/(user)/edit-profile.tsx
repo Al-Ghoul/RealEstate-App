@@ -32,13 +32,15 @@ import {
 } from "@/lib/dtos";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Banner, Divider, useTheme } from "react-native-paper";
+import { useI18nContext } from "@/i18n/i18n-react";
 
 export default function EditProfile() {
+  const theme = useTheme();
+  const { LL } = useI18nContext();
   const currentPath = usePathname();
   const currentUser = useCurrentUser();
   const currentUserProfile = useCurrentUserProfile();
   const accounts = useUserAccounts();
-  const theme = useTheme();
   const sheet = useRef<TrueSheet>(null);
   const {
     control: updateEmailControl,
@@ -68,30 +70,26 @@ export default function EditProfile() {
 
   const backAction = useCallback(() => {
     if (updateEmailIsDirty || profileIsDirty) {
-      Alert.alert(
-        "Unsaved changes",
-        "Are you sure you want to discard these changes?",
-        [
-          {
-            text: "Cancel",
-            onPress: () => null,
-            style: "cancel",
+      Alert.alert(LL.UNSAVED_CHANGES(), LL.UNSAVED_CHANGES_PROMPT(), [
+        {
+          text: LL.CANCEL(),
+          onPress: () => null,
+          style: "cancel",
+        },
+        {
+          text: LL.DISCARD(),
+          onPress: () => {
+            updateEmailReset();
+            profileReset();
+            router.replace("/profile");
           },
-          {
-            text: "Discard",
-            onPress: () => {
-              updateEmailReset();
-              profileReset();
-              router.replace("/profile");
-            },
-          },
-        ],
-      );
+        },
+      ]);
     } else {
       router.replace("/profile");
     }
     return true;
-  }, [updateEmailIsDirty, updateEmailReset, profileIsDirty, profileReset]);
+  }, [updateEmailIsDirty, updateEmailReset, profileIsDirty, profileReset, LL]);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -117,7 +115,7 @@ export default function EditProfile() {
     <GenericView>
       <Tabs.Screen
         options={{
-          title: "Edit Profile",
+          title: LL.EDIT_PROFILE(),
           headerLeft: () => (
             <TouchableOpacity
               style={{
@@ -232,9 +230,11 @@ export default function EditProfile() {
             handleSubmit={profileHandleSubmit}
             isDirty={profileIsDirty}
           />
+
           <LinkAccounts />
         </View>
       </ScrollView>
+
       <TrueSheet
         ref={sheet}
         sizes={["small"]}

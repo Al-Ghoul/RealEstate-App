@@ -1,7 +1,11 @@
+import { Locales } from "@/i18n/i18n-types";
 import xior, { merge } from "xior";
 
 export const xiorInstance = xior.create({
   baseURL: process.env.EXPO_PUBLIC_API_URL,
+  headers: {
+    Accept: "application/json",
+  },
 });
 
 export function addAuthHeader(token: string | null) {
@@ -14,4 +18,8 @@ export function addAuthHeader(token: string | null) {
       },
     });
   });
+}
+
+export function addLanguageHeader(lang: Locales) {
+  xiorInstance.defaults.headers["Accept-Language"] = lang;
 }

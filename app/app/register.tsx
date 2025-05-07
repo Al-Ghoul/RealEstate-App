@@ -3,8 +3,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { xiorInstance } from "@/lib/fetcher";
 import { useMutation } from "@tanstack/react-query";
-import { XiorError } from "xior";
-import { showMessage } from "react-native-flash-message";
 import { registerDTO, type RegisterDTO } from "@/lib/dtos";
 import Svg, { Ellipse } from "react-native-svg";
 import Animated, {
@@ -14,56 +12,33 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import SocialAuth from "@/components/SocialAuth";
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { Button, useTheme } from "react-native-paper";
 import ControlledInput from "@/components/ControlledInput";
+import { useI18nContext } from "@/i18n/i18n-react";
+import Feather from "@expo/vector-icons/Feather";
 
 const AnimatedEllipse = Animated.createAnimatedComponent(Ellipse);
 export default function Register() {
   const theme = useTheme();
+  const { LL, locale } = useI18nContext();
+  const forceRTL = locale === "ar";
   const { control, handleSubmit } = useForm<RegisterDTO>({
     defaultValues: {
       email: "Abdo.AlGhouul@gmail.com",
       password: "12345678",
       confirmPassword: "12345678",
       firstName: "Abdo",
-      lastName: "AlGhouul",
+      lastName: "AlGhoul",
     },
     resolver: zodResolver(registerDTO),
   });
 
-  const { mutate: registerSubmit, isPending } = useMutation({
+  const { mutateAsync: registerSubmit, isPending } = useMutation({
     mutationFn: (data: RegisterDTO) =>
       xiorInstance.post("/auth/register", data),
-    onSuccess: (res) => {
-      showMessage({
-        message: res.data.message,
-        type: "success",
-      });
-      router.replace("/login");
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        showMessage({
-          message: error.response?.data.message,
-          type: "warning",
-          style: {
-            backgroundColor: theme.colors.secondaryContainer,
-          },
-        });
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-          style: {
-            backgroundColor: theme.colors.errorContainer,
-          },
-        });
-      }
-    },
   });
 
   const scale = useSharedValue(1);
@@ -82,6 +57,8 @@ export default function Register() {
   const animatedProps = useAnimatedProps(() => ({
     transform: [{ scale: scale.value }],
   }));
+
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -107,7 +84,7 @@ export default function Register() {
       >
         <View
           style={{
-            marginTop: 16,
+            marginTop: 96,
             marginHorizontal: 16,
             gap: 8,
           }}
@@ -116,40 +93,8 @@ export default function Register() {
             control={control}
             name="email"
             id="email"
-            placeholder="Email"
+            placeholder={LL.EMAIL()}
             keyboardType="email-address"
-            style={{
-              width: "100%",
-              borderWidth: 1,
-              borderColor: theme.colors.primary,
-              borderRadius: 8,
-              padding: 8,
-            }}
-          />
-
-          <ControlledInput
-            control={control}
-            id="password"
-            name="password"
-            placeholder="Password"
-            keyboardType="default"
-            secureTextEntry
-            style={{
-              width: "100%",
-              borderWidth: 1,
-              borderColor: theme.colors.primary,
-              borderRadius: 8,
-              padding: 8,
-            }}
-          />
-
-          <ControlledInput
-            control={control}
-            id="confirmPassword"
-            name="confirmPassword"
-            placeholder="Confirm Password"
-            keyboardType="default"
-            secureTextEntry
             style={{
               width: "100%",
               borderWidth: 1,
@@ -163,7 +108,7 @@ export default function Register() {
             control={control}
             id="firstName"
             name="firstName"
-            placeholder="First Name"
+            placeholder={LL.FIRST_NAME()}
             keyboardType="default"
             style={{
               width: "100%",
@@ -178,8 +123,58 @@ export default function Register() {
             control={control}
             id="lastName"
             name="lastName"
-            placeholder="Last Name"
+            placeholder={LL.LAST_NAME()}
             keyboardType="default"
+            style={{
+              width: "100%",
+              borderWidth: 1,
+              borderColor: theme.colors.primary,
+              borderRadius: 8,
+              padding: 8,
+            }}
+          />
+
+          <ControlledInput
+            control={control}
+            id="password"
+            name="password"
+            placeholder={LL.PASSWORD()}
+            keyboardType="default"
+            secureTextEntry={!showPassword}
+            style={{
+              width: "100%",
+              borderWidth: 1,
+              borderColor: theme.colors.primary,
+              borderRadius: 8,
+              padding: 8,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 4,
+                position: "absolute",
+                right: !forceRTL ? 20 : undefined,
+                left: forceRTL ? 20 : undefined,
+              }}
+            >
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Feather
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={20}
+                  color={theme.colors.primary}
+                />
+              </TouchableOpacity>
+            </View>
+          </ControlledInput>
+
+          <ControlledInput
+            control={control}
+            id="confirmPassword"
+            name="confirmPassword"
+            placeholder={LL.CONFIRM_PASSWORD()}
+            keyboardType="default"
+            secureTextEntry={!showPassword}
             style={{
               width: "100%",
               borderWidth: 1,
@@ -197,35 +192,37 @@ export default function Register() {
             textColor={theme.colors.onPrimary}
             disabled={isPending}
             loading={isPending}
-            onPress={handleSubmit((data) => registerSubmit(data))}
+            onPress={handleSubmit((data) =>
+              registerSubmit(data).then(() => router.replace("/login")),
+            )}
           >
-            Register
+            {LL.REGISTER()}
           </Button>
 
-          <View
+          <Button
             style={{
-              flexDirection: "row",
+              flexDirection: forceRTL ? "row-reverse" : "row",
               alignSelf: "center",
-              gap: 4,
             }}
+            onPress={() => router.back()}
           >
             <Text
               style={{
                 color: theme.colors.secondary,
               }}
             >
-              Already have an account?
+              {LL.ALREADY_HAVE_AN_ACCOUNT()}{" "}
             </Text>
             <Text
               style={{
                 fontWeight: "bold",
                 color: theme.colors.primary,
               }}
-              onPress={() => router.back()}
             >
-              Login
+              {LL.LOGIN()}
             </Text>
-          </View>
+          </Button>
+
           <SocialAuth />
         </View>
       </View>

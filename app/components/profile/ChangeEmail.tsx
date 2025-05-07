@@ -3,12 +3,11 @@ import { type UpdateEmailDTO } from "@/lib/dtos";
 import { useCurrentUser } from "@/lib/queries/user";
 import { useMutation } from "@tanstack/react-query";
 import { xiorInstance } from "@/lib/fetcher";
-import { showMessage } from "react-native-flash-message";
-import { XiorError } from "xior";
 import { TrueSheet } from "@lodev09/react-native-true-sheet";
 import { Button, useTheme } from "react-native-paper";
 import { View } from "react-native";
 import ControlledInput from "../ControlledInput";
+import { useI18nContext } from "@/i18n/i18n-react";
 
 interface ChangeEmailProps {
   sheet: React.RefObject<TrueSheet>;
@@ -23,35 +22,19 @@ export default function ChangeEmail({
   handleSubmit,
   isDirty,
 }: ChangeEmailProps) {
-  const currentUser = useCurrentUser();
   const theme = useTheme();
-  const updateUserEmail = useMutation({
-    mutationKey: ["userEmail"],
-    mutationFn: (data: UpdateEmailDTO) => xiorInstance.patch("/users/me", data),
-    onSuccess: () => {
-      showMessage({
-        message: "Updated successfully",
-        type: "success",
-      });
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        showMessage({
-          message: error.response?.data.message || "An error occurred",
-          type: "warning",
-        });
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-        });
-      }
-    },
-  });
+  const { LL, locale } = useI18nContext();
+  const forceRTL = locale === "ar";
+  const currentUser = useCurrentUser();
+  const { mutateAsync: updateUserEmail, isPending: isUpdateUserEmailPending } =
+    useMutation({
+      mutationKey: ["userEmail"],
+      mutationFn: (data: UpdateEmailDTO) =>
+        xiorInstance.patch("/users/me", data).then((res) => res.data),
+    });
 
   const onSubmit = (data: UpdateEmailDTO) => {
-    updateUserEmail.mutateAsync(data).then(() => currentUser.refetch());
+    updateUserEmail(data).then(() => currentUser.refetch());
   };
 
   return (
@@ -60,7 +43,7 @@ export default function ChangeEmail({
         control={control}
         id="email"
         name="email"
-        placeholder="Email"
+        placeholder={LL.EMAIL()}
         keyboardType="email-address"
         style={{
           width: "100%",
@@ -73,7 +56,8 @@ export default function ChangeEmail({
         <View
           style={{
             position: "absolute",
-            right: 20,
+            left: forceRTL ? 20 : undefined,
+            right: !forceRTL ? 20 : undefined,
           }}
         >
           {!currentUser.data?.emailVerified || true ? (
@@ -84,7 +68,7 @@ export default function ChangeEmail({
                 currentUser.isLoading || !!currentUser.data?.emailVerified
               }
             >
-              Verify
+              {LL.VERIFY()}
             </Button>
           ) : null}
         </View>
@@ -97,10 +81,10 @@ export default function ChangeEmail({
         compact
         buttonColor={theme.colors.primaryContainer}
         onPress={handleSubmit(onSubmit)}
-        disabled={!isDirty || updateUserEmail.isPending}
-        loading={updateUserEmail.isPending}
+        disabled={!isDirty || isUpdateUserEmailPending}
+        loading={isUpdateUserEmailPending}
       >
-        Change Email
+        {LL.CHANGE_EMAIL()}
       </Button>
     </View>
   );

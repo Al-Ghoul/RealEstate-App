@@ -3,8 +3,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { xiorInstance } from "@/lib/fetcher";
 import { useMutation } from "@tanstack/react-query";
-import { XiorError } from "xior";
-import { showMessage } from "react-native-flash-message";
 import { loginDTO, type LoginDTO } from "@/lib/dtos";
 import Svg, { Circle, Ellipse } from "react-native-svg";
 import { useAuthStore } from "@/lib/stores/authStore";
@@ -16,15 +14,19 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import SocialAuth from "@/components/SocialAuth";
 import { Button, useTheme } from "react-native-paper";
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import ControlledInput from "@/components/ControlledInput";
+import { useI18nContext } from "@/i18n/i18n-react";
+import Feather from "@expo/vector-icons/Feather";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export default function Login() {
+  const { LL, locale } = useI18nContext();
+  const forceRTL = locale === "ar";
   const login = useAuthStore((state) => state.login);
   const theme = useTheme();
   const { control, handleSubmit } = useForm<LoginDTO>({
@@ -35,37 +37,9 @@ export default function Login() {
     resolver: zodResolver(loginDTO),
   });
 
-  const { mutate: loginSubmit, isPending } = useMutation({
-    mutationFn: (data: LoginDTO) => xiorInstance.post("/auth/login", data),
-    onSuccess: (res) => {
-      showMessage({
-        message: res.data.message,
-        type: "success",
-      });
-      const tokens = res.data.data as JWTPayload;
-      login(tokens);
-      router.replace("/");
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        showMessage({
-          message: error.response?.data.message,
-          type: "warning",
-          style: {
-            backgroundColor: theme.colors.secondaryContainer,
-          },
-        });
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-          style: {
-            backgroundColor: theme.colors.errorContainer,
-          },
-        });
-      }
-    },
+  const { mutateAsync: loginSubmit, isPending } = useMutation({
+    mutationFn: (data: LoginDTO) =>
+      xiorInstance.post("/auth/login", data).then((res) => res.data),
   });
 
   const progress = useSharedValue(0);
@@ -88,6 +62,8 @@ export default function Login() {
       transform: [{ translateY }],
     };
   });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -137,7 +113,7 @@ export default function Login() {
           control={control}
           name="email"
           id="email"
-          placeholder="Email"
+          placeholder={LL.EMAIL()}
           keyboardType="email-address"
           style={{
             width: "100%",
@@ -152,9 +128,9 @@ export default function Login() {
           control={control}
           id="password"
           name="password"
-          placeholder="Password"
+          placeholder={LL.PASSWORD()}
           keyboardType="default"
-          secureTextEntry
+          secureTextEntry={!showPassword}
           style={{
             width: "100%",
             borderWidth: 1,
@@ -162,7 +138,25 @@ export default function Login() {
             borderRadius: 8,
             padding: 8,
           }}
-        />
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 4,
+              position: "absolute",
+              right: !forceRTL ? 20 : undefined,
+              left: forceRTL ? 20 : undefined,
+            }}
+          >
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Feather
+                name={showPassword ? "eye-off" : "eye"}
+                size={20}
+                color={theme.colors.primary}
+              />
+            </TouchableOpacity>
+          </View>
+        </ControlledInput>
 
         <Button
           style={{
@@ -171,35 +165,66 @@ export default function Login() {
           buttonColor={theme.colors.primary}
           textColor={theme.colors.onPrimary}
           disabled={isPending}
-          onPress={handleSubmit((data) => loginSubmit(data))}
+          onPress={handleSubmit((data) =>
+            loginSubmit(data).then((res) => {
+              login(res.data as JWTPayload);
+              router.replace("/");
+            }),
+          )}
           loading={isPending}
         >
-          Login
+          {LL.LOGIN()}
         </Button>
 
-        <View
-          style={{
-            flexDirection: "row",
-            alignSelf: "center",
-            gap: 4,
-          }}
-        >
-          <Text
+        <View style={{ flexDirection: "row", justifyContent: "center" }}>
+          <Button
             style={{
-              color: theme.colors.secondary,
+              marginHorizontal: 24,
+              flexDirection: forceRTL ? "row-reverse" : "row",
             }}
+            onPress={() => router.push("/reset-password")}
           >
-            Don't have an account?
-          </Text>
-          <Text
+            <Text
+              style={{
+                color: theme.colors.secondary,
+              }}
+            >
+              {LL.FORGOT_PASSWORD()}{" "}
+            </Text>
+
+            <Text
+              style={{
+                fontWeight: "bold",
+                color: theme.colors.primary,
+              }}
+            >
+              {LL.RESET()}
+            </Text>
+          </Button>
+
+          <Button
             style={{
-              fontWeight: "bold",
-              color: theme.colors.primary,
+              marginHorizontal: 24,
+              flexDirection: forceRTL ? "row-reverse" : "row",
             }}
             onPress={() => router.push("/register")}
           >
-            Register
-          </Text>
+            <Text
+              style={{
+                color: theme.colors.secondary,
+              }}
+            >
+              {LL.DONT_HAVE_ACCOUNT()}{" "}
+            </Text>
+            <Text
+              style={{
+                fontWeight: "bold",
+                color: theme.colors.primary,
+              }}
+            >
+              {LL.REGISTER()}
+            </Text>
+          </Button>
         </View>
 
         <SocialAuth />

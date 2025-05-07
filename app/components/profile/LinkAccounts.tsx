@@ -5,7 +5,6 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { useMutation } from "@tanstack/react-query";
 import { xiorInstance } from "@/lib/fetcher";
 import { type LinkAccountDTO } from "@/lib/dtos";
-import { XiorError } from "xior";
 import { useCallback } from "react";
 import {
   GoogleSignin,
@@ -15,74 +14,36 @@ import {
 } from "@react-native-google-signin/google-signin";
 import GoogleIcon from "../../assets/icons/google-logo.svg";
 import { useUserAccounts } from "@/lib/queries/user";
+import { useI18nContext } from "@/i18n/i18n-react";
 
 export default function LinkAccounts() {
+  const { LL } = useI18nContext();
   const accounts = useUserAccounts();
-  const linkAccount = useMutation({
-    mutationFn: (data: LinkAccountDTO) =>
-      xiorInstance.post("/auth/accounts/link", data),
-    onSuccess: () => {
-      showMessage({
-        message: "Account was linked successfully",
-        type: "success",
-      });
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        showMessage({
-          message: error.response?.data.message,
-          description: error.response?.data.details,
-          type: "warning",
-        });
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-        });
-      }
-    },
-  });
+  const { mutateAsync: linkAccount, isPending: isLinkAccountPending } =
+    useMutation({
+      mutationFn: (data: LinkAccountDTO) =>
+        xiorInstance.post("/auth/accounts/link", data).then((res) => res.data),
+    });
 
-  const unLinkAccount = useMutation({
-    mutationFn: (data: { provider: string }) =>
-      xiorInstance.delete(`/auth/accounts/unlink/${data.provider}`),
-    onSuccess: () => {
-      showMessage({
-        message: "Account was unlinked successfully",
-        type: "success",
-      });
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        showMessage({
-          message: error.response?.data.message,
-          description: error.response?.data.details,
-          type: "warning",
-        });
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-        });
-      }
-    },
-  });
+  const { mutateAsync: unLinkAccount, isPending: isUnLinkAccountPending } =
+    useMutation({
+      mutationFn: (data: { provider: string }) =>
+        xiorInstance
+          .delete(`/auth/accounts/unlink/${data.provider}`)
+          .then((res) => res.data),
+    });
 
   const signInWithGoogle = useCallback(async () => {
     try {
       await GoogleSignin.hasPlayServices();
       const response = await GoogleSignin.signIn();
       if (isSuccessResponse(response)) {
-        linkAccount
-          .mutateAsync({
-            provider: "google",
-            idToken: response.data.idToken ?? "",
-          })
-          .then(() => {
-            accounts.refetch();
-          });
+        linkAccount({
+          provider: "google",
+          idToken: response.data.idToken ?? "",
+        }).then(() => {
+          accounts.refetch();
+        });
       } else {
         showMessage({
           message: "Sign in cancelled",
@@ -148,6 +109,7 @@ export default function LinkAccounts() {
 
           elevation: 5,
         }}
+        disabled={isLinkAccountPending || isUnLinkAccountPending}
         onPress={() => {
           if (
             accounts.data?.find(
@@ -155,22 +117,18 @@ export default function LinkAccounts() {
                 provider.provider === "facebook",
             )
           ) {
-            unLinkAccount
-              .mutateAsync({
-                provider: "facebook",
-              })
-              .then(() => accounts.refetch());
+            unLinkAccount({
+              provider: "facebook",
+            }).then(() => accounts.refetch());
           } else {
             LoginManager.logInWithPermissions(["public_profile", "email"])
               .then((result) => {
                 if (!result.isCancelled) {
                   AccessToken.getCurrentAccessToken().then((data) => {
-                    linkAccount
-                      .mutateAsync({
-                        accessToken: data?.accessToken ?? "",
-                        provider: "facebook",
-                      })
-                      .then(() => accounts.refetch());
+                    linkAccount({
+                      accessToken: data?.accessToken ?? "",
+                      provider: "facebook",
+                    }).then(() => accounts.refetch());
                   });
                 }
               })
@@ -189,8 +147,8 @@ export default function LinkAccounts() {
             (provider: { provider: string }) =>
               provider.provider === "facebook",
           )
-            ? "Unlink"
-            : "Link"}
+            ? LL.UNLINK_ACCOUNT()
+            : LL.LINK_ACCOUNT()}
         </Text>
       </Pressable>
       <Pressable
@@ -213,6 +171,7 @@ export default function LinkAccounts() {
 
           elevation: 5,
         }}
+        disabled={isLinkAccountPending || isUnLinkAccountPending}
         onPress={() => {
           if (
             accounts.data?.find(
@@ -220,11 +179,9 @@ export default function LinkAccounts() {
                 provider.provider === "google",
             )
           ) {
-            unLinkAccount
-              .mutateAsync({
-                provider: "google",
-              })
-              .then(() => accounts.refetch());
+            unLinkAccount({
+              provider: "google",
+            }).then(() => accounts.refetch());
           } else {
             signInWithGoogle();
           }
@@ -235,8 +192,8 @@ export default function LinkAccounts() {
           {accounts.data?.find(
             (provider: { provider: string }) => provider.provider === "google",
           )
-            ? "Unlink"
-            : "Link"}
+            ? LL.UNLINK_ACCOUNT()
+            : LL.LINK_ACCOUNT()}
         </Text>
       </Pressable>
     </View>

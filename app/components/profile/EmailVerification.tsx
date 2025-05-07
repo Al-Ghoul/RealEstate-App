@@ -1,8 +1,6 @@
 import VerificationViews from "../VerificationViews";
 import { useMutation } from "@tanstack/react-query";
 import { xiorInstance } from "@/lib/fetcher";
-import { showMessage } from "react-native-flash-message";
-import { XiorError } from "xior";
 import { useForm } from "react-hook-form";
 import { type TrueSheet } from "@lodev09/react-native-true-sheet";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +10,7 @@ import Octicons from "@expo/vector-icons/Octicons";
 import { View } from "react-native";
 import { Button, useTheme } from "react-native-paper";
 import ControlledInput from "../ControlledInput";
+import { useI18nContext } from "@/i18n/i18n-react";
 
 interface EmailVerificationProps {
   sheet: React.RefObject<TrueSheet>;
@@ -19,72 +18,31 @@ interface EmailVerificationProps {
 
 export default function EmailVerification({ sheet }: EmailVerificationProps) {
   const theme = useTheme();
-  const requestEmailVerificationCode = useMutation({
+  const { LL, locale } = useI18nContext();
+  const forceRTL = locale === "ar";
+  const {
+    mutate: requestEmailVerificationCode,
+    isPending: isRequestEmailVerificationCodePending,
+  } = useMutation({
     mutationKey: ["requestEmailVerificationCode"],
     mutationFn: () =>
-      xiorInstance.post("/auth/me/request-email-verification-code"),
-    onSuccess: () => {
-      showMessage({
-        message: "Verification code sent successfully",
-        type: "success",
-      });
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        showMessage({
-          message: error.response?.data.message || "An error occurred",
-          type: "warning",
-        });
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-        });
-      }
-    },
+      xiorInstance
+        .post("/auth/me/request-email-verification-code")
+        .then((res) => res.data),
   });
 
   const {
     control: emailVerificationControl,
     handleSubmit: handleEmailVerificationSubmit,
-    setError: setEmailVerificationError,
   } = useForm<VerifyDTO>({
     resolver: zodResolver(verifyDTO),
   });
-  const verifyEmail = useMutation({
-    mutationKey: ["verifyEmail"],
-    mutationFn: (data: VerifyDTO) => xiorInstance.post("/auth/me/verify", data),
-    onSuccess: () => {
-      showMessage({
-        message: "Email was verified successfully",
-        type: "success",
-      });
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        if (
-          typeof error.response?.data === "object" &&
-          "errors" in error.response?.data
-        ) {
-          error.response?.data.errors.map((error: { message: string }) =>
-            setEmailVerificationError("root", { message: error.message }),
-          );
-        } else {
-          showMessage({
-            message: error.response?.data.message || "An error occurred",
-            type: "warning",
-          });
-        }
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-        });
-      }
-    },
-  });
+  const { mutateAsync: verifyEmail, isPending: isVerifyEmailPending } =
+    useMutation({
+      mutationKey: ["verifyEmail"],
+      mutationFn: (data: VerifyDTO) =>
+        xiorInstance.post("/auth/me/verify", data).then((res) => res.data),
+    });
 
   return (
     <VerificationViews
@@ -101,15 +59,17 @@ export default function EmailVerification({ sheet }: EmailVerificationProps) {
             buttonColor={theme.colors.primary}
             textColor={theme.colors.onPrimary}
             onPress={() => {
-              requestEmailVerificationCode.mutate();
+              requestEmailVerificationCode();
               switchView("view2");
             }}
+            disabled={isRequestEmailVerificationCodePending}
+            loading={isRequestEmailVerificationCodePending}
           >
-            Send Code
+            {LL.SEND_VERIFICATION_CODE()}
           </Button>
 
           <Button mode="outlined" onPress={() => sheet.current?.dismiss()}>
-            Cancel
+            {LL.CANCEL()}
           </Button>
         </View>
       )}
@@ -139,7 +99,8 @@ export default function EmailVerification({ sheet }: EmailVerificationProps) {
                 flexDirection: "row",
                 gap: 4,
                 position: "absolute",
-                right: 20,
+                left: forceRTL ? 20 : undefined,
+                right: !forceRTL ? 20 : undefined,
               }}
             >
               <Octicons name="number" size={24} color={theme.colors.primary} />
@@ -148,7 +109,7 @@ export default function EmailVerification({ sheet }: EmailVerificationProps) {
 
           <View
             style={{
-              flexDirection: "row",
+              flexDirection: forceRTL ? "row-reverse" : "row",
               marginHorizontal: "auto",
               gap: 8,
             }}
@@ -157,19 +118,19 @@ export default function EmailVerification({ sheet }: EmailVerificationProps) {
               buttonColor={theme.colors.primary}
               textColor={theme.colors.onPrimary}
               onPress={handleEmailVerificationSubmit((data) =>
-                verifyEmail
-                  .mutateAsync(data)
-                  .then(() => sheet.current?.dismiss()),
+                verifyEmail(data).then(() => sheet.current?.dismiss()),
               )}
+              disabled={isVerifyEmailPending}
+              loading={isVerifyEmailPending}
             >
-              Verify
+              {LL.VERIFY()}
             </Button>
             <Button
               compact
               mode="outlined"
               onPress={() => sheet.current?.dismiss()}
             >
-              Cancel
+              {LL.CANCEL()}
             </Button>
           </View>
         </View>

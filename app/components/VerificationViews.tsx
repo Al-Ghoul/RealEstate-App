@@ -1,3 +1,4 @@
+import { useI18nContext } from "@/i18n/i18n-react";
 import React from "react";
 import { Dimensions, View, Text } from "react-native";
 import { useTheme } from "react-native-paper";
@@ -15,6 +16,7 @@ interface VerificationViewsProps {
 
 const ViewTransition = ({ view1, view2 }: VerificationViewsProps) => {
   const theme = useTheme();
+  const { LL } = useI18nContext();
   const offset = useSharedValue(0);
   const width = Dimensions.get("window").width;
 
@@ -67,7 +69,7 @@ const ViewTransition = ({ view1, view2 }: VerificationViewsProps) => {
             color: theme.colors.secondary,
           }}
         >
-          Email is not verified
+          {LL.EMAIL_NOT_VERIFIED()}
         </Text>
         {view1({ switchView })}
       </Animated.View>

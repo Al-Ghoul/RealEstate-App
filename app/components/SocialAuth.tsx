@@ -6,7 +6,6 @@ import { xiorInstance } from "@/lib/fetcher";
 import { showMessage } from "react-native-flash-message";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { router } from "expo-router";
-import { XiorError } from "xior";
 import {
   GoogleSignin,
   isErrorWithCode,
@@ -16,6 +15,7 @@ import {
 import GoogleIcon from "../assets/icons/google-logo.svg";
 import { useCallback } from "react";
 import { Divider, useTheme } from "react-native-paper";
+import { useI18nContext } from "@/i18n/i18n-react";
 
 GoogleSignin.configure({
   webClientId:
@@ -27,77 +27,30 @@ GoogleSignin.configure({
 
 export default function SocialAuth() {
   const theme = useTheme();
+  const { LL } = useI18nContext();
   const login = useAuthStore((state) => state.login);
-  const facebookLogin = useMutation({
-    mutationFn: (data: { accessToken: string }) =>
-      xiorInstance.post("/auth/facebook", data),
-    onSuccess: (res) => {
-      showMessage({
-        message: "Logged in successfully",
-        type: "success",
-      });
-      const tokens = res.data.data as JWTPayload;
-      login(tokens);
-      router.replace("/");
-    },
-    onError: (error) => {
-      if (error instanceof XiorError) {
-        showMessage({
-          message: error.response?.data.message,
-          description: error.response?.data.details,
-          type: "warning",
-        });
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-        });
-      }
-    },
-  });
-  const googleLogin = useMutation({
-    mutationFn: (data: { idToken: string }) =>
-      xiorInstance.post("/auth/google", data),
-    onSuccess: (res) => {
-      showMessage({
-        message: "Logged in successfully",
-        type: "success",
-      });
-      const tokens = res.data.data as JWTPayload;
-      login(tokens);
-      router.replace("/");
-    },
-    onError: (error) => {
-      GoogleSignin.signOut();
-      if (error instanceof XiorError) {
-        showMessage({
-          message: error.response?.data.message,
-          description: error.response?.data.details,
-          type: "warning",
-          style: {
-            backgroundColor: theme.colors.secondaryContainer,
-          },
-        });
-      } else {
-        showMessage({
-          message: "An error occurred",
-          description: error.message,
-          type: "danger",
-          style: {
-            backgroundColor: theme.colors.errorContainer,
-          },
-        });
-      }
-    },
-  });
+  const { mutateAsync: facebookLogin, isPending: isFacebookLoginPending } =
+    useMutation({
+      mutationFn: (data: { accessToken: string }) =>
+        xiorInstance.post("/auth/facebook", data).then((res) => res.data),
+    });
+  const { mutateAsync: googleLogin, isPending: isGoogleLoginPending } =
+    useMutation({
+      mutationFn: (data: { idToken: string }) =>
+        xiorInstance.post("/auth/google", data).then((res) => res.data),
+    });
 
   const signInWithGoogle = useCallback(async () => {
     try {
       await GoogleSignin.hasPlayServices();
       const response = await GoogleSignin.signIn();
       if (isSuccessResponse(response)) {
-        googleLogin.mutate({ idToken: response.data.idToken ?? "" });
+        googleLogin({ idToken: response.data.idToken ?? "" })
+          .then((res) => {
+            login(res.data as JWTPayload);
+            router.replace("/");
+          })
+          .catch(() => GoogleSignin.signOut());
       } else {
         showMessage({
           message: "Sign in cancelled",
@@ -154,7 +107,7 @@ export default function SocialAuth() {
             color: theme.colors.secondary,
           }}
         >
-          OR
+          {LL.OR()}
         </Text>
         <Divider style={{ flex: 1, height: 2 }} />
       </View>
@@ -184,13 +137,17 @@ export default function SocialAuth() {
 
             elevation: 5,
           }}
+          disabled={isFacebookLoginPending || isGoogleLoginPending}
           onPress={() => {
             LoginManager.logInWithPermissions(["public_profile", "email"])
               .then((result) => {
                 if (!result.isCancelled) {
                   AccessToken.getCurrentAccessToken().then((data) => {
-                    facebookLogin.mutate({
+                    facebookLogin({
                       accessToken: data?.accessToken ?? "",
+                    }).then((res) => {
+                      login(res.data as JWTPayload);
+                      router.replace("/");
                     });
                   });
                 }
@@ -224,6 +181,7 @@ export default function SocialAuth() {
 
             elevation: 5,
           }}
+          disabled={isFacebookLoginPending || isGoogleLoginPending}
           onPress={signInWithGoogle}
         >
           <GoogleIcon width={20} height={20} />

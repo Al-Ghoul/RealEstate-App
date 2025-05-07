@@ -9,6 +9,7 @@ import { useAuthStore } from "@/lib/stores/authStore";
 import { router } from "expo-router";
 import { useCurrentUser } from "@/lib/queries/user";
 import { Button, useTheme } from "react-native-paper";
+import { useI18nContext } from "@/i18n/i18n-react";
 
 interface GenericViewProps {
   children: React.ReactNode;
@@ -21,10 +22,11 @@ export default function GenericView({ children, style }: GenericViewProps) {
   const aspectRatio = originalWidth / originalHeight;
   const windowWidth = Dimensions.get("window").width;
   const theme = useTheme();
+  const { LL } = useI18nContext();
   const logout = useAuthStore((state) => state.logout);
   const currentUser = useCurrentUser();
 
-  const logoutMutation = useMutation({
+  const { mutateAsync: logoutMutation, isPending: isLoggingOut } = useMutation({
     mutationFn: () => xiorInstance.post("/auth/me/logout"),
   });
 
@@ -62,8 +64,9 @@ export default function GenericView({ children, style }: GenericViewProps) {
                 router.push("/edit-profile", { withAnchor: true });
               }}
             >
-              Edit Profile
+              {LL.EDIT_PROFILE()}
             </Button>
+
             <Button
               style={{
                 marginHorizontal: "auto",
@@ -79,9 +82,10 @@ export default function GenericView({ children, style }: GenericViewProps) {
               }}
             >
               {currentUser.data?.hasPassword
-                ? "Change Password"
-                : "Set Password"}
+                ? LL.CHANGE_PASSWORD()
+                : LL.SET_PASSWORD()}
             </Button>
+
             <Button
               style={{
                 marginHorizontal: "auto",
@@ -90,9 +94,9 @@ export default function GenericView({ children, style }: GenericViewProps) {
               }}
               buttonColor={theme.colors.primary}
               textColor={theme.colors.onPrimary}
-              disabled={logoutMutation.isPending}
+              disabled={isLoggingOut}
               onPress={() => {
-                logoutMutation.mutateAsync().finally(() => {
+                logoutMutation().finally(() => {
                   logout();
                   GoogleSignin.signOut();
                   LoginManager.logOut();
@@ -100,7 +104,7 @@ export default function GenericView({ children, style }: GenericViewProps) {
                 });
               }}
             >
-              Logout
+              {LL.LOGOUT()}
             </Button>
           </View>
         )}

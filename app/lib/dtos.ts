@@ -1,64 +1,124 @@
+import type { TranslationFunctions } from "@/i18n/i18n-types";
 import { z } from "zod";
 
-export const loginDTO = z.object({
-  email: z
-    .string({
-      required_error: "Email is required",
-      invalid_type_error: "Email must be a string",
-    })
-    .email(),
-  password: z
-    .string({
-      required_error: "Password is required",
-      invalid_type_error: "Password must be a string",
-    })
-    .min(8, "Password must be at least 8 characters"),
-});
+export function configureZodI18n(L: TranslationFunctions) {
+  const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
+    console.log(issue, ctx);
+    switch (issue.code) {
+      case z.ZodIssueCode.custom:
+        if (issue.path[0] === "confirmPassword") {
+          return { message: L.PASSWORDS_DO_NOT_MATCH() };
+        }
+        break;
 
-const baseDTO = loginDTO.extend({
-  confirmPassword: z
-    .string({
-      required_error: "Confirm password is required",
-      invalid_type_error: "Confirm password must be a string",
-    })
-    .min(8, "Password must be at least 8 characters"),
-  firstName: z.string({
-    required_error: "First name is required",
-    invalid_type_error: "First name must be a string",
-  }),
-  lastName: z.string({
-    required_error: "Last name is required",
-    invalid_type_error: "Last name must be a string",
-  }),
-});
+      case z.ZodIssueCode.invalid_type:
+        if (issue.path[0] === "code") {
+          return { message: L.CODE_IS_REQUIRED() };
+        } else {
+          return { message: L.FIELD_IS_REQUIED() };
+        }
+
+      case z.ZodIssueCode.invalid_string:
+        if (issue.validation === "email") {
+          return { message: L.INVALID_EMAIL() };
+        } else if (issue.validation === "regex" && issue.path[0] === "code") {
+          return { message: L.INVALID_CODE() };
+        }
+        break;
+
+      case z.ZodIssueCode.too_big:
+        if (issue.path[0] === "firstName") {
+          return {
+            message: L.FIRST_NAME_TOO_LONG({ max: Number(issue.maximum) }),
+          };
+        }
+
+        if (issue.path[0] === "lastName") {
+          return {
+            message: L.LAST_NAME_TOO_LONG({ max: Number(issue.maximum) }),
+          };
+        }
+        break;
+
+      case z.ZodIssueCode.too_small:
+        if (issue.path[0] === "firstName") {
+          return {
+            message: L.FIRST_NAME_TOO_SHORT({ min: Number(issue.minimum) }),
+          };
+        }
+
+        if (issue.path[0] === "lastName") {
+          return {
+            message: L.LAST_NAME_TOO_SHORT({ min: Number(issue.minimum) }),
+          };
+        }
+
+        if (
+          issue.path[0] === "password" ||
+          issue.path[0] === "confirmPassword" ||
+          issue.path[0] === "currentPassword"
+        ) {
+          return {
+            message: L.PASSWORD_TOO_SHORT({ min: Number(issue.minimum) }),
+          };
+        }
+        break;
+
+      default:
+        return { message: ctx.defaultError };
+    }
+
+    return { message: ctx.defaultError };
+  };
+
+  z.setErrorMap(customErrorMap);
+}
+
+export const loginDTO = z
+  .object({
+    email: z.string().email(),
+    password: z.string().min(8),
+  })
+  .strict();
+
+const baseDTO = loginDTO
+  .extend({
+    confirmPassword: z.string().min(8),
+    firstName: z.string().min(2).max(16),
+    lastName: z.string().min(2).max(16),
+  })
+  .strict();
 
 export const registerDTO = baseDTO.refine(
   (data) => data.password === data.confirmPassword,
   {
-    message: "Passwords do not match",
     path: ["confirmPassword"],
   },
 );
 
-export const updateEmailDTO = loginDTO.pick({
-  email: true,
-});
+export const updateEmailDTO = loginDTO
+  .pick({
+    email: true,
+  })
+  .strict();
 
-export const updateProfileDTO = z.object({
-  firstName: z.string(),
-  lastName: z.string(),
-  bio: z.string().optional(),
-});
+export const updateProfileDTO = baseDTO
+  .pick({
+    firstName: true,
+    lastName: true,
+  })
+  .extend({
+    bio: z.string().max(255).optional(),
+  })
+  .strict();
 
 export const changePasswordDTO = baseDTO
   .pick({ password: true, confirmPassword: true })
   .extend({
-    currentPassword: z
-      .string()
-      .min(8, "Password must be at least 8 characters"),
+    currentPassword: z.string().min(8),
   })
+  .strict()
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
     path: ["confirmPassword"],
   });
 
@@ -67,17 +127,19 @@ export const setPasswordDTO = baseDTO
     password: true,
     confirmPassword: true,
   })
+  .strict()
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
     path: ["confirmPassword"],
   });
 
-export const verifyDTO = z.object({
-  code: z
-    .string()
-    .regex(/^[a-zA-Z0-9]{3}-[a-zA-Z0-9]{3}$/)
-    .transform((code) => code.toUpperCase()),
-});
+export const verifyDTO = z
+  .object({
+    code: z
+      .string()
+      .regex(/^[a-zA-Z0-9]{3}-[a-zA-Z0-9]{3}$/)
+      .transform((code) => code.toUpperCase()),
+  })
+  .strict();
 
 export const linkAccountDTO = z.discriminatedUnion("provider", [
   z.object({
@@ -90,6 +152,23 @@ export const linkAccountDTO = z.discriminatedUnion("provider", [
   }),
 ]);
 
+export const requestPasswordResetDTO = baseDTO
+  .pick({
+    email: true,
+  })
+  .strict();
+
+export const resetPasswordDTO = baseDTO
+  .pick({
+    password: true,
+    confirmPassword: true,
+  })
+  .merge(verifyDTO)
+  .strict()
+  .refine((data) => data.password === data.confirmPassword, {
+    path: ["confirmPassword"],
+  });
+
 export type LoginDTO = z.infer<typeof loginDTO>;
 export type RegisterDTO = z.infer<typeof registerDTO>;
 export type UpdateProfileDTO = z.infer<typeof updateProfileDTO>;
@@ -98,3 +177,5 @@ export type ChangePasswordDTO = z.infer<typeof changePasswordDTO>;
 export type SetPasswordDTO = z.infer<typeof setPasswordDTO>;
 export type VerifyDTO = z.infer<typeof verifyDTO>;
 export type LinkAccountDTO = z.infer<typeof linkAccountDTO>;
+export type RequestPasswordResetDTO = z.infer<typeof requestPasswordResetDTO>;
+export type ResetPasswordDTO = z.infer<typeof resetPasswordDTO>;
