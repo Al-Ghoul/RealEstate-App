@@ -6,14 +6,20 @@
 in {
   lint-job = real-estate-app.overrideAttrs {
     name = "Lint Job";
+    phases = [
+      "unpackPhase"
+      "configurePhase"
+      "checkPhase"
+      "installPhase"
+    ];
     doCheck = true;
-    dontNpmBuild = true;
     checkPhase = ''
       runHook preCheck
-
-      npm run lint
-
+      bun lint
       runHook postCheck
+    '';
+    installPhase = ''
+      mkdir $out
     '';
     meta = {
       description = "A job that runs linter on the source";
