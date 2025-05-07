@@ -27,7 +27,8 @@ export default function GenericView({ children, style }: GenericViewProps) {
   const currentUser = useCurrentUser();
 
   const { mutateAsync: logoutMutation, isPending: isLoggingOut } = useMutation({
-    mutationFn: () => xiorInstance.post("/auth/me/logout"),
+    mutationFn: () =>
+      xiorInstance.post("/auth/me/logout").then((res) => res.data),
   });
 
   return (

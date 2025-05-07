@@ -38,7 +38,7 @@ export default function Register() {
 
   const { mutateAsync: registerSubmit, isPending } = useMutation({
     mutationFn: (data: RegisterDTO) =>
-      xiorInstance.post("/auth/register", data),
+      xiorInstance.post("/auth/register", data).then((res) => res.data),
   });
 
   const scale = useSharedValue(1);
