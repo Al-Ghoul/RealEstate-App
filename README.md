@@ -1,6 +1,6 @@
 # RealEstate App
 
-This is a WIP real state API.
+This is a WIP real state Mobile App.
 
 [![Dev Workflow](https://github.com/Al-Ghoul/RealEstate-App/actions/workflows/dev.yaml/badge.svg?branch=develop)](https://github.com/Al-Ghoul/RealEstate-App/actions/workflows/dev.yaml)
 
