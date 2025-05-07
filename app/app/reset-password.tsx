@@ -56,7 +56,7 @@ export default function ResetPassword() {
     });
 
   const { mutate: resetPassword, isPending: isResetPending } = useMutation({
-    mutationFn: (data: RequestPasswordResetDTO) =>
+    mutationFn: (data: ResetPasswordDTO) =>
       xiorInstance.post("/auth/password-reset", data).then((res) => res.data),
   });
 
