@@ -9,7 +9,7 @@ const en = {
   FORGOT_PASSWORD: "Forgot password?",
   DONT_HAVE_ACCOUNT: "Don't have an account?",
   ALREADY_HAVE_AN_ACCOUNT: "Already have an account?",
-  OR: "or",
+  OR: "OR",
   EMAIL: "Email",
   PASSWORD: "Password",
   CONFIRM_PASSWORD: "Confirm Password",
