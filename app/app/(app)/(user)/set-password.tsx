@@ -8,7 +8,7 @@ import Feather from "@expo/vector-icons/Feather";
 import { useCallback, useEffect, useState } from "react";
 import { router, Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import GenericView from "@/components/WaveDecoratedView";
+import WaveDecoratedView from "@/components/WaveDecoratedView";
 import { useCurrentUser } from "@/lib/queries/user";
 import ControlledInput from "@/components/ControlledInput";
 import { Button, useTheme } from "react-native-paper";
@@ -71,7 +71,7 @@ export default function SetPassword() {
   }, [backAction]);
 
   return (
-    <GenericView>
+    <WaveDecoratedView>
       <Tabs.Screen
         options={{
           title: "Set Password",
@@ -169,6 +169,6 @@ export default function SetPassword() {
           Set Password
         </Button>
       </View>
-    </GenericView>
+    </WaveDecoratedView>
   );
 }

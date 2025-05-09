@@ -14,7 +14,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { useCurrentUser, useCurrentUserProfile } from "@/lib/queries/user";
 import { ProfileSkeleton } from "@/components/profile/Skeleton";
-import GenericView from "@/components/WaveDecoratedView";
+import WaveDecoratedView from "@/components/WaveDecoratedView";
 import ProfileImage from "@/components/profile/Image";
 import { Banner, Button, Divider, useTheme } from "react-native-paper";
 import { useI18nContext } from "@/i18n/i18n-react";
@@ -66,7 +66,7 @@ export default function Profile() {
   };
 
   return (
-    <GenericView>
+    <WaveDecoratedView>
       <ScrollView
         contentContainerStyle={{
           marginTop: 40,
@@ -253,6 +253,6 @@ export default function Profile() {
           ) : null}
         </View>
       </ScrollView>
-    </GenericView>
+    </WaveDecoratedView>
   );
 }

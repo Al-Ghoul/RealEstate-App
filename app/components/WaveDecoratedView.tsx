@@ -16,7 +16,7 @@ interface GenericViewProps {
   style?: ViewStyle;
 }
 
-export default function GenericView({ children, style }: GenericViewProps) {
+export default function WaveDecoratedView({ children, style }: GenericViewProps) {
   const originalWidth = 1440;
   const originalHeight = 320;
   const aspectRatio = originalWidth / originalHeight;

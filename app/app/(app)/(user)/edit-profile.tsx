@@ -17,7 +17,7 @@ import React, { useCallback, useEffect, useRef } from "react";
 import { router, Tabs, usePathname } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { ProfileSkeleton } from "@/components/profile/Skeleton";
-import GenericView from "@/components/WaveDecoratedView";
+import WaveDecoratedView from "@/components/WaveDecoratedView";
 import { TrueSheet } from "@lodev09/react-native-true-sheet";
 import LinkAccounts from "@/components/profile/LinkAccounts";
 import EmailVerification from "@/components/profile/EmailVerification";
@@ -112,7 +112,7 @@ export default function EditProfile() {
   };
 
   return (
-    <GenericView>
+    <WaveDecoratedView>
       <Tabs.Screen
         options={{
           title: LL.EDIT_PROFILE(),
@@ -246,6 +246,6 @@ export default function EditProfile() {
       >
         <EmailVerification sheet={sheet} />
       </TrueSheet>
-    </GenericView>
+    </WaveDecoratedView>
   );
 }
