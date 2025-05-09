@@ -50,7 +50,8 @@ export default function GenericView({ children, style }: GenericViewProps) {
             style={{
               flex: 1,
               gap: 8,
-              margin: 40,
+              marginTop: 40,
+              margin: 16,
             }}
           >
             <Button
