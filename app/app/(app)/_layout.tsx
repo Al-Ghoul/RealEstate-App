@@ -2,7 +2,7 @@ import { Redirect, Tabs } from "expo-router";
 import React, { useEffect } from "react";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { addAuthHeader, xiorInstance } from "@/lib/fetcher";
-import { XiorResponse } from "xior";
+import type { XiorResponse } from "xior";
 import errorRetry from "xior/plugins/error-retry";
 import setupTokenRefresh from "xior/plugins/token-refresh";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
@@ -17,7 +17,7 @@ import { useI18nContext } from "@/i18n/i18n-react";
 export default function TabLayout() {
   const theme = useTheme();
   const { LL } = useI18nContext();
-  const session = useAuthStore((state) => state.session);
+  const tokens = useAuthStore((state) => state.session?.tokens);
   const logout = useAuthStore((state) => state.logout);
   const login = useAuthStore((state) => state.login);
   const setTheme = useThemeStore((state) => state.setTheme);
@@ -28,7 +28,7 @@ export default function TabLayout() {
     "light";
 
   useEffect(() => {
-    if (session) addAuthHeader(session.accessToken);
+    if (tokens) addAuthHeader(tokens.accessToken);
 
     xiorInstance.interceptors.response.use(
       (result) => {
@@ -47,7 +47,7 @@ export default function TabLayout() {
 
     function shouldRefresh(response: XiorResponse) {
       return Boolean(
-        session?.accessToken &&
+        tokens?.accessToken &&
           response?.status &&
           [401, 403].includes(response.status),
       );
@@ -68,11 +68,12 @@ export default function TabLayout() {
       async refreshToken(error) {
         try {
           const { data, status } = await xiorInstance.post("/auth/refresh", {
-            refreshToken: session?.refreshToken,
+            refreshToken: tokens?.refreshToken,
           });
           if (status === 200 && data) {
-            login(data.data);
-            addAuthHeader(data.data.accessToken);
+            const tokens = data.data as JWTPayload;
+            login(tokens);
+            addAuthHeader(tokens.accessToken);
           } else {
             logout();
             throw error;
@@ -89,9 +90,9 @@ export default function TabLayout() {
       xiorInstance.interceptors.request.clear();
       xiorInstance.interceptors.response.clear();
     };
-  }, [session, login, logout]);
+  }, [tokens, login, logout]);
 
-  if (!session) return <Redirect href="/get-started" />;
+  if (!tokens) return <Redirect href="/get-started" />;
 
   return (
     <Tabs

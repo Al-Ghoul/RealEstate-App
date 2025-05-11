@@ -4,20 +4,28 @@ import { addAuthHeader, xiorInstance } from "../fetcher";
 import { createSecureStorage } from "./storage";
 import { queryClient } from "../client";
 
+type Role = "agent" | "client" | "admin";
+
+type Session = {
+  tokens: JWTPayload;
+  roles: Role[];
+};
+
 interface AuthState {
-  session: JWTPayload | null;
-  login: (session: JWTPayload) => void;
+  session: Session | null;
+  login: (tokens: JWTPayload) => void;
   logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       session: null,
-      login: (session) =>
+      login: (tokens) =>
         set(() => {
-          addAuthHeader(session.accessToken);
-          return { session };
+          addAuthHeader(tokens.accessToken);
+          const roles = parseJwt(tokens.accessToken).roles;
+          return { session: { tokens: tokens, roles } };
         }),
       logout: () =>
         set(() => {
@@ -33,3 +41,17 @@ export const useAuthStore = create<AuthState>()(
     },
   ),
 );
+
+const parseJwt = (token: string) => {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) throw new Error("Invalid JWT structure");
+
+    const payload = parts[1];
+    const decoded = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+
+    return JSON.parse(decoded);
+  } catch {
+    throw new Error("Invalid token");
+  }
+};
