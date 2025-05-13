@@ -1,4 +1,4 @@
-import { ExpoConfig, ConfigContext } from "expo/config";
+import type { ExpoConfig, ConfigContext } from "expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -40,6 +40,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     package: "com.alghoul.realestate",
     permissions: ["android.permission.INTERNET"],
+    config: {
+      googleMaps: {
+        apiKey: process.env.GOOGLE_MAPS_API_KEY,
+      },
+    },
   },
   plugins: [
     "expo-router",
