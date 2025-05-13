@@ -39,6 +39,19 @@ const en = {
   SEND_VERIFICATION_CODE: "Send Code",
   SAVE_IMAGE: "Save Image",
   INVALID_CODE: "Invalid code, the code must be in this form XXX-XXX",
+  REGISTER_AS_AN_AGENT: "Register as an agent?",
+  AGENT_DESCRIPTION:
+    "An agent is a person who posts about rentable and/or sellable properties",
+  CLIENT_DESCRIPTION:
+    "A client is a person who is looking for a property to rent or buy",
+  TITLE: "Title",
+  DESCRIPTION: "Description",
+  PRICE: "Price",
+  PICK_A_LOCATION: "Pick a location",
+  ADD_PROPERTY: "Add Property",
+  NO_LOCATION_WAS_PICKED: "No location was picked",
+  NO_LOCATION_WAS_PICKED_PROMPT:
+    "Are you sure you want to continue without a location?",
 
   // ERRORS
   INVALID_EMAIL: "Invalid email",
