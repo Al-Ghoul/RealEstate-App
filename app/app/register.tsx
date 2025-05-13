@@ -15,7 +15,7 @@ import Animated, {
 import { useEffect, useState } from "react";
 import SocialAuth from "@/components/SocialAuth";
 import { View, Text, TouchableOpacity } from "react-native";
-import { Button, useTheme } from "react-native-paper";
+import { Button, Checkbox, Tooltip, useTheme } from "react-native-paper";
 import ControlledInput from "@/components/ControlledInput";
 import { useI18nContext } from "@/i18n/i18n-react";
 import Feather from "@expo/vector-icons/Feather";
@@ -35,9 +35,10 @@ export default function Register() {
     },
     resolver: zodResolver(registerDTO),
   });
+  const [registerAsAnAgent, setRegisterAsAnAgent] = useState(false);
 
   const { mutateAsync: registerSubmit, isPending } = useMutation({
-    mutationFn: (data: RegisterDTO) =>
+    mutationFn: (data: RegisterDTO & { role: string }) =>
       xiorInstance.post("/auth/register", data).then((res) => res.data),
   });
 
@@ -184,6 +185,26 @@ export default function Register() {
             }}
           />
 
+          <View style={{ marginHorizontal: "auto" }}>
+            <Tooltip title={LL.AGENT_DESCRIPTION()} enterTouchDelay={0}>
+              <View
+                style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
+              >
+                <Checkbox
+                  status={registerAsAnAgent ? "checked" : "unchecked"}
+                  onPress={() => setRegisterAsAnAgent(!registerAsAnAgent)}
+                />
+                <Text
+                  style={{
+                    color: theme.colors.primary,
+                  }}
+                >
+                  {LL.REGISTER_AS_AN_AGENT()}
+                </Text>
+              </View>
+            </Tooltip>
+          </View>
+
           <Button
             style={{
               marginHorizontal: 24,
@@ -193,7 +214,10 @@ export default function Register() {
             disabled={isPending}
             loading={isPending}
             onPress={handleSubmit((data) =>
-              registerSubmit(data).then(() => router.replace("/login")),
+              registerSubmit({
+                ...data,
+                role: registerAsAnAgent ? "agent" : "client",
+              }).then(() => router.replace("/login")),
             )}
           >
             {LL.REGISTER()}
