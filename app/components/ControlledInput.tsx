@@ -9,7 +9,7 @@ import {
   View,
   Text,
   TextInput,
-  ViewStyle,
+  type ViewStyle,
   type KeyboardTypeOptions,
 } from "react-native";
 import { useTheme } from "react-native-paper";
@@ -22,6 +22,7 @@ import Animated, {
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { useI18nContext } from "@/i18n/i18n-react";
+import type { ReactNode } from "react";
 
 type InputProps = {
   id: string;
@@ -79,7 +80,7 @@ interface FinalInputProps<T extends FieldValues> extends InputProps {
   control: Control<T>;
   name: Path<T>;
   id: Path<T>;
-  children?: React.ReactNode;
+  children?: ReactNode;
 }
 
 export default function ControlledInput<T extends FieldValues>({
