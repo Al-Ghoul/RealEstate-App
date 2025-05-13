@@ -2148,6 +2148,12 @@
     url = "https://registry.npmjs.org/@types/estree/-/estree-1.0.7.tgz";
     hash = "sha512-w28IoSUCJpidD/TGviZwwMJckNESJZXFu7NBZ5YJ4mEUnNraUn9Pm8HSZm/jDF1pDWYKspWE7oVphigUPRakIQ==";
   };
+  "@types/geojson" = {
+    out_path = "@types/geojson";
+    name = "@types/geojson@7946.0.16";
+    url = "https://registry.npmjs.org/@types/geojson/-/geojson-7946.0.16.tgz";
+    hash = "sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==";
+  };
   "@types/graceful-fs" = {
     out_path = "@types/graceful-fs";
     name = "@types/graceful-fs@4.1.9";
@@ -4230,6 +4236,12 @@
     name = "expo-localization@16.0.1";
     url = "https://registry.npmjs.org/expo-localization/-/expo-localization-16.0.1.tgz";
     hash = "sha512-kUrXiV/Pq9r7cG+TMt+Qa49IUQ9Y/czVwen4hmiboTclTopcWdIeCzYZv6JGtufoPpjEO9vVx1QJrXYl9V2u0Q==";
+  };
+  "expo-location" = {
+    out_path = "expo-location";
+    name = "expo-location@18.0.10";
+    url = "https://registry.npmjs.org/expo-location/-/expo-location-18.0.10.tgz";
+    hash = "sha512-R0Iioz0UZ9Ts8TACPngh8uDFbajJhVa5/igLqWB8Pq/gp8UHuwj7PC8XbZV7avsFoShYjaxrOhf4U7IONeKLgg==";
   };
   "expo-manifests" = {
     out_path = "expo-manifests";
@@ -7110,6 +7122,12 @@
     name = "react-native-is-edge-to-edge@1.1.7";
     url = "https://registry.npmjs.org/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.1.7.tgz";
     hash = "sha512-EH6i7E8epJGIcu7KpfXYXiV2JFIYITtq+rVS8uEb+92naMRBdxhTuS8Wn2Q7j9sqyO0B+Xbaaf9VdipIAmGW4w==";
+  };
+  "react-native-maps" = {
+    out_path = "react-native-maps";
+    name = "react-native-maps@1.18.0";
+    url = "https://registry.npmjs.org/react-native-maps/-/react-native-maps-1.18.0.tgz";
+    hash = "sha512-S17nYUqeMptgIPaAZuVRo+eRelPreBBYQWw6jsxU7qQ12p+THSfFaqabcNn7fBmsXhT3T27iIl8ek8v1H8BaGw==";
   };
   "react-native-onboarding-swiper" = {
     out_path = "react-native-onboarding-swiper";
