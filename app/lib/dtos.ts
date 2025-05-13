@@ -168,6 +168,14 @@ export const resetPasswordDTO = baseDTO
     path: ["confirmPassword"],
   });
 
+export const createPropertyDTO = z.object({
+  title: z.string(),
+  description: z.string(),
+  price: z.string().refine((val) => /^-?\d+(\.\d+)?$/.test(val), {
+    message: "Price must be a valid decimal string",
+  }),
+});
+
 export type LoginDTO = z.infer<typeof loginDTO>;
 export type RegisterDTO = z.infer<typeof registerDTO>;
 export type UpdateProfileDTO = z.infer<typeof updateProfileDTO>;
@@ -178,3 +186,4 @@ export type VerifyDTO = z.infer<typeof verifyDTO>;
 export type LinkAccountDTO = z.infer<typeof linkAccountDTO>;
 export type RequestPasswordResetDTO = z.infer<typeof requestPasswordResetDTO>;
 export type ResetPasswordDTO = z.infer<typeof resetPasswordDTO>;
+export type CreatePropertyDTO = z.infer<typeof createPropertyDTO>;

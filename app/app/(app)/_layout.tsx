@@ -137,6 +137,7 @@ export default function TabLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="(user)/profile"
         options={{
@@ -156,12 +157,14 @@ export default function TabLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="(user)/edit-profile"
         options={{
           href: null,
         }}
       />
+
       <Tabs.Screen
         name="(user)/change-password"
         options={{
@@ -169,10 +172,19 @@ export default function TabLayout() {
           href: null,
         }}
       />
+
       <Tabs.Screen
         name="(user)/set-password"
         options={{
           title: "Set Password",
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="add-property"
+        options={{
+          title: "Add Property",
           href: null,
         }}
       />
