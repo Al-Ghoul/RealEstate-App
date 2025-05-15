@@ -5,16 +5,14 @@ import {
 } from "@/lib/queries/user";
 import {
   TouchableOpacity,
-  Alert,
   BackHandler,
   ScrollView,
   RefreshControl,
   View,
-  Text,
 } from "react-native";
 import { Image } from "expo-image";
-import React, { useCallback, useEffect, useRef } from "react";
-import { router, Tabs, usePathname } from "expo-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { router, Tabs, useFocusEffect, usePathname } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { ProfileSkeleton } from "@/components/profile/Skeleton";
 import WaveDecoratedView from "@/components/WaveDecoratedView";
@@ -31,12 +29,21 @@ import {
   type UpdateEmailDTO,
 } from "@/lib/dtos";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Banner, Divider, useTheme } from "react-native-paper";
+import {
+  Banner,
+  Button,
+  Dialog,
+  Divider,
+  Portal,
+  Text,
+  useTheme,
+} from "react-native-paper";
 import { useI18nContext } from "@/i18n/i18n-react";
 
 export default function EditProfile() {
   const theme = useTheme();
-  const { LL } = useI18nContext();
+  const { LL, locale } = useI18nContext();
+  const forceRTL = locale === "ar";
   const currentPath = usePathname();
   const currentUser = useCurrentUser();
   const currentUserProfile = useCurrentUserProfile();
@@ -68,36 +75,30 @@ export default function EditProfile() {
     resolver: zodResolver(updateProfileDTO),
   });
 
+  const [isUnsavedChangesDialogVisible, setIsUnsavedChangesDialogVisible] =
+    useState(false);
+
   const backAction = useCallback(() => {
     if (updateEmailIsDirty || profileIsDirty) {
-      Alert.alert(LL.UNSAVED_CHANGES(), LL.UNSAVED_CHANGES_PROMPT(), [
-        {
-          text: LL.CANCEL(),
-          onPress: () => null,
-          style: "cancel",
-        },
-        {
-          text: LL.DISCARD(),
-          onPress: () => {
-            updateEmailReset();
-            profileReset();
-            router.replace("/profile");
-          },
-        },
-      ]);
+      setIsUnsavedChangesDialogVisible(true);
     } else {
       router.replace("/profile");
     }
     return true;
-  }, [updateEmailIsDirty, updateEmailReset, profileIsDirty, profileReset, LL]);
+  }, [updateEmailIsDirty, profileIsDirty]);
 
-  useEffect(() => {
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction,
-    );
-    return () => backHandler.remove();
-  }, [backAction]);
+  useFocusEffect(
+    useCallback(() => {
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        backAction,
+      );
+
+      return () => {
+        backHandler.remove();
+      };
+    }, [backAction]),
+  );
 
   useEffect(() => {
     if (!currentUser.data?.emailVerified && currentPath === "/edit-profile") {
@@ -136,6 +137,36 @@ export default function EditProfile() {
           href: null,
         }}
       />
+      <Portal>
+        <Dialog visible={isUnsavedChangesDialogVisible}>
+          <Dialog.Title style={{ textAlign: forceRTL ? "right" : "left" }}>
+            {LL.UNSAVED_CHANGES()}
+          </Dialog.Title>
+          <Dialog.Content>
+            <Text
+              style={{ textAlign: forceRTL ? "right" : "left" }}
+              variant="bodyMedium"
+            >
+              {LL.UNSAVED_CHANGES_PROMPT()}
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button
+              onPress={() => {
+                updateEmailReset();
+                profileReset();
+                router.replace("/profile");
+                setIsUnsavedChangesDialogVisible(false);
+              }}
+            >
+              {LL.DISCARD()}
+            </Button>
+            <Button onPress={() => setIsUnsavedChangesDialogVisible(false)}>
+              {LL.CANCEL()}
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -180,10 +211,10 @@ export default function EditProfile() {
             {currentUser.isError
               ? "An error occurred while fetching user data"
               : currentUserProfile.isError
-              ? "An error occurred while fetching user profile data"
-              : accounts.isError
-              ? "An error occurred while fetching user accounts data"
-              : null}
+                ? "An error occurred while fetching user profile data"
+                : accounts.isError
+                  ? "An error occurred while fetching user accounts data"
+                  : null}
           </Text>
         </Banner>
 

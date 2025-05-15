@@ -3,13 +3,13 @@ import { xiorInstance } from "@/lib/fetcher";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { changePasswordDTO, type ChangePasswordDTO } from "@/lib/dtos";
-import { TouchableOpacity, Alert, BackHandler, View } from "react-native";
+import { TouchableOpacity, BackHandler, View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
-import { useCallback, useEffect, useState } from "react";
-import { router, Tabs } from "expo-router";
+import { useCallback, useState } from "react";
+import { router, Tabs, useFocusEffect } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import WaveDecoratedView from "@/components/WaveDecoratedView";
-import { Button, useTheme } from "react-native-paper";
+import { Button, Dialog, Portal, Text, useTheme } from "react-native-paper";
 import ControlledInput from "@/components/ControlledInput";
 import { useI18nContext } from "@/i18n/i18n-react";
 
@@ -43,35 +43,31 @@ export default function ChangePassword() {
     },
   });
 
+  const [isUnsavedChangesDialogVisible, setIsUnsavedChangesDialogVisible] =
+    useState(false);
+
   const backAction = useCallback(() => {
     if (isDirty) {
-      Alert.alert(LL.UNSAVED_CHANGES(), LL.UNSAVED_CHANGES_PROMPT(), [
-        {
-          text: LL.CANCEL(),
-          onPress: () => null,
-          style: "cancel",
-        },
-        {
-          text: LL.DISCARD(),
-          onPress: () => {
-            reset();
-            router.replace("/profile");
-          },
-        },
-      ]);
+      setIsUnsavedChangesDialogVisible(true);
     } else {
       router.replace("/profile");
     }
-    return true;
-  }, [isDirty, reset, LL]);
 
-  useEffect(() => {
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction,
-    );
-    return () => backHandler.remove();
-  }, [backAction]);
+    return true;
+  }, [isDirty]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        backAction,
+      );
+
+      return () => {
+        backHandler.remove();
+      };
+    }, [backAction]),
+  );
 
   return (
     <WaveDecoratedView>
@@ -98,6 +94,35 @@ export default function ChangePassword() {
           href: null,
         }}
       />
+      <Portal>
+        <Dialog visible={isUnsavedChangesDialogVisible}>
+          <Dialog.Title style={{ textAlign: forceRTL ? "right" : "left" }}>
+            {LL.UNSAVED_CHANGES()}
+          </Dialog.Title>
+          <Dialog.Content>
+            <Text
+              style={{ textAlign: forceRTL ? "right" : "left" }}
+              variant="bodyMedium"
+            >
+              {LL.UNSAVED_CHANGES_PROMPT()}
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button
+              onPress={() => {
+                reset();
+                router.replace("/profile");
+                setIsUnsavedChangesDialogVisible(false);
+              }}
+            >
+              {LL.DISCARD()}
+            </Button>
+            <Button onPress={() => setIsUnsavedChangesDialogVisible(false)}>
+              {LL.CANCEL()}
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
       <View
         style={{
           flex: 1,
