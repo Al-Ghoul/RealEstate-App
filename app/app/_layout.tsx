@@ -21,6 +21,7 @@ import { useLocaleStore } from "@/lib/stores/localeStore";
 import TypesafeI18n from "@/i18n/i18n-react";
 
 import I18NWrapper from "@/components/I18NWrapper";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 SplashScreen.preventAutoHideAsync();
 I18nManager.allowRTL(false);
@@ -85,85 +86,87 @@ function RootLayoutChild() {
         },
       }}
     >
-      <TypesafeI18n locale={locale}>
-        <I18NWrapper>
-          <GestureHandlerRootView>
-            {showAnimation ? (
-              <AnimationScreen setShowAnimation={setShowAnimation} />
-            ) : (
-              <Stack
-                screenOptions={{
-                  headerShown: true,
-                  headerStyle: {
-                    backgroundColor: theme.colors.primary,
-                  },
-                  headerTintColor: theme.colors.onPrimary,
-                  headerRight: () => (
-                    <Pressable
-                      onPress={() =>
-                        setTheme(currentTheme === "light" ? "dark" : "light")
-                      }
-                    >
-                      <Text>Toggle Theme</Text>
-                    </Pressable>
-                  ),
-                }}
-              >
-                <Stack.Screen
-                  name="(app)"
-                  options={{
-                    headerShown: false,
-                    animation: "fade_from_bottom",
+      <SafeAreaProvider>
+        <TypesafeI18n locale={locale}>
+          <I18NWrapper>
+            <GestureHandlerRootView>
+              {showAnimation ? (
+                <AnimationScreen setShowAnimation={setShowAnimation} />
+              ) : (
+                <Stack
+                  screenOptions={{
+                    headerShown: true,
+                    headerStyle: {
+                      backgroundColor: theme.colors.primary,
+                    },
+                    headerTintColor: theme.colors.onPrimary,
+                    headerRight: () => (
+                      <Pressable
+                        onPress={() =>
+                          setTheme(currentTheme === "light" ? "dark" : "light")
+                        }
+                      >
+                        <Text>Toggle Theme</Text>
+                      </Pressable>
+                    ),
                   }}
-                />
+                >
+                  <Stack.Screen
+                    name="(app)"
+                    options={{
+                      headerShown: false,
+                      animation: "fade_from_bottom",
+                    }}
+                  />
 
-                <Stack.Screen
-                  name="get-started"
-                  options={{ title: "Get-Started", headerShown: false }}
-                />
+                  <Stack.Screen
+                    name="get-started"
+                    options={{ title: "Get-Started", headerShown: false }}
+                  />
 
-                <Stack.Screen
-                  name="login"
-                  options={{
-                    headerShown: false,
-                    title: "Login",
-                    animation: "ios_from_right",
-                  }}
-                />
+                  <Stack.Screen
+                    name="login"
+                    options={{
+                      headerShown: false,
+                      title: "Login",
+                      animation: "ios_from_right",
+                    }}
+                  />
 
-                <Stack.Screen
-                  name="register"
-                  options={{
-                    title: "Register",
-                    headerShown: false,
-                    animation: "ios_from_right",
-                  }}
-                />
+                  <Stack.Screen
+                    name="register"
+                    options={{
+                      title: "Register",
+                      headerShown: false,
+                      animation: "ios_from_right",
+                    }}
+                  />
 
-                <Stack.Screen
-                  name="reset-password"
-                  options={{
-                    title: "Reset Password",
-                    headerShown: false,
-                    animation: "ios_from_right",
-                  }}
-                />
+                  <Stack.Screen
+                    name="reset-password"
+                    options={{
+                      title: "Reset Password",
+                      headerShown: false,
+                      animation: "ios_from_right",
+                    }}
+                  />
 
-                <Stack.Screen
-                  name="+not-found"
-                  options={{ headerShown: true }}
-                />
-              </Stack>
-            )}
-            <StatusBar
-              style={currentTheme === "light" ? "dark" : "light"}
-              translucent
-              hideTransitionAnimation="fade"
-            />
-            <FlashMessage position="top" />
-          </GestureHandlerRootView>
-        </I18NWrapper>
-      </TypesafeI18n>
+                  <Stack.Screen
+                    name="+not-found"
+                    options={{ headerShown: true }}
+                  />
+                </Stack>
+              )}
+              <StatusBar
+                style={currentTheme === "light" ? "dark" : "light"}
+                translucent
+                hideTransitionAnimation="fade"
+              />
+              <FlashMessage position="top" />
+            </GestureHandlerRootView>
+          </I18NWrapper>
+        </TypesafeI18n>
+      </SafeAreaProvider>
     </PersistQueryClientProvider>
   );
 }
