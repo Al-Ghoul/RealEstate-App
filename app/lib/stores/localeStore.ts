@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { createSecureStorage } from "./storage";
-import { Locales } from "@/i18n/i18n-types";
+import type { Locales } from "@/i18n/i18n-types";
 
 interface LocaleState {
   locale: Locales;

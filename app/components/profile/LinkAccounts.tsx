@@ -51,28 +51,16 @@ export default function LinkAccounts() {
       if (isErrorWithCode(error)) {
         switch (error.code) {
           case statusCodes.IN_PROGRESS:
-            showMessage({
-              message: "Sign in in progress",
-              type: "warning",
-            });
+            toast.warning("Sign in in progress");
             break;
           case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-            showMessage({
-              message: "Play services not available",
-              type: "warning",
-            });
+            toast.warning("Play services not available");
             break;
           default:
-            showMessage({
-              message: "An error occurred",
-              type: "danger",
-            });
+            toast.error("An error occurred");
         }
       } else {
-        showMessage({
-          message: "An error occurred",
-          type: "danger",
-        });
+        toast.error("An error occurred");
       }
     }
   }, [linkAccount, accounts]);
@@ -129,12 +117,7 @@ export default function LinkAccounts() {
                   });
                 }
               })
-              .catch(() =>
-                showMessage({
-                  message: "An error occurred using facebook",
-                  type: "danger",
-                }),
-              );
+              .catch(() => toast.error("An error occurred using facebook"));
           }
         }}
       >
