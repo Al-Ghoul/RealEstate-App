@@ -53,7 +53,7 @@ export default function TabLayout() {
       );
     }
 
-    const handle = xiorInstance.plugins.use(
+    const retryPluginHandle = xiorInstance.plugins.use(
       errorRetry({
         enableRetry: (_, error) => {
           if (error?.response && shouldRefresh(error.response)) {
@@ -86,7 +86,7 @@ export default function TabLayout() {
     });
 
     return () => {
-      xiorInstance.plugins.eject(handle);
+      xiorInstance.plugins.eject(retryPluginHandle);
       xiorInstance.interceptors.request.clear();
       xiorInstance.interceptors.response.clear();
     };
@@ -182,9 +182,36 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="add-property"
+        name="property/add"
         options={{
           title: "Add Property",
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="property/[id]/index"
+        options={{
+          headerShown: false,
+          title: "Property Details",
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="property/[id]/edit"
+        options={{
+          headerShown: true,
+          title: "Edit Property",
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="property/[id]/media/add"
+        options={{
+          headerShown: true,
+          title: "Add Media",
           href: null,
         }}
       />

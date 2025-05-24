@@ -21,6 +21,8 @@ import { View, Text, TouchableOpacity } from "react-native";
 import ControlledInput from "@/components/ControlledInput";
 import { useI18nContext } from "@/i18n/i18n-react";
 import Feather from "@expo/vector-icons/Feather";
+import { toast } from "sonner-native";
+import { XiorError } from "xior";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -40,6 +42,22 @@ export default function Login() {
   const { mutateAsync: loginSubmit, isPending } = useMutation({
     mutationFn: (data: LoginDTO) =>
       xiorInstance.post("/auth/login", data).then((res) => res.data),
+    onSuccess: (res) => toast.success(res.message),
+    onError: (error) => {
+      if (error instanceof XiorError) {
+        if (error.response?.data.requestId) {
+          toast.warning(error.response?.data.message, {
+            description: LL.REQUEST_ID({
+              requestId: error.response?.data.requestId,
+            }),
+          });
+        } else {
+          toast.error(error.message);
+        }
+      } else {
+        toast.error(error.message);
+      }
+    },
   });
 
   const progress = useSharedValue(0);

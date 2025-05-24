@@ -1773,6 +1773,12 @@
     url = "https://registry.npmjs.org/@react-native-async-storage/async-storage/-/async-storage-1.23.1.tgz";
     hash = "sha512-Qd2kQ3yi6Y3+AcUlrHxSLlnBvpdCEMVGFlVBneVOjaFaPU61g1huc38g339ysXspwY1QZA2aNhrk/KlHGO+ewA==";
   };
+  "@react-native-community/slider" = {
+    out_path = "@react-native-community/slider";
+    name = "@react-native-community/slider@4.5.6";
+    url = "https://registry.npmjs.org/@react-native-community/slider/-/slider-4.5.6.tgz";
+    hash = "sha512-UhLPFeqx0YfPLrEz8ffT3uqAyXWu6iqFjohNsbp4cOU7hnJwg2RXtDnYHoHMr7MOkZDVdlLMdrSrAuzY6KGqrg==";
+  };
   "@react-native-google-signin/google-signin" = {
     out_path = "@react-native-google-signin/google-signin";
     name = "@react-native-google-signin/google-signin@13.2.0";
@@ -1943,12 +1949,6 @@
     name = "@segment/loosely-validate-event@2.0.0";
     url = "https://registry.npmjs.org/@segment/loosely-validate-event/-/loosely-validate-event-2.0.0.tgz";
     hash = "sha512-ZMCSfztDBqwotkl848ODgVcAmN4OItEWDCkshcKz0/W6gGSQayuuCtWV/MlodFivAZD793d6UgANd6wCXUfrIw==";
-  };
-  "@shopify/flash-list" = {
-    out_path = "@shopify/flash-list";
-    name = "@shopify/flash-list@1.8.0";
-    url = "https://registry.npmjs.org/@shopify/flash-list/-/flash-list-1.8.0.tgz";
-    hash = "sha512-APZ48kceCCJobUimmI2594io+HujELK60HFKgzIyIdHGX5ySR5YfvsPy3PKtPwHHDtIMFNaq3U/BY3qZocOhCA==";
   };
   "@sinclair/typebox" = {
     out_path = "@sinclair/typebox";
@@ -4338,6 +4338,12 @@
     name = "expo-updates-interface@1.0.0";
     url = "https://registry.npmjs.org/expo-updates-interface/-/expo-updates-interface-1.0.0.tgz";
     hash = "sha512-93oWtvULJOj+Pp+N/lpTcFfuREX1wNeHtp7Lwn8EbzYYmdn37MvZU3TPW2tYYCZuhzmKEXnUblYcruYoDu7IrQ==";
+  };
+  "expo-video" = {
+    out_path = "expo-video";
+    name = "expo-video@2.0.6";
+    url = "https://registry.npmjs.org/expo-video/-/expo-video-2.0.6.tgz";
+    hash = "sha512-oDorKwjreHT596oY6ZfktbDa3VF+Sq7gVsTbnQ4QVqGYL13mIO0s+h4y9xMyG/cDWyFpiRc4UT8KkPdxL0wViQ==";
   };
   "expo-web-browser" = {
     out_path = "expo-web-browser";
@@ -7093,12 +7099,6 @@
     url = "https://registry.npmjs.org/react-native-fbsdk-next/-/react-native-fbsdk-next-13.4.1.tgz";
     hash = "sha512-Cto+oF0FJyvxKDjKyLKI5DgnLCeeRlXvVQb8qw0XesT1Xune1ijDWAnvt9fy6wXJ4G7K510xKkcSUsbK/KyPhg==";
   };
-  "react-native-flash-message" = {
-    out_path = "react-native-flash-message";
-    name = "react-native-flash-message@0.4.2";
-    url = "https://registry.npmjs.org/react-native-flash-message/-/react-native-flash-message-0.4.2.tgz";
-    hash = "sha512-YvdXRW9AGMTI99S3DJZhLO0mbk/ehKv/UQf4/Df+3dtGi8DlkidRbyqCQZk1WMtZ7rN85PMTGr/xEI9CF9z0YA==";
-  };
   "react-native-gesture-handler" = {
     out_path = "react-native-gesture-handler";
     name = "react-native-gesture-handler@2.20.2";
@@ -7110,12 +7110,6 @@
     name = "react-native-helmet-async@2.0.4";
     url = "https://registry.npmjs.org/react-native-helmet-async/-/react-native-helmet-async-2.0.4.tgz";
     hash = "sha512-m3CkXWss6B1dd6mCMleLpzDCJJGGaHOLQsUzZv8kAASJmMfmVT4d2fx375iXKTRWT25ThBfae3dECuX5cq/8hg==";
-  };
-  "react-native-iphone-screen-helper" = {
-    out_path = "react-native-iphone-screen-helper";
-    name = "react-native-iphone-screen-helper@2.1.2";
-    url = "https://registry.npmjs.org/react-native-iphone-screen-helper/-/react-native-iphone-screen-helper-2.1.2.tgz";
-    hash = "sha512-xczoNSb582bPW9na9f5ASlJ19vn/JBJ/jPzZ8f+u06F3tCa23dOIml7d4tHmbHdmVaWqf6tgRc95+tyavWg4Fw==";
   };
   "react-native-is-edge-to-edge" = {
     out_path = "react-native-is-edge-to-edge";
@@ -7135,11 +7129,23 @@
     url = "https://registry.npmjs.org/react-native-onboarding-swiper/-/react-native-onboarding-swiper-1.3.0.tgz";
     hash = "sha512-2ZPMrZrJFgR5dmVWIj60x/vTBWrm0BZPuc2w7Cz2Sq/8ChypCi3oL8F7GYMrzky1fmknCS6Z0WPphfZVpnLUnQ==";
   };
+  "react-native-pager-view" = {
+    out_path = "react-native-pager-view";
+    name = "react-native-pager-view@6.5.1";
+    url = "https://registry.npmjs.org/react-native-pager-view/-/react-native-pager-view-6.5.1.tgz";
+    hash = "sha512-YdX7bP+rPYvATMU7HzlMq9JaG3ui/+cVRbFZFGW+QshDULANFg9ECR1BA7H7JTIcO/ZgWCwF+1aVmYG5yBA9Og==";
+  };
   "react-native-paper" = {
     out_path = "react-native-paper";
     name = "react-native-paper@5.14.0";
     url = "https://registry.npmjs.org/react-native-paper/-/react-native-paper-5.14.0.tgz";
     hash = "sha512-lKqIerPMBHuFYVeKqQV6uyMQ3HPEQps3a1TUv3QqkuNQeCSUzoKDmOMFR7gW8E7a7ay6px166ngYO1Sgy9HsVg==";
+  };
+  "react-native-paper-dropdown" = {
+    out_path = "react-native-paper-dropdown";
+    name = "react-native-paper-dropdown@2.3.1";
+    url = "https://registry.npmjs.org/react-native-paper-dropdown/-/react-native-paper-dropdown-2.3.1.tgz";
+    hash = "sha512-IvcHTucAV5+fiX2IVMiVdBDKT6KHxycW0o9QzZe7bpmeZWmuCajHDnwG3OSBGlXhUxrrM3TC0/HJZHwORWGgQg==";
   };
   "react-native-paper/color" = {
     out_path = "react-native-paper/node_modules/color";
@@ -7281,12 +7287,6 @@
     name = "source-map@0.6.1";
     url = "https://registry.npmjs.org/source-map/-/source-map-0.6.1.tgz";
     hash = "sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==";
-  };
-  "recyclerlistview" = {
-    out_path = "recyclerlistview";
-    name = "recyclerlistview@4.2.3";
-    url = "https://registry.npmjs.org/recyclerlistview/-/recyclerlistview-4.2.3.tgz";
-    hash = "sha512-STR/wj/FyT8EMsBzzhZ1l2goYirMkIgfV3gYEPxI3Kf3lOnu6f7Dryhyw7/IkQrgX5xtTcDrZMqytvteH9rL3g==";
   };
   "reflect.getprototypeof" = {
     out_path = "reflect.getprototypeof";
@@ -7764,6 +7764,12 @@
     name = "snake-case@3.0.4";
     url = "https://registry.npmjs.org/snake-case/-/snake-case-3.0.4.tgz";
     hash = "sha512-LAOh4z89bGQvl9pFfNF8V146i7o7/CqFPbqzYgP+yYzDIDeS9HaNFtXABamRW+AQzEVODcvE79ljJ+8a9YSdMg==";
+  };
+  "sonner-native" = {
+    out_path = "sonner-native";
+    name = "sonner-native@0.20.0";
+    url = "https://registry.npmjs.org/sonner-native/-/sonner-native-0.20.0.tgz";
+    hash = "sha512-DU31DDEYpFsLdL0yOQDPZizqXr4TIUaC/t1K6NCPgRSXdZAXYwUPH7VWRY6KGO4MZ8Wt/gHU4EXuHFtATVPAqg==";
   };
   "source-map" = {
     out_path = "source-map";
@@ -8323,12 +8329,6 @@
     name = "ts-interface-checker@0.1.13";
     url = "https://registry.npmjs.org/ts-interface-checker/-/ts-interface-checker-0.1.13.tgz";
     hash = "sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==";
-  };
-  "ts-object-utils" = {
-    out_path = "ts-object-utils";
-    name = "ts-object-utils@0.0.5";
-    url = "https://registry.npmjs.org/ts-object-utils/-/ts-object-utils-0.0.5.tgz";
-    hash = "sha512-iV0GvHqOmilbIKJsfyfJY9/dNHCs969z3so90dQWsO1eMMozvTpnB1MEaUbb3FYtZTGjv5sIy/xmslEz0Rg2TA==";
   };
   "tsconfig-paths" = {
     out_path = "tsconfig-paths";

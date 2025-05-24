@@ -18,10 +18,12 @@ import WaveDecoratedView from "@/components/WaveDecoratedView";
 import ProfileImage from "@/components/profile/Image";
 import { Banner, Button, Divider, useTheme } from "react-native-paper";
 import { useI18nContext } from "@/i18n/i18n-react";
+import { toast } from "sonner-native";
 
 export default function Profile() {
   const theme = useTheme();
-  const { LL } = useI18nContext();
+  const { LL, locale } = useI18nContext();
+  const forceRTL = locale === "ar";
   const currentUser = useCurrentUser();
   const currentUserProfile = useCurrentUserProfile();
   const {
@@ -33,7 +35,7 @@ export default function Profile() {
       const formData = new FormData();
 
       if (!image || !image.uri || !image.mimeType || !image.fileName)
-        throw new Error("Image is corrupted or not selected");
+        toast.error("Image is corrupted or not selected");
 
       // @ts-expect-error
       formData.append("image", {
@@ -89,30 +91,31 @@ export default function Profile() {
             (!currentUser.isFetching || !currentUserProfile.isFetching)
           }
           style={{
-            backgroundColor: theme.colors.error,
+            backgroundColor: theme.colors.errorContainer,
             marginBottom: 8,
           }}
           theme={{
             colors: {
-              primary: theme.colors.onError,
+              primary: theme.colors.onErrorContainer,
             },
           }}
           actions={[
             {
-              label: "Retry",
+              label: LL.RETRY(),
               onPress: onRefresh,
             },
           ]}
         >
           <Text
             style={{
-              color: theme.colors.onError,
+              color: theme.colors.onErrorContainer,
+              textAlign: forceRTL ? "right" : "left",
             }}
           >
             {currentUser.isError
-              ? "An error occurred while fetching user data"
+              ? LL.ERROR_FETCHING_USER_DATA()
               : currentUserProfile.isError
-              ? "An error occurred while fetching user profile data"
+              ? LL.ERROR_FETCHING_USER_PROFILE_DATA()
               : null}
           </Text>
         </Banner>
@@ -166,8 +169,7 @@ export default function Profile() {
                   <ProfileImage />
                 )}
                 {!image ? (
-                  <TouchableOpacity
-                    onPress={pickImage}
+                  <View
                     style={{
                       position: "absolute",
                       width: 32,
@@ -180,12 +182,14 @@ export default function Profile() {
                       justifyContent: "center",
                     }}
                   >
-                    <MaterialCommunityIcons
-                      name="camera-plus"
-                      size={18}
-                      color={theme.colors.primary}
-                    />
-                  </TouchableOpacity>
+                    <TouchableOpacity onPress={pickImage}>
+                      <MaterialCommunityIcons
+                        name="camera-plus"
+                        size={18}
+                        color={theme.colors.primary}
+                      />
+                    </TouchableOpacity>
+                  </View>
                 ) : null}
               </View>
             </View>

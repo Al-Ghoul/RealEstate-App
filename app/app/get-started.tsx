@@ -3,10 +3,12 @@ import { Image } from "react-native";
 import Onboarding from "react-native-onboarding-swiper";
 import * as SecureStore from "expo-secure-store";
 import { useTheme } from "react-native-paper";
+import { useI18nContext } from "@/i18n/i18n-react";
 
-export default function GetStarted() {
+export default function GetStartedScreen() {
   const readIntro = SecureStore.getItem("readIntro") === "true";
   const theme = useTheme();
+  const { LL, locale } = useI18nContext();
 
   if (readIntro) return <Redirect href="/login" />;
 
@@ -19,43 +21,43 @@ export default function GetStarted() {
     <Onboarding
       onSkip={done}
       onDone={done}
+      skipLabel={LL.SKIP_LABEL()}
+      nextLabel={LL.NEXT_LABEL()}
       pages={[
         {
           backgroundColor: theme.colors.background,
           image: <Image source={require("../assets/intro/step1.png")} />,
-          title: "سئمت من الوسطاء و أسعارهم؟",
-          subtitle: "مكانك الجديد في انتظارك. لا وسطاء، لا هراء.",
+          title: LL.FIRST_BOARDING_PAGE_TITLE(),
+          subtitle: LL.FIRST_BOARDING_PAGE_DESCRIPTION(),
           titleStyles: {
-            fontFamily: "LemonBrush",
+            fontFamily: locale === "ar" ? "LemonBrush" : "Knewave",
           },
         },
         {
           backgroundColor: theme.colors.background,
           image: <Image source={require("../assets/intro/step2.png")} />,
-          title: "جد مكانك، المثالي.",
-          subtitle:
-            "استأجر، اشترِ، أو بع - اكتشف أماكن تناسب حياتك. لا ضغوط، فقط خيارات ذكية.",
+          title: LL.SECOND_BOARDING_PAGE_TITLE(),
+          subtitle: LL.SECOND_BOARDING_PAGE_DESCRIPTION(),
           titleStyles: {
-            fontFamily: "LemonBrush",
+            fontFamily: locale === "ar" ? "LemonBrush" : "Knewave",
           },
         },
         {
           backgroundColor: theme.colors.background,
           image: <Image source={require("../assets/intro/step3.png")} />,
-          title: "بع بطريقة ذكية، و وفر جهود الدعاية.",
-          subtitle:
-            "احصل على أفضل سعر لمنزلك دون أي ضغوط. نحن نتولى المهمة - و أنت تحصل علي مالك.",
+          title: LL.THIRD_BOARDING_PAGE_TITLE(),
+          subtitle: LL.THIRD_BOARDING_PAGE_DESCRIPTION(),
           titleStyles: {
-            fontFamily: "LemonBrush",
+            fontFamily: locale === "ar" ? "LemonBrush" : "Knewave",
           },
         },
         {
           backgroundColor: theme.colors.background,
           image: <Image source={require("../assets/intro/step2.png")} />,
-          title: "إنسي الوسطاء و حافظ علي ربحك بالكامل",
-          subtitle: "لا يوجد وسطاء ولا سمسرة.",
+          title: LL.FOUTRTH_BOARDING_PAGE_TITLE(),
+          subtitle: LL.FOUTRTH_BOARDING_PAGE_DESCRIPTION(),
           titleStyles: {
-            fontFamily: "LemonBrush",
+            fontFamily: locale === "ar" ? "LemonBrush" : "Knewave",
           },
         },
       ]}

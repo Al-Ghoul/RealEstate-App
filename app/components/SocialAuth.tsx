@@ -3,7 +3,6 @@ import { LoginManager, AccessToken } from "react-native-fbsdk-next";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { useMutation } from "@tanstack/react-query";
 import { xiorInstance } from "@/lib/fetcher";
-import { showMessage } from "react-native-flash-message";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { router } from "expo-router";
 import {
@@ -16,6 +15,7 @@ import GoogleIcon from "../assets/icons/google-logo.svg";
 import { useCallback } from "react";
 import { Divider, useTheme } from "react-native-paper";
 import { useI18nContext } from "@/i18n/i18n-react";
+import { toast } from "sonner-native";
 
 GoogleSignin.configure({
   webClientId:
@@ -52,40 +52,22 @@ export default function SocialAuth() {
           })
           .catch(() => GoogleSignin.signOut());
       } else {
-        showMessage({
-          message: "Sign in cancelled",
-          type: "warning",
-          style: {
-            backgroundColor: theme.colors.secondaryContainer,
-          },
-        });
+        toast("Sign in cancelled");
       }
     } catch (error) {
       if (isErrorWithCode(error)) {
         switch (error.code) {
           case statusCodes.IN_PROGRESS:
-            showMessage({
-              message: "Sign in in progress",
-              type: "warning",
-            });
+            toast.warning("Sign in in progress");
             break;
           case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-            showMessage({
-              message: "Play services not available",
-              type: "warning",
-            });
+            toast.warning("Play services not available");
             break;
           default:
-            showMessage({
-              message: "An error occurred",
-              type: "danger",
-            });
+            toast.warning("An error occurred");
         }
       } else {
-        showMessage({
-          message: "An error occurred",
-          type: "danger",
-        });
+        toast.error("An error occurred");
       }
     }
     // WARN: CAREFULL EDITING THIS
@@ -152,12 +134,7 @@ export default function SocialAuth() {
                   });
                 }
               })
-              .catch(() =>
-                showMessage({
-                  message: "An error occurred using facebook",
-                  type: "danger",
-                }),
-              );
+              .catch(() => toast.error("An error occurred using facebook"));
           }}
         >
           <FontAwesome5 name="facebook-f" size={20} color="#FFF" />

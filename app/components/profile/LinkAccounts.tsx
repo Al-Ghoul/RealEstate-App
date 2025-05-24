@@ -1,6 +1,5 @@
 import { Pressable, View, Text } from "react-native";
 import { AccessToken, LoginManager } from "react-native-fbsdk-next";
-import { showMessage } from "react-native-flash-message";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { useMutation } from "@tanstack/react-query";
 import { xiorInstance } from "@/lib/fetcher";
@@ -15,6 +14,7 @@ import {
 import GoogleIcon from "../../assets/icons/google-logo.svg";
 import { useUserAccounts } from "@/lib/queries/user";
 import { useI18nContext } from "@/i18n/i18n-react";
+import { toast } from "sonner-native";
 
 export default function LinkAccounts() {
   const { LL } = useI18nContext();
@@ -45,10 +45,7 @@ export default function LinkAccounts() {
           accounts.refetch();
         });
       } else {
-        showMessage({
-          message: "Sign in cancelled",
-          type: "warning",
-        });
+        toast.warning("Sign in cancelled");
       }
     } catch (error) {
       if (isErrorWithCode(error)) {

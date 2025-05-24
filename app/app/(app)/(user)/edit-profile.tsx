@@ -192,29 +192,34 @@ export default function EditProfile() {
               !accounts.isFetching)
           }
           style={{
-            backgroundColor: theme.colors.error,
+            backgroundColor: theme.colors.errorContainer,
             marginBottom: 8,
           }}
           theme={{
             colors: {
-              primary: theme.colors.onError,
+              primary: theme.colors.onErrorContainer,
             },
           }}
           actions={[
             {
-              label: "Retry",
+              label: LL.RETRY(),
               onPress: onRefresh,
             },
           ]}
         >
-          <Text style={{ color: theme.colors.onError }}>
+          <Text
+            style={{
+              color: theme.colors.onErrorContainer,
+              textAlign: forceRTL ? "right" : "left",
+            }}
+          >
             {currentUser.isError
-              ? "An error occurred while fetching user data"
+              ? LL.ERROR_FETCHING_USER_DATA()
               : currentUserProfile.isError
-                ? "An error occurred while fetching user profile data"
-                : accounts.isError
-                  ? "An error occurred while fetching user accounts data"
-                  : null}
+              ? LL.ERROR_FETCHING_USER_PROFILE_DATA()
+              : accounts.isError
+              ? LL.ERROR_FETCHING_USER_ACCOUNTS_DATA()
+              : null}
           </Text>
         </Banner>
 

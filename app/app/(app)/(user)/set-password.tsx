@@ -71,7 +71,7 @@ export default function SetPassword() {
     <WaveDecoratedView>
       <Tabs.Screen
         options={{
-          title: "Set Password",
+          title: LL.SET_PASSWORD(),
           headerLeft: () => (
             <TouchableOpacity
               style={{
@@ -132,7 +132,7 @@ export default function SetPassword() {
           control={control}
           id="password"
           name="password"
-          placeholder="Password"
+          placeholder={LL.PASSWORD()}
           keyboardType="default"
           secureTextEntry={!showPassword}
           style={{
@@ -148,7 +148,8 @@ export default function SetPassword() {
               flexDirection: "row",
               gap: 4,
               position: "absolute",
-              right: 20,
+              right: !forceRTL ? 20 : undefined,
+              left: forceRTL ? 20 : undefined,
             }}
           >
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
@@ -165,7 +166,7 @@ export default function SetPassword() {
           control={control}
           id="confirmPassword"
           name="confirmPassword"
-          placeholder="Confirm Password"
+          placeholder={LL.CONFIRM_PASSWORD()}
           keyboardType="default"
           secureTextEntry={!showPassword}
           style={{
@@ -192,7 +193,7 @@ export default function SetPassword() {
           disabled={!isDirty || isSetPasswordPending}
           loading={isSetPasswordPending}
         >
-          Set Password
+          {LL.SET_PASSWORD()}
         </Button>
       </View>
     </WaveDecoratedView>

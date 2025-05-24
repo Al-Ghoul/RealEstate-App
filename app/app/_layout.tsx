@@ -4,24 +4,22 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useState } from "react";
 import AnimationScreen from "@/components/SplashScreen";
-import FlashMessage from "react-native-flash-message";
 import { StatusBar } from "expo-status-bar";
 import { Appearance, I18nManager, Pressable, Text } from "react-native";
 import { useThemeStore } from "@/lib/stores/themeStore";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider, useTheme } from "react-native-paper";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
-import { useReactQueryDevTools } from "@dev-plugins/react-query";
-import { useAuthStore } from "@/lib/stores/authStore";
-import { queryClient } from "@/lib/client";
 import { darkTheme, lightTheme } from "@/lib/themes";
 import { useLocaleStore } from "@/lib/stores/localeStore";
 import TypesafeI18n from "@/i18n/i18n-react";
-
 import I18NWrapper from "@/components/I18NWrapper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Toaster } from "sonner-native";
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { queryClient } from "@/lib/client";
+import { useAuthStore } from "@/lib/stores/authStore";
 
 SplashScreen.preventAutoHideAsync();
 I18nManager.allowRTL(false);
@@ -40,6 +38,7 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     LemonBrush: require("../assets/fonts/LemonBrushArabic-Regular.otf"),
+    Knewave: require("../assets/fonts/Knewave-Regular.ttf"),
   });
 
   useEffect(() => {
@@ -68,8 +67,6 @@ function RootLayoutChild() {
 
   const session = useAuthStore((state) => state.session);
 
-  useReactQueryDevTools(queryClient); // TODO: Remove in production
-
   return (
     <PersistQueryClientProvider
       client={queryClient}
@@ -86,9 +83,9 @@ function RootLayoutChild() {
         },
       }}
     >
-      <SafeAreaProvider>
-        <TypesafeI18n locale={locale}>
-          <I18NWrapper>
+      <TypesafeI18n locale={locale}>
+        <I18NWrapper>
+          <SafeAreaProvider>
             <GestureHandlerRootView>
               {showAnimation ? (
                 <AnimationScreen setShowAnimation={setShowAnimation} />
@@ -162,11 +159,16 @@ function RootLayoutChild() {
                 translucent
                 hideTransitionAnimation="fade"
               />
-              <FlashMessage position="top" />
+              <Toaster
+                pauseWhenPageIsHidden
+                swipeToDismissDirection="left"
+                autoWiggleOnUpdate="always"
+                richColors
+              />
             </GestureHandlerRootView>
-          </I18NWrapper>
-        </TypesafeI18n>
-      </SafeAreaProvider>
+          </SafeAreaProvider>
+        </I18NWrapper>
+      </TypesafeI18n>
     </PersistQueryClientProvider>
   );
 }

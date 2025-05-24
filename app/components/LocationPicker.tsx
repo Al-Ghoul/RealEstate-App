@@ -15,10 +15,8 @@ export default function LocationPicker({
   setMarkerPosition,
   children,
 }: {
-  markerPosition: { latitude: number; longitude: number };
-  setMarkerPosition: Dispatch<
-    SetStateAction<{ latitude: number; longitude: number }>
-  >;
+  markerPosition: LocationType | undefined;
+  setMarkerPosition: Dispatch<SetStateAction<LocationType>>;
   children?: ReactNode;
 }) {
   const mapRef = useRef<MapView>(null);
@@ -70,10 +68,15 @@ export default function LocationPicker({
         }}
         onPress={(e) => {
           const { latitude, longitude } = e.nativeEvent.coordinate;
-          setMarkerPosition({ latitude, longitude });
+          setMarkerPosition({ x: latitude, y: longitude });
         }}
       >
-        <Marker coordinate={markerPosition} />
+        <Marker
+          coordinate={{
+            latitude: markerPosition?.x ?? 0,
+            longitude: markerPosition?.y ?? 0,
+          }}
+        />
       </MapView>
 
       {children}

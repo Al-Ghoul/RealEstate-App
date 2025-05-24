@@ -26,6 +26,45 @@ declare global {
     updatedAt: Date;
   };
 
+  type LocationType = {
+    x: number;
+    y: number;
+  };
+
+  type SuccessfulResponse<T> = {
+    message: string;
+    data: T;
+  };
+
+  type ErrorResponse = {
+    requestId: string;
+    message: string;
+  };
+
+  type Property = {
+    id: number;
+    title: string;
+    description: string;
+    price: number;
+    type: "house" | "apartment" | "land" | "house" | "coastal" | "commercial";
+    status: "available" | "rented" | "sold";
+    area: number;
+    rooms: number;
+    isPublished: boolean;
+    isFeatured: boolean;
+    thumbnailURL: string;
+    location: LocationType;
+    userId: string;
+  };
+
+  type PropertyMedia = {
+    id: number;
+    propertyId: Property["id"];
+    url: string;
+    type: "image" | "video";
+    mimeType: string;
+  };
+
   declare module "*.svg" {
     const content: React.FC<SvgProps>;
     export default content;

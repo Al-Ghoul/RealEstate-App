@@ -12,6 +12,8 @@ import WaveDecoratedView from "@/components/WaveDecoratedView";
 import { Button, Dialog, Portal, Text, useTheme } from "react-native-paper";
 import ControlledInput from "@/components/ControlledInput";
 import { useI18nContext } from "@/i18n/i18n-react";
+import { toast } from "sonner-native";
+import { XiorError } from "xior";
 
 export default function ChangePassword() {
   const theme = useTheme();
@@ -28,6 +30,22 @@ export default function ChangePassword() {
       xiorInstance
         .post("/auth/me/change-password", data)
         .then((res) => res.data),
+    onSuccess: (res) => toast.success(res.message),
+    onError: (error) => {
+      if (error instanceof XiorError) {
+        if (error.response?.data.requestId) {
+          toast.warning(error.response?.data.message, {
+            description: LL.REQUEST_ID({
+              requestId: error.response?.data.requestId,
+            }),
+          });
+        } else {
+          toast.error(error.message);
+        }
+      } else {
+        toast.error(error.message);
+      }
+    },
   });
   const {
     control,

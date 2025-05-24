@@ -7,6 +7,12 @@ export function configureZodI18n(L: TranslationFunctions) {
       case z.ZodIssueCode.custom:
         if (issue.path[0] === "confirmPassword") {
           return { message: L.PASSWORDS_DO_NOT_MATCH() };
+        } else if (issue.path[0] === "price") {
+          return { message: L.PRICE_MUST_BE_A_VALID_DECIMAL() };
+        } else if (issue.path[0] === "rooms") {
+          return { message: L.ROOMS_MUST_BE_A_VALID_INTEGER() };
+        } else if (issue.path[0] === "area") {
+          return { message: L.AREA_MUST_BE_A_VALID_DECIMAL() };
         }
         break;
 
@@ -168,12 +174,26 @@ export const resetPasswordDTO = baseDTO
     path: ["confirmPassword"],
   });
 
+const imageSchema = z.object({
+  uri: z.string().url(),
+  type: z.string().regex(/^image\/(jpeg|png|jpg|gif)$/),
+  name: z.string().min(1),
+});
+
 export const createPropertyDTO = z.object({
   title: z.string(),
   description: z.string(),
-  price: z.string().refine((val) => /^-?\d+(\.\d+)?$/.test(val), {
-    message: "Price must be a valid decimal string",
+  price: z.string().refine((val) => /^-?\d+(\.\d+)?$/.test(val)),
+  rooms: z.string().refine((val) => /^-?\d+$/.test(val)),
+  area: z.string().refine((val) => /^-?\d+(\.\d+)?$/.test(val)),
+  type: z.enum(["house", "apartment", "land", "coastal", "commercial"]),
+  status: z.enum(["available", "rented", "sold"]),
+  location: z.object({
+    x: z.number(),
+    y: z.number(),
   }),
+  thumbnail: imageSchema.or(z.string().url()),
+  isPublished: z.boolean(),
 });
 
 export type LoginDTO = z.infer<typeof loginDTO>;
