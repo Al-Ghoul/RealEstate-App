@@ -1,6 +1,6 @@
 import ContentLoader, {
   Rect,
-  IContentLoaderProps,
+  type IContentLoaderProps,
 } from "react-content-loader/native";
 import { useTheme } from "react-native-paper";
 
