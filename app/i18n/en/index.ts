@@ -125,6 +125,12 @@ const en = {
   PRICE_MUST_BE_A_VALID_DECIMAL: "Price must be a valid decimal",
   ROOMS_MUST_BE_A_VALID_INTEGER: "Rooms must be a valid integer",
   AREA_MUST_BE_A_VALID_DECIMAL: "Area must be a valid decimal",
+  FAILED_TO_GET_YOUR_LOCATION: "Failed to get your location",
+  LOCATION_PERMISSION_DENIED: "Location permission denied",
+  GO_TO_MY_LOCATION: "Go to my location",
+  LOCATION_PERMISSION_DENIED_DETAIL:
+    "Please allow location services and permissions.",
+  PLEASE_TRY_AGAIN_LATER: "Please try again later.",
 
   // ERRORS
   INVALID_EMAIL: "Invalid email",

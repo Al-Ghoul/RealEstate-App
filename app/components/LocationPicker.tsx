@@ -7,8 +7,18 @@ import {
 } from "react";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
-import { StyleSheet, TouchableOpacity } from "react-native";
-import { ActivityIndicator, Text } from "react-native-paper";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Button,
+  Dialog,
+  Portal,
+  Text,
+  useTheme,
+} from "react-native-paper";
+import { useI18nContext } from "@/i18n/i18n-react";
+import { toast } from "sonner-native";
+import Entypo from "@expo/vector-icons/Entypo";
 
 export default function LocationPicker({
   markerPosition,
@@ -19,12 +29,23 @@ export default function LocationPicker({
   setMarkerPosition: Dispatch<SetStateAction<LocationType>>;
   children?: ReactNode;
 }) {
+  const { LL, locale } = useI18nContext();
+  const forceRTL = locale === "ar";
+  const theme = useTheme();
   const mapRef = useRef<MapView>(null);
   const [initialCoords, setInitialCoords] = useState({
     latitude: 31.1249,
     longitude: 33.798,
   });
   const [loadingLocation, setLoadingLocation] = useState(false);
+  const [
+    isLocationNotGrantedErrorVisible,
+    setIsLocationNotGrantedErrorVisible,
+  ] = useState(false);
+  const [
+    isLocationNotAvailableErrorVisible,
+    setIsLocationNotAvailableErrorVisible,
+  ] = useState(false);
 
   const goToMyLocation = async () => {
     if (loadingLocation) return;
@@ -34,7 +55,7 @@ export default function LocationPicker({
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        alert("Location permission denied");
+        setIsLocationNotGrantedErrorVisible(true);
         return;
       }
 
@@ -49,7 +70,7 @@ export default function LocationPicker({
         longitudeDelta: 0.01,
       });
     } catch {
-      alert("Failed to get location");
+      setIsLocationNotAvailableErrorVisible(true);
     } finally {
       setLoadingLocation(false);
     }
@@ -79,17 +100,70 @@ export default function LocationPicker({
         />
       </MapView>
 
+      <Dialog visible={isLocationNotGrantedErrorVisible}>
+        <Dialog.Title style={{ textAlign: forceRTL ? "right" : "left" }}>
+          {LL.LOCATION_PERMISSION_DENIED()}
+        </Dialog.Title>
+        <Dialog.Content>
+          <Text
+            variant="bodyMedium"
+            style={{ textAlign: forceRTL ? "right" : "left" }}
+          >
+            {LL.LOCATION_PERMISSION_DENIED_DETAIL()}
+          </Text>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={() => setIsLocationNotGrantedErrorVisible(false)}>
+            {LL.OK()}
+          </Button>
+        </Dialog.Actions>
+      </Dialog>
+
+      <Dialog visible={isLocationNotAvailableErrorVisible}>
+        <Dialog.Title style={{ textAlign: forceRTL ? "right" : "left" }}>
+          {LL.FAILED_TO_GET_YOUR_LOCATION()}
+        </Dialog.Title>
+        <Dialog.Content>
+          <Text
+            variant="bodyMedium"
+            style={{ textAlign: forceRTL ? "right" : "left" }}
+          >
+            {LL.PLEASE_TRY_AGAIN_LATER()}
+          </Text>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={() => setIsLocationNotAvailableErrorVisible(false)}>
+            {LL.OK()}
+          </Button>
+        </Dialog.Actions>
+      </Dialog>
+
       {children}
 
       <TouchableOpacity
-        style={[styles.gpsButton, loadingLocation && styles.disabledBtn]}
+        style={[
+          styles.gpsButton,
+          loadingLocation && styles.disabledBtn,
+          {
+            backgroundColor: theme.colors.primary,
+          },
+        ]}
         onPress={goToMyLocation}
         disabled={loadingLocation}
       >
         {loadingLocation ? (
-          <ActivityIndicator size="small" color="#007bff" />
+          <ActivityIndicator size="small" color={theme.colors.onPrimary} />
         ) : (
-          <Text style={styles.gpsText}>📍 My Location</Text>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Entypo
+              name="location-pin"
+              size={24}
+              color={theme.colors.onPrimary}
+            />
+            <Text variant="bodyLarge" style={{ color: theme.colors.onPrimary }}>
+              {LL.GO_TO_MY_LOCATION()}
+            </Text>
+          </View>
         )}
       </TouchableOpacity>
     </>
@@ -104,15 +178,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 40,
     right: 20,
-    backgroundColor: "#fff",
     padding: 10,
     borderRadius: 8,
     elevation: 5,
     zIndex: 10,
-  },
-  gpsText: {
-    fontWeight: "bold",
-    color: "#007bff",
   },
   disabledBtn: {
     opacity: 0.6,

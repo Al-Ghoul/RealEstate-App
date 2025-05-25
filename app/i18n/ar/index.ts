@@ -120,6 +120,11 @@ const ar = {
   PRICE_MUST_BE_A_VALID_DECIMAL: "السعر يجب ان يكون رقم",
   ROOMS_MUST_BE_A_VALID_INTEGER: "عدد الغرف يجب ان يكون رقم",
   AREA_MUST_BE_A_VALID_DECIMAL: "المساحة يجب ان تكون رقم",
+  FAILED_TO_GET_YOUR_LOCATION: "لم نستطع الحصول على موقعك",
+  LOCATION_PERMISSION_DENIED: "لم نستطع الحصول على صلاحية الوصول للموقع",
+  GO_TO_MY_LOCATION: "الذهاب لموقعي",
+  LOCATION_PERMISSION_DENIED_DETAIL: "يرجى السماح لخدمة الوصول للموقع",
+  PLEASE_TRY_AGAIN_LATER: "يرجى المحاولة في وقت لاحق",
 
   // ERRORS
   INVALID_EMAIL: "البريد الإلكتروني غير صحيح",
