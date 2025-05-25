@@ -37,6 +37,7 @@ export default function HomeScreen() {
   const roles = useAuthStore((state) => state.session?.roles);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedQuery = useDebounce(searchQuery, 500);
   const [distanceValue, setDistanceValue] = useState(0);
   const [tempDistanceValue, setTempDistanceValue] = useState(0);
 
@@ -159,7 +160,7 @@ export default function HomeScreen() {
     queryKey: [
       "properties",
       {
-        searchQuery,
+        debouncedQuery,
         minPrice,
         maxPrice,
         distanceValue,
@@ -194,10 +195,10 @@ export default function HomeScreen() {
         cursor: input.pageParam.cursor,
       };
 
-      if (searchQuery.length > 0) {
+      if (debouncedQuery.length > 0) {
         params = {
           ...params,
-          searchTerm: searchQuery,
+          searchTerm: debouncedQuery,
         };
       } else if (isDistanceChecked && location && distanceValue > 0) {
         params = {
@@ -660,3 +661,21 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
 });
+
+
+const useDebounce = (value: string, delay: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
