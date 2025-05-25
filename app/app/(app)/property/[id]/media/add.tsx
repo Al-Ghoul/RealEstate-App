@@ -94,7 +94,6 @@ export default function AddPropertyMedia() {
               const percent =
                 (progress.totalBytesSent / progress.totalBytesExpectedToSend) *
                 100;
-              console.log(`Upload progress: ${percent}%`);
               setUploadProgress((prev) => ({
                 ...prev,
                 [item.uri]: percent,
