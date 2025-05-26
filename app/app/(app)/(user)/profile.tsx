@@ -1,5 +1,3 @@
-import { xiorInstance } from "@/lib/fetcher";
-import { useMutation } from "@tanstack/react-query";
 import {
   RefreshControl,
   ScrollView,
@@ -12,15 +10,18 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { useCurrentUser, useCurrentUserProfile } from "@/lib/queries/user";
+import {
+  useCurrentUser,
+  useCurrentUserProfile,
+  useUploadUserProfileImage,
+} from "@/lib/queries/user";
 import { ProfileSkeleton } from "@/components/profile/Skeleton";
 import WaveDecoratedView from "@/components/WaveDecoratedView";
 import ProfileImage from "@/components/profile/Image";
 import { Banner, Button, Divider, useTheme } from "react-native-paper";
 import { useI18nContext } from "@/i18n/i18n-react";
-import { toast } from "sonner-native";
 
-export default function Profile() {
+export default function ProfileScreen() {
   const theme = useTheme();
   const { LL, locale } = useI18nContext();
   const forceRTL = locale === "ar";
@@ -29,25 +30,8 @@ export default function Profile() {
   const {
     mutateAsync: updateUserProfileImage,
     isPending: isUpdateUserProfileImagePending,
-  } = useMutation({
-    mutationKey: ["profileImage"],
-    mutationFn: async () => {
-      const formData = new FormData();
-
-      if (!image || !image.uri || !image.mimeType || !image.fileName)
-        toast.error("Image is corrupted or not selected");
-
-      // @ts-expect-error
-      formData.append("image", {
-        uri: image?.uri,
-        type: image?.mimeType,
-        name: image?.fileName,
-      });
-
-      const res = await xiorInstance.put("/users/me/profile/image", formData);
-      return res.data;
-    },
-  });
+    cancel: cancelUpdateUserProfileImage,
+  } = useUploadUserProfileImage();
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -138,7 +122,10 @@ export default function Profile() {
             >
               {image ? (
                 <TouchableOpacity
-                  onPress={() => setImage(null)}
+                  onPress={() => {
+                    cancelUpdateUserProfileImage();
+                    setImage(null);
+                  }}
                   style={{
                     width: 96,
                     height: 96,
@@ -245,7 +232,7 @@ export default function Profile() {
               textColor={theme.colors.onPrimary}
               disabled={!image || isUpdateUserProfileImagePending}
               onPress={() => {
-                updateUserProfileImage().then(async () => {
+                updateUserProfileImage(image).then(async () => {
                   await currentUserProfile.refetch();
                   setImage(null);
                 });

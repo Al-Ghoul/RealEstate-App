@@ -1,4 +1,4 @@
-import { View, StyleSheet, FlatList } from "react-native";
+import { View, StyleSheet, FlatList, BackHandler } from "react-native";
 import {
   ActivityIndicator,
   Button,
@@ -16,11 +16,11 @@ import {
 } from "react-native-paper";
 import { useI18nContext } from "@/i18n/i18n-react";
 import { useAuthStore } from "@/lib/stores/authStore";
-import { router } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { xiorInstance } from "@/lib/fetcher";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useIsMutating } from "@tanstack/react-query";
 import Slider from "@react-native-community/slider";
 import * as Location from "expo-location";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -310,6 +310,26 @@ export default function HomeScreen() {
     handleSubmit(onSubmit)();
   };
 
+  const isUploading = useIsMutating({ mutationKey: ["profileImage"] }) > 0;
+
+  const [isPendingUploadDialogVisible, setIsPendingUploadDialogVisible] =
+    useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      const backAction = () => {
+        if (isUploading) setIsPendingUploadDialogVisible(true);
+        return false;
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        backAction,
+      );
+
+      return () => backHandler.remove();
+    }, [isUploading]),
+  );
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
@@ -337,6 +357,35 @@ export default function HomeScreen() {
           onPress={showModal}
         />
       </View>
+
+      <Portal>
+        <Dialog visible={isPendingUploadDialogVisible}>
+          <Dialog.Title style={{ textAlign: forceRTL ? "right" : "left" }}>
+            {LL.PENDING_TASK()}
+          </Dialog.Title>
+          <Dialog.Content>
+            <Text
+              style={{ textAlign: forceRTL ? "right" : "left" }}
+              variant="bodyMedium"
+            >
+              {LL.YOUR_PFP_UPLOAD_IN_PROGRESS_PROMPT()}
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button
+              onPress={() => {
+                setIsPendingUploadDialogVisible(false);
+                BackHandler.exitApp();
+              }}
+            >
+              {LL.EXIT()}
+            </Button>
+            <Button onPress={() => setIsPendingUploadDialogVisible(false)}>
+              {LL.CANCEL()}
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
 
       <Portal>
         <Modal
@@ -662,7 +711,6 @@ const styles = StyleSheet.create({
   },
 });
 
-
 const useDebounce = (value: string, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -678,4 +726,3 @@ const useDebounce = (value: string, delay: number) => {
 
   return debouncedValue;
 };
-

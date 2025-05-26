@@ -131,6 +131,10 @@ const en = {
   LOCATION_PERMISSION_DENIED_DETAIL:
     "Please allow location services and permissions.",
   PLEASE_TRY_AGAIN_LATER: "Please try again later.",
+  PENDING_TASK: "Pending task",
+  YOUR_PFP_UPLOAD_IN_PROGRESS_PROMPT:
+    "Your profile picture upload is in progress, are you sure you want to exit?",
+  EXIT: "Exit",
 
   // ERRORS
   INVALID_EMAIL: "Invalid email",

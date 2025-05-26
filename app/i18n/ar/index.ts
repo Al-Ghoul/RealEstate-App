@@ -125,6 +125,10 @@ const ar = {
   GO_TO_MY_LOCATION: "الذهاب لموقعي",
   LOCATION_PERMISSION_DENIED_DETAIL: "يرجى السماح لخدمة الوصول للموقع",
   PLEASE_TRY_AGAIN_LATER: "يرجى المحاولة في وقت لاحق",
+  PENDING_TASK: "مهام معلقة",
+  YOUR_PFP_UPLOAD_IN_PROGRESS_PROMPT:
+    "جاري رفع صورة الملف الشخصي الخاص بك, هل تريد الخروج؟",
+  EXIT: "خروج",
 
   // ERRORS
   INVALID_EMAIL: "البريد الإلكتروني غير صحيح",
