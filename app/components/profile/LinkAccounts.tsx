@@ -15,6 +15,7 @@ import GoogleIcon from "../../assets/icons/google-logo.svg";
 import { useUserAccounts } from "@/lib/queries/user";
 import { useI18nContext } from "@/i18n/i18n-react";
 import { toast } from "sonner-native";
+import { isXiorError } from "xior";
 
 export default function LinkAccounts() {
   const { LL } = useI18nContext();
@@ -23,6 +24,22 @@ export default function LinkAccounts() {
     useMutation({
       mutationFn: (data: LinkAccountDTO) =>
         xiorInstance.post("/auth/accounts/link", data).then((res) => res.data),
+      onSuccess: (res) => toast.success(res.message),
+      onError: (error) => {
+        if (isXiorError(error)) {
+          if (error.response?.data.requestId) {
+            toast.warning(error.response?.data.message, {
+              description: LL.REQUEST_ID({
+                requestId: error.response?.data.requestId,
+              }),
+            });
+          } else {
+            toast.error(error.message);
+          }
+        } else {
+          toast.error(error.message);
+        }
+      },
     });
 
   const { mutateAsync: unLinkAccount, isPending: isUnLinkAccountPending } =
@@ -31,6 +48,22 @@ export default function LinkAccounts() {
         xiorInstance
           .delete(`/auth/accounts/unlink/${data.provider}`)
           .then((res) => res.data),
+      onSuccess: (res) => toast.success(res.message),
+      onError: (error) => {
+        if (isXiorError(error)) {
+          if (error.response?.data.requestId) {
+            toast.warning(error.response?.data.message, {
+              description: LL.REQUEST_ID({
+                requestId: error.response?.data.requestId,
+              }),
+            });
+          } else {
+            toast.error(error.message);
+          }
+        } else {
+          toast.error(error.message);
+        }
+      },
     });
 
   const signInWithGoogle = useCallback(async () => {

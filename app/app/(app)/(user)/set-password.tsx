@@ -13,6 +13,8 @@ import { useCurrentUser } from "@/lib/queries/user";
 import ControlledInput from "@/components/ControlledInput";
 import { Button, Dialog, Portal, Text, useTheme } from "react-native-paper";
 import { useI18nContext } from "@/i18n/i18n-react";
+import { toast } from "sonner-native";
+import { isXiorError } from "xior";
 
 export default function SetPassword() {
   const [showPassword, setShowPassword] = useState(false);
@@ -40,6 +42,22 @@ export default function SetPassword() {
         xiorInstance
           .post("/auth/me/set-password", data)
           .then((res) => res.data),
+      onSuccess: (res) => toast.success(res.message),
+      onError: (error) => {
+        if (isXiorError(error)) {
+          if (error.response?.data.requestId) {
+            toast.warning(error.response?.data.message, {
+              description: LL.REQUEST_ID({
+                requestId: error.response?.data.requestId,
+              }),
+            });
+          } else {
+            toast.error(error.message);
+          }
+        } else {
+          toast.error(error.message);
+        }
+      },
     });
 
   const [isUnsavedChangesDialogVisible, setIsUnsavedChangesDialogVisible] =

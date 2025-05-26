@@ -16,6 +16,7 @@ import { useCallback } from "react";
 import { Divider, useTheme } from "react-native-paper";
 import { useI18nContext } from "@/i18n/i18n-react";
 import { toast } from "sonner-native";
+import { isXiorError } from "xior";
 
 GoogleSignin.configure({
   webClientId:
@@ -33,11 +34,43 @@ export default function SocialAuth() {
     useMutation({
       mutationFn: (data: { accessToken: string }) =>
         xiorInstance.post("/auth/facebook", data).then((res) => res.data),
+      onSuccess: (res) => toast.success(res.message),
+      onError: (error) => {
+        if (isXiorError(error)) {
+          if (error.response?.data.requestId) {
+            toast.warning(error.response?.data.message, {
+              description: LL.REQUEST_ID({
+                requestId: error.response?.data.requestId,
+              }),
+            });
+          } else {
+            toast.error(error.message);
+          }
+        } else {
+          toast.error(error.message);
+        }
+      },
     });
   const { mutateAsync: googleLogin, isPending: isGoogleLoginPending } =
     useMutation({
       mutationFn: (data: { idToken: string }) =>
         xiorInstance.post("/auth/google", data).then((res) => res.data),
+      onSuccess: (res) => toast.success(res.message),
+      onError: (error) => {
+        if (isXiorError(error)) {
+          if (error.response?.data.requestId) {
+            toast.warning(error.response?.data.message, {
+              description: LL.REQUEST_ID({
+                requestId: error.response?.data.requestId,
+              }),
+            });
+          } else {
+            toast.error(error.message);
+          }
+        } else {
+          toast.error(error.message);
+        }
+      },
     });
 
   const signInWithGoogle = useCallback(async () => {

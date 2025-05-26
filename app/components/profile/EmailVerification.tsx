@@ -11,6 +11,8 @@ import { View } from "react-native";
 import { Button, useTheme } from "react-native-paper";
 import ControlledInput from "../ControlledInput";
 import { useI18nContext } from "@/i18n/i18n-react";
+import { toast } from "sonner-native";
+import { isXiorError } from "xior";
 
 interface EmailVerificationProps {
   sheet: React.RefObject<TrueSheet>;
@@ -29,6 +31,22 @@ export default function EmailVerification({ sheet }: EmailVerificationProps) {
       xiorInstance
         .post("/auth/me/request-email-verification-code")
         .then((res) => res.data),
+    onSuccess: (res) => toast.success(res.message),
+    onError: (error) => {
+      if (isXiorError(error)) {
+        if (error.response?.data.requestId) {
+          toast.warning(error.response?.data.message, {
+            description: LL.REQUEST_ID({
+              requestId: error.response?.data.requestId,
+            }),
+          });
+        } else {
+          toast.error(error.message);
+        }
+      } else {
+        toast.error(error.message);
+      }
+    },
   });
 
   const {
@@ -42,6 +60,22 @@ export default function EmailVerification({ sheet }: EmailVerificationProps) {
       mutationKey: ["verifyEmail"],
       mutationFn: (data: VerifyDTO) =>
         xiorInstance.post("/auth/me/verify", data).then((res) => res.data),
+      onSuccess: (res) => toast.success(res.message),
+      onError: (error) => {
+        if (isXiorError(error)) {
+          if (error.response?.data.requestId) {
+            toast.warning(error.response?.data.message, {
+              description: LL.REQUEST_ID({
+                requestId: error.response?.data.requestId,
+              }),
+            });
+          } else {
+            toast.error(error.message);
+          }
+        } else {
+          toast.error(error.message);
+        }
+      },
     });
 
   return (

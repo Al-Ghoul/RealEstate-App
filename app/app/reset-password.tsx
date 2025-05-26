@@ -25,6 +25,8 @@ import { TouchableOpacity, View } from "react-native";
 import ControlledInput from "@/components/ControlledInput";
 import { useI18nContext } from "@/i18n/i18n-react";
 import Feather from "@expo/vector-icons/Feather";
+import { toast } from "sonner-native";
+import { isXiorError } from "xior";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -48,6 +50,22 @@ export default function ResetPassword() {
         xiorInstance
           .post("/auth/request-password-reset", data)
           .then((res) => res.data),
+      onSuccess: (res) => toast.success(res.message),
+      onError: (error) => {
+        if (isXiorError(error)) {
+          if (error.response?.data.requestId) {
+            toast.warning(error.response?.data.message, {
+              description: LL.REQUEST_ID({
+                requestId: error.response?.data.requestId,
+              }),
+            });
+          } else {
+            toast.error(error.message);
+          }
+        } else {
+          toast.error(error.message);
+        }
+      },
     });
 
   const { control: resetControl, handleSubmit: resetHandleSubmit } =
@@ -58,6 +76,22 @@ export default function ResetPassword() {
   const { mutate: resetPassword, isPending: isResetPending } = useMutation({
     mutationFn: (data: ResetPasswordDTO) =>
       xiorInstance.post("/auth/password-reset", data).then((res) => res.data),
+    onSuccess: (res) => toast.success(res.message),
+    onError: (error) => {
+      if (isXiorError(error)) {
+        if (error.response?.data.requestId) {
+          toast.warning(error.response?.data.message, {
+            description: LL.REQUEST_ID({
+              requestId: error.response?.data.requestId,
+            }),
+          });
+        } else {
+          toast.error(error.message);
+        }
+      } else {
+        toast.error(error.message);
+      }
+    },
   });
 
   const progress = useSharedValue(0);
