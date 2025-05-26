@@ -129,6 +129,10 @@ const ar = {
   YOUR_PFP_UPLOAD_IN_PROGRESS_PROMPT:
     "جاري رفع صورة الملف الشخصي الخاص بك, هل تريد الخروج؟",
   EXIT: "خروج",
+  SIGN_IN_WAS_CANCELLED: "تم الغاء تسجيل الدخول",
+  SIGN_IN_IS_IN_PROGRESS: "جاري تسجيل الدخول",
+  GPLAY_SERVICE_NOT_AVAILABLE: "خدمات جوجل بلاي غير متوفرة",
+  AN_ERROR_OCCURRED_SIGNING_IN: "حدث خطأ أثناء تسجيل الدخول",
 
   // ERRORS
   INVALID_EMAIL: "البريد الإلكتروني غير صحيح",

@@ -135,6 +135,10 @@ const en = {
   YOUR_PFP_UPLOAD_IN_PROGRESS_PROMPT:
     "Your profile picture upload is in progress, are you sure you want to exit?",
   EXIT: "Exit",
+  SIGN_IN_WAS_CANCELLED: "Signing in was cancelled",
+  SIGN_IN_IS_IN_PROGRESS: "Signing in is in progress",
+  GPLAY_SERVICE_NOT_AVAILABLE: "Google Play services are not available",
+  AN_ERROR_OCCURRED_SIGNING_IN: "An error occurred signing in",
 
   // ERRORS
   INVALID_EMAIL: "Invalid email",

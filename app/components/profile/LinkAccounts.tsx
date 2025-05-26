@@ -78,22 +78,23 @@ export default function LinkAccounts() {
           accounts.refetch();
         });
       } else {
-        toast.warning("Sign in cancelled");
+        toast.warning(LL.SIGN_IN_WAS_CANCELLED());
       }
     } catch (error) {
       if (isErrorWithCode(error)) {
         switch (error.code) {
           case statusCodes.IN_PROGRESS:
-            toast.warning("Sign in in progress");
+            toast.warning(LL.SIGN_IN_IS_IN_PROGRESS());
             break;
           case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-            toast.warning("Play services not available");
+            toast.warning(LL.GPLAY_SERVICE_NOT_AVAILABLE());
             break;
           default:
-            toast.error("An error occurred");
+            toast.error(LL.AN_ERROR_OCCURRED_SIGNING_IN());
         }
       } else {
-        toast.error("An error occurred");
+
+        toast.error(LL.AN_ERROR_OCCURRED_SIGNING_IN());
       }
     }
   }, [linkAccount, accounts]);
@@ -150,7 +151,7 @@ export default function LinkAccounts() {
                   });
                 }
               })
-              .catch(() => toast.error("An error occurred using facebook"));
+              .catch(() => toast.error(LL.AN_ERROR_OCCURRED_SIGNING_IN()));
           }
         }}
       >
