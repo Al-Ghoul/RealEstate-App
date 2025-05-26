@@ -26,6 +26,7 @@ import { toast } from "sonner-native";
 import { useProperty, usePropertyMedia } from "@/lib/queries/property";
 import { isXiorError } from "xior";
 import { queryClient } from "@/lib/client";
+import { PropertyCardSkeleton } from "@/components/property/Skeleton";
 
 export default function PropertyDetailsScreen() {
   const params = useLocalSearchParams<{
@@ -46,6 +47,7 @@ export default function PropertyDetailsScreen() {
     isError: isPropertyError,
     refetch: propertyRefetch,
     isFetching: isFetchingProperty,
+    isLoading: isLoadingProperty,
   } = useProperty(parseInt(id));
 
   const { data: propertyMediaData, refetch: propertyMediaRefetch } =
@@ -98,7 +100,7 @@ export default function PropertyDetailsScreen() {
             latitudeDelta: 0.005,
             longitudeDelta: 0.005,
           },
-          1000,
+          1000
         );
       }
     }, 500);
@@ -148,6 +150,12 @@ export default function PropertyDetailsScreen() {
               {isPropertyError ? LL.ERROR_FETCHING_PROPERTY_DATA() : null}
             </Text>
           </Banner>
+        ) : isLoadingProperty ? (
+          <View style={{ flex: 1, marginHorizontal: 16 }}>
+            <View style={{ flex: 1 }}>
+              <PropertyCardSkeleton />
+            </View>
+          </View>
         ) : (
           propertyData && (
             <>
@@ -166,7 +174,7 @@ export default function PropertyDetailsScreen() {
                       deleteProperty().then(() =>
                         queryClient.invalidateQueries({
                           queryKey: ["properties"],
-                        }),
+                        })
                       )
                     }
                     style={{
@@ -186,109 +194,119 @@ export default function PropertyDetailsScreen() {
                       color={theme.colors.error}
                     />
                   </TouchableRipple>
-                  <PropertyCard
-                    property={propertyData}
-                    {...(propertyData.userId === currentUser.data?.id && {
-                      extra: (
-                        <View style={{ flexDirection: "row", gap: 8 }}>
-                          <Chip
-                            style={{
-                              flex: 1,
-                              backgroundColor: theme.colors.secondary,
-                            }}
-                            textStyle={{ color: theme.colors.onSecondary }}
-                            onPress={() =>
-                              router.push(`/property/${id}/media/add`)
-                            }
-                          >
-                            {LL.ADD_PROPERTY_MEDIA()}
-                          </Chip>
-                          <Chip
-                            style={{
-                              flex: 1,
-                              backgroundColor: theme.colors.secondary,
-                            }}
-                            textStyle={{ color: theme.colors.onSecondary }}
-                            onPress={() => router.push(`/property/${id}/edit/`)}
-                          >
-                            {LL.EDIT_PROPERTY()}
-                          </Chip>
-                        </View>
-                      ),
-                    })}
-                  />
+                  {isLoadingProperty ? (
+                    <View style={{ flex: 1, marginHorizontal: 16 }}>
+                      <View style={{ flex: 1 }}>
+                        <PropertyCardSkeleton />
+                      </View>
+                    </View>
+                  ) : (
+                    <PropertyCard
+                      property={propertyData}
+                      {...(propertyData.userId === currentUser.data?.id && {
+                        extra: (
+                          <View style={{ flexDirection: "row", gap: 8 }}>
+                            <Chip
+                              style={{
+                                flex: 1,
+                                backgroundColor: theme.colors.secondary,
+                              }}
+                              textStyle={{ color: theme.colors.onSecondary }}
+                              onPress={() =>
+                                router.push(`/property/${id}/media/add`)
+                              }
+                            >
+                              {LL.ADD_PROPERTY_MEDIA()}
+                            </Chip>
+                            <Chip
+                              style={{
+                                flex: 1,
+                                backgroundColor: theme.colors.secondary,
+                              }}
+                              textStyle={{ color: theme.colors.onSecondary }}
+                              onPress={() =>
+                                router.push(`/property/${id}/edit/`)
+                              }
+                            >
+                              {LL.EDIT_PROPERTY()}
+                            </Chip>
+                          </View>
+                        ),
+                      })}
+                    />
+                  )}
                 </>
                 {propertyMediaData && propertyMediaData.length > 0
                   ? propertyMediaData.map((item, index) => (
-                      <View key={index} style={{ flex: 1 }}>
-                        <View
+                    <View key={index} style={{ flex: 1 }}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          position: "absolute",
+                          width: "100%",
+                          justifyContent: "space-between",
+                          padding: 16,
+                          zIndex: 1,
+                        }}
+                      >
+                        <Text
                           style={{
-                            flexDirection: "row",
-                            position: "absolute",
-                            width: "100%",
-                            justifyContent: "space-between",
-                            padding: 16,
-                            zIndex: 1,
+                            backgroundColor: "rgba(0,0,0,0.5)",
+                            color: "white",
+                            textAlign: "center",
+                            textAlignVertical: "center",
+                            fontWeight: "bold",
+                            padding: 8,
+                            borderRadius: 50,
                           }}
                         >
-                          <Text
+                          {index + 1} / {propertyMediaData.length}
+                        </Text>
+                        {propertyData.userId === currentUser.data?.id && (
+                          <TouchableRipple
+                            onPress={() =>
+                              deleteMedia(item).then(() => {
+                                const deletedIndex =
+                                  propertyMediaData.findIndex(
+                                    (m) => m.id === item.id
+                                  );
+                                if (deletedIndex <= currentPage) {
+                                  const newPage = Math.max(
+                                    0,
+                                    currentPage - 1
+                                  );
+                                  setCurrentPage(newPage);
+                                  pagerRef.current?.setPage(newPage);
+                                }
+                                propertyMediaRefetch();
+                              })
+                            }
                             style={{
                               backgroundColor: "rgba(0,0,0,0.5)",
-                              color: "white",
-                              textAlign: "center",
-                              textAlignVertical: "center",
-                              fontWeight: "bold",
                               padding: 8,
                               borderRadius: 50,
                             }}
+                            borderless
                           >
-                            {index + 1} / {propertyMediaData.length}
-                          </Text>
-                          {propertyData.userId === currentUser.data?.id && (
-                            <TouchableRipple
-                              onPress={() =>
-                                deleteMedia(item).then(() => {
-                                  const deletedIndex =
-                                    propertyMediaData.findIndex(
-                                      (m) => m.id === item.id,
-                                    );
-                                  if (deletedIndex <= currentPage) {
-                                    const newPage = Math.max(
-                                      0,
-                                      currentPage - 1,
-                                    );
-                                    setCurrentPage(newPage);
-                                    pagerRef.current?.setPage(newPage);
-                                  }
-                                  propertyMediaRefetch();
-                                })
-                              }
-                              style={{
-                                backgroundColor: "rgba(0,0,0,0.5)",
-                                padding: 8,
-                                borderRadius: 50,
-                              }}
-                              borderless
-                            >
-                              <Feather
-                                name="trash-2"
-                                size={24}
-                                color={theme.colors.error}
-                              />
-                            </TouchableRipple>
-                          )}
-                        </View>
-
-                        {item.type === "video" ? (
-                          <VideoScreen videoSource={item.url} />
-                        ) : (
-                          <Image
-                            source={{ uri: item.url }}
-                            style={{ flex: 1 }}
-                          />
+                            <Feather
+                              name="trash-2"
+                              size={24}
+                              color={theme.colors.error}
+                            />
+                          </TouchableRipple>
                         )}
                       </View>
-                    ))
+
+                      {item.type === "video" ? (
+                        <VideoScreen videoSource={item.url} />
+                      ) : (
+                        <Image
+                          source={{ uri: item.url }}
+                          style={{ flex: 1 }}
+                        />
+                      )}
+                    </View>
+                  ))
                   : null}
               </PagerView>
 

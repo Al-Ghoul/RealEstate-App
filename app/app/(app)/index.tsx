@@ -30,6 +30,7 @@ import { Dropdown } from "react-native-paper-dropdown";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useIsFocused } from "@react-navigation/native";
+import { PropertyCardSkeleton } from "@/components/property/Skeleton";
 
 export default function HomeScreen() {
   const theme = useTheme();
@@ -157,6 +158,7 @@ export default function HomeScreen() {
     refetch,
     hasNextPage,
     isFetching,
+    isLoading,
     isFetchingNextPage,
   } = useInfiniteQuery({
     queryKey: [
@@ -678,19 +680,29 @@ export default function HomeScreen() {
         <ActivityIndicator color={theme.colors.primary} size="small" />
       ) : null}
 
-      <FlatList
-        contentContainerStyle={{
-          gap: 8,
-        }}
-        data={data?.pages.flatMap((page) => page.data)}
-        onRefresh={refetch}
-        refreshing={isFetching || isFetchingNextPage}
-        keyExtractor={(item) => item.id}
-        onEndReached={() => {
-          if (hasNextPage) fetchNextPage();
-        }}
-        renderItem={({ item }) => <PropertyCard property={item} withLink />}
-      />
+      {isLoading ? (
+        <View style={{ flex: 1, marginHorizontal: 16 }}>
+          <View style={{ flex: 1 }}>
+            <PropertyCardSkeleton />
+          </View>
+          <View style={{ flex: 1 }}>
+            <PropertyCardSkeleton />
+          </View>
+        </View>
+      ) : (
+        <FlatList
+          contentContainerStyle={{
+            gap: 8,
+          }}
+          data={data?.pages.flatMap((page) => page.data)}
+          onRefresh={refetch}
+          refreshing={isFetching || isFetchingNextPage}
+          keyExtractor={(item) => item.id}
+          onEndReached={() => {
+            if (hasNextPage) fetchNextPage();
+          }}
+          renderItem={({ item }) => <PropertyCard property={item} withLink />}
+        />)}
       {roles?.includes("admin") || roles?.includes("agent") ? (
         <FAB
           icon="plus"
