@@ -20,7 +20,7 @@ import ControlledInput from "@/components/ControlledInput";
 import { useI18nContext } from "@/i18n/i18n-react";
 import Feather from "@expo/vector-icons/Feather";
 import { toast } from "sonner-native";
-import { XiorError } from "xior";
+import { isXiorError } from "xior";
 
 const AnimatedEllipse = Animated.createAnimatedComponent(Ellipse);
 export default function Register() {
@@ -44,7 +44,7 @@ export default function Register() {
       xiorInstance.post("/auth/register", data).then((res) => res.data),
     onSuccess: (res) => toast.success(res.message),
     onError: (error) => {
-      if (error instanceof XiorError) {
+      if (isXiorError(error)) {
         if (error.response?.data.requestId) {
           toast.warning(error.response?.data.message, {
             description: LL.REQUEST_ID({

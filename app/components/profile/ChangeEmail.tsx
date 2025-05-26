@@ -9,7 +9,7 @@ import { View } from "react-native";
 import ControlledInput from "../ControlledInput";
 import { useI18nContext } from "@/i18n/i18n-react";
 import { toast } from "sonner-native";
-import { XiorError } from "xior";
+import { isXiorError } from "xior";
 
 interface ChangeEmailProps {
   sheet: React.RefObject<TrueSheet>;
@@ -35,7 +35,7 @@ export default function ChangeEmail({
         xiorInstance.patch("/users/me", data).then((res) => res.data),
       onSuccess: (res) => toast.success(res.message),
       onError: (error) => {
-        if (error instanceof XiorError) {
+        if (isXiorError(error)) {
           if (error.response?.data.requestId) {
             toast.warning(error.response?.data.message, {
               description: LL.REQUEST_ID({

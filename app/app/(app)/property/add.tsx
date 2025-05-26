@@ -12,7 +12,7 @@ import { Button, Dialog, Portal, Text, useTheme } from "react-native-paper";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import PropertyInputs from "@/components/property/PropertyInputs";
 import { toast } from "sonner-native";
-import { XiorError } from "xior";
+import { isXiorError } from "xior";
 import { queryClient } from "@/lib/client";
 
 export default function AddPropertyScreen() {
@@ -99,7 +99,7 @@ export default function AddPropertyScreen() {
         toast.error(error.message, {
           description: LL.REQUEST_ID({ requestId: error.requestId }),
         });
-      } else if (error instanceof XiorError) {
+      } else if (isXiorError(error)) {
         toast.error(error.response?.data.message, {
           description: LL.REQUEST_ID({
             requestId: error.response?.data.requestId,
