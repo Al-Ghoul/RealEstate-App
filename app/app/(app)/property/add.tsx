@@ -63,12 +63,11 @@ export default function AddPropertyScreen() {
       const formData = new FormData();
 
       if (typeof input.thumbnail !== "string") {
-        // @ts-expect-error
         formData.append("thumbnail", {
           uri: input.thumbnail?.uri,
           type: input.thumbnail?.type,
           name: input.thumbnail?.name,
-        });
+        } as unknown as Blob);
       }
 
       formData.append("title", input.title);
