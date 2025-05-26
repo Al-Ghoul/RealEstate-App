@@ -29,12 +29,14 @@ import PropertyCard from "@/components/property/PropertyCard";
 import { Dropdown } from "react-native-paper-dropdown";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useIsFocused } from "@react-navigation/native";
 
 export default function HomeScreen() {
   const theme = useTheme();
   const { LL, locale } = useI18nContext();
   const forceRTL = locale === "ar";
   const roles = useAuthStore((state) => state.session?.roles);
+  const isFocused = useIsFocused();
 
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedQuery = useDebounce(searchQuery, 500);
@@ -252,6 +254,7 @@ export default function HomeScreen() {
         cursorCreatedAt: lastPage.meta.cursor_created_at,
       };
     },
+    subscribed: isFocused,
   });
 
   const [isGrantedErrorDialogVisible, setIsGrantedErrorDialogVisible] =

@@ -2,32 +2,52 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { xiorInstance } from "../fetcher";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useRef } from "react";
+import { useIsFocused } from "@react-navigation/native";
+import { useAuthStore } from "../stores/authStore";
 
-export const useCurrentUser = () =>
-  useQuery<User>({
+export const useCurrentUser = () => {
+  const isFocused = useIsFocused();
+  const session = useAuthStore((state) => state.session);
+  const query = useQuery<User>({
     queryKey: ["currentUser"],
-    staleTime: Infinity,
     gcTime: Infinity,
     queryFn: () => xiorInstance.get("/users/me").then((res) => res.data.data),
+    subscribed: isFocused && !!session,
+    enabled: isFocused && !!session,
   });
 
-export const useCurrentUserProfile = () =>
-  useQuery<Profile>({
+  return query;
+};
+
+export const useCurrentUserProfile = (enable: boolean = false) => {
+  const isFocused = useIsFocused();
+  const session = useAuthStore((state) => state.session);
+  const query = useQuery<Profile>({
     queryKey: ["currentUserProfile"],
-    staleTime: Infinity,
     gcTime: Infinity,
     queryFn: () =>
       xiorInstance.get("/users/me/profile").then((res) => res.data.data),
+    subscribed: (isFocused && !!session) || enable,
+    enabled: (isFocused && !!session) || enable,
   });
 
-export const useUserAccounts = () =>
-  useQuery({
+  return query;
+};
+
+export const useUserAccounts = () => {
+  const isFocused = useIsFocused();
+  const session = useAuthStore((state) => state.session);
+  const query = useQuery({
     queryKey: ["accounts"],
-    staleTime: Infinity,
     gcTime: Infinity,
     queryFn: async () =>
       xiorInstance.get("/auth/me/accounts").then((res) => res.data.data),
+    subscribed: isFocused && !!session,
+    enabled: isFocused && !!session,
   });
+
+  return query;
+};
 
 export const useUploadUserProfileImage = () => {
   const abortControllerRef = useRef<AbortController | null>(null);

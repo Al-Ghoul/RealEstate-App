@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import { useCurrentUserProfile } from "@/lib/queries/user";
 
 export default function ProfileImage() {
-  const currentUserProfile = useCurrentUserProfile();
+  const currentUserProfile = useCurrentUserProfile(true);
 
   if (currentUserProfile.isLoading || !currentUserProfile.data) return null;
 

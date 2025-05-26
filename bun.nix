@@ -4288,6 +4288,12 @@
     url = "https://registry.npmjs.org/expo-modules-core/-/expo-modules-core-2.2.3.tgz";
     hash = "sha512-01QqZzpP/wWlxnNly4G06MsOBUTbMDj02DQigZoXfDh80vd/rk3/uVXqnZgOdLSggTs6DnvOgAUy0H2q30XdUg==";
   };
+  "expo-network" = {
+    out_path = "expo-network";
+    name = "expo-network@7.0.5";
+    url = "https://registry.npmjs.org/expo-network/-/expo-network-7.0.5.tgz";
+    hash = "sha512-5dlowKAimhIDN1/lBRnN6SSH6c07f12R3QrfLf3b3GEr6D+EijH2wE537mmwPh1p+254LAkm0Z5ZEXxbwII4sA==";
+  };
   "expo-router" = {
     out_path = "expo-router";
     name = "expo-router@4.0.20";

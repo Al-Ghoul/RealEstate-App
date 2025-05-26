@@ -4,9 +4,11 @@ import { loadLocale } from "@/i18n/i18n-util.sync";
 import { configureZodI18n } from "@/lib/dtos";
 import { addLanguageHeader } from "@/lib/fetcher";
 import { useLocaleStore } from "@/lib/stores/localeStore";
+import { focusManager, onlineManager } from "@tanstack/react-query";
 import { getLocales } from "expo-localization";
 import { useEffect } from "react";
-import { AppState } from "react-native";
+import { AppState, type AppStateStatus } from "react-native";
+import * as Network from "expo-network";
 
 interface I18NWrapperProps {
   children: React.ReactNode;
@@ -18,15 +20,26 @@ export default function I18NWrapper({ children }: I18NWrapperProps) {
   const { setLocale: setCtxLocale, LL } = useI18nContext();
 
   useEffect(() => {
-    const subscription = AppState.addEventListener("change", () => {
-      const currentLocale = (getLocales()[0].languageCode as Locales) ?? "en";
-      setLocale(currentLocale);
-    });
+    const appStateSubscription = AppState.addEventListener(
+      "change",
+      (status: AppStateStatus) => {
+        const currentLocale = (getLocales()[0].languageCode as Locales) ?? "en";
+        setLocale(currentLocale);
+        focusManager.setFocused(status === "active");
+      },
+    );
 
     return () => {
-      subscription.remove();
+      appStateSubscription.remove();
     };
   }, [setLocale]);
+
+  onlineManager.setEventListener((setOnline) => {
+    const eventSubscription = Network.addNetworkStateListener((state) => {
+      setOnline(!!state.isConnected);
+    });
+    return eventSubscription.remove;
+  });
 
   useEffect(() => {
     addLanguageHeader(locale);
