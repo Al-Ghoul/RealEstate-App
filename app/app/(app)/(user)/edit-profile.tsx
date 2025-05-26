@@ -53,27 +53,46 @@ export default function EditProfile() {
     control: updateEmailControl,
     handleSubmit: updateEmailHandleSubmit,
     formState: { isDirty: updateEmailIsDirty },
-    reset: updateEmailReset,
+    reset: resetEmailInput,
   } = useForm<UpdateEmailDTO>({
-    values: {
+    defaultValues: {
       email: currentUser.data?.email ?? "",
     },
     resolver: zodResolver(updateEmailDTO),
   });
 
+  useEffect(() => {
+    resetEmailInput({
+      email: currentUser.data?.email,
+    });
+  }, [resetEmailInput, currentUser.data?.email]);
+
   const {
     control: profileControl,
     handleSubmit: profileHandleSubmit,
     formState: { isDirty: profileIsDirty },
-    reset: profileReset,
+    reset: resetProfileInputs,
   } = useForm<UpdateProfileDTO>({
-    values: {
+    defaultValues: {
       firstName: currentUserProfile.data?.firstName ?? "",
       lastName: currentUserProfile.data?.lastName ?? "",
       bio: currentUserProfile.data?.bio ?? "",
     },
     resolver: zodResolver(updateProfileDTO),
   });
+
+  useEffect(() => {
+    resetProfileInputs({
+      firstName: currentUserProfile.data?.firstName,
+      lastName: currentUserProfile.data?.lastName,
+      bio: currentUserProfile.data?.bio ?? "",
+    });
+  }, [
+    resetProfileInputs,
+    currentUserProfile.data?.firstName,
+    currentUserProfile.data?.lastName,
+    currentUserProfile.data?.bio]);
+
 
   const [isUnsavedChangesDialogVisible, setIsUnsavedChangesDialogVisible] =
     useState(false);
@@ -153,8 +172,8 @@ export default function EditProfile() {
           <Dialog.Actions>
             <Button
               onPress={() => {
-                updateEmailReset();
-                profileReset();
+                resetEmailInput();
+                resetProfileInputs();
                 router.replace("/profile");
                 setIsUnsavedChangesDialogVisible(false);
               }}
@@ -216,10 +235,10 @@ export default function EditProfile() {
             {currentUser.isError
               ? LL.ERROR_FETCHING_USER_DATA()
               : currentUserProfile.isError
-              ? LL.ERROR_FETCHING_USER_PROFILE_DATA()
-              : accounts.isError
-              ? LL.ERROR_FETCHING_USER_ACCOUNTS_DATA()
-              : null}
+                ? LL.ERROR_FETCHING_USER_PROFILE_DATA()
+                : accounts.isError
+                  ? LL.ERROR_FETCHING_USER_ACCOUNTS_DATA()
+                  : null}
           </Text>
         </Banner>
 
