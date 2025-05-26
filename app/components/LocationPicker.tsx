@@ -12,12 +12,10 @@ import {
   ActivityIndicator,
   Button,
   Dialog,
-  Portal,
   Text,
   useTheme,
 } from "react-native-paper";
 import { useI18nContext } from "@/i18n/i18n-react";
-import { toast } from "sonner-native";
 import Entypo from "@expo/vector-icons/Entypo";
 
 export default function LocationPicker({
