@@ -12,6 +12,7 @@ in {
       {}
       // {
         formatter.prettier.options = inputs.std.dmerge.update [0 1] ["" ""];
+        formatter.prettier.includes = inputs.std.dmerge.append ["*.tsx"];
       };
   };
 
