@@ -93,11 +93,10 @@ export default function LinkAccounts() {
             toast.error(LL.AN_ERROR_OCCURRED_SIGNING_IN());
         }
       } else {
-
         toast.error(LL.AN_ERROR_OCCURRED_SIGNING_IN());
       }
     }
-  }, [linkAccount, accounts]);
+  }, [linkAccount, accounts, LL]);
 
   return (
     <View
