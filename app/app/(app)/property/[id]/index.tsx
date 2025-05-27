@@ -100,7 +100,7 @@ export default function PropertyDetailsScreen() {
             latitudeDelta: 0.005,
             longitudeDelta: 0.005,
           },
-          1000
+          1000,
         );
       }
     }, 500);
@@ -174,7 +174,7 @@ export default function PropertyDetailsScreen() {
                       deleteProperty().then(() =>
                         queryClient.invalidateQueries({
                           queryKey: ["properties"],
-                        })
+                        }),
                       )
                     }
                     style={{
@@ -238,75 +238,75 @@ export default function PropertyDetailsScreen() {
                 </>
                 {propertyMediaData && propertyMediaData.length > 0
                   ? propertyMediaData.map((item, index) => (
-                    <View key={index} style={{ flex: 1 }}>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          position: "absolute",
-                          width: "100%",
-                          justifyContent: "space-between",
-                          padding: 16,
-                          zIndex: 1,
-                        }}
-                      >
-                        <Text
+                      <View key={index} style={{ flex: 1 }}>
+                        <View
                           style={{
-                            backgroundColor: "rgba(0,0,0,0.5)",
-                            color: "white",
-                            textAlign: "center",
-                            textAlignVertical: "center",
-                            fontWeight: "bold",
-                            padding: 8,
-                            borderRadius: 50,
+                            flexDirection: "row",
+                            position: "absolute",
+                            width: "100%",
+                            justifyContent: "space-between",
+                            padding: 16,
+                            zIndex: 1,
                           }}
                         >
-                          {index + 1} / {propertyMediaData.length}
-                        </Text>
-                        {propertyData.userId === currentUser.data?.id && (
-                          <TouchableRipple
-                            onPress={() =>
-                              deleteMedia(item).then(() => {
-                                const deletedIndex =
-                                  propertyMediaData.findIndex(
-                                    (m) => m.id === item.id
-                                  );
-                                if (deletedIndex <= currentPage) {
-                                  const newPage = Math.max(
-                                    0,
-                                    currentPage - 1
-                                  );
-                                  setCurrentPage(newPage);
-                                  pagerRef.current?.setPage(newPage);
-                                }
-                                propertyMediaRefetch();
-                              })
-                            }
+                          <Text
                             style={{
                               backgroundColor: "rgba(0,0,0,0.5)",
+                              color: "white",
+                              textAlign: "center",
+                              textAlignVertical: "center",
+                              fontWeight: "bold",
                               padding: 8,
                               borderRadius: 50,
                             }}
-                            borderless
                           >
-                            <Feather
-                              name="trash-2"
-                              size={24}
-                              color={theme.colors.error}
-                            />
-                          </TouchableRipple>
+                            {index + 1} / {propertyMediaData.length}
+                          </Text>
+                          {propertyData.userId === currentUser.data?.id && (
+                            <TouchableRipple
+                              onPress={() =>
+                                deleteMedia(item).then(() => {
+                                  const deletedIndex =
+                                    propertyMediaData.findIndex(
+                                      (m) => m.id === item.id,
+                                    );
+                                  if (deletedIndex <= currentPage) {
+                                    const newPage = Math.max(
+                                      0,
+                                      currentPage - 1,
+                                    );
+                                    setCurrentPage(newPage);
+                                    pagerRef.current?.setPage(newPage);
+                                  }
+                                  propertyMediaRefetch();
+                                })
+                              }
+                              style={{
+                                backgroundColor: "rgba(0,0,0,0.5)",
+                                padding: 8,
+                                borderRadius: 50,
+                              }}
+                              borderless
+                            >
+                              <Feather
+                                name="trash-2"
+                                size={24}
+                                color={theme.colors.error}
+                              />
+                            </TouchableRipple>
+                          )}
+                        </View>
+
+                        {item.type === "VIDEO" ? (
+                          <VideoScreen videoSource={item.url} />
+                        ) : (
+                          <Image
+                            source={{ uri: item.url }}
+                            style={{ flex: 1 }}
+                          />
                         )}
                       </View>
-
-                      {item.type === "video" ? (
-                        <VideoScreen videoSource={item.url} />
-                      ) : (
-                        <Image
-                          source={{ uri: item.url }}
-                          style={{ flex: 1 }}
-                        />
-                      )}
-                    </View>
-                  ))
+                    ))
                   : null}
               </PagerView>
 
@@ -338,7 +338,7 @@ export default function PropertyDetailsScreen() {
                     </Text>
                     {(() => {
                       switch (propertyData.type) {
-                        case "apartment":
+                        case "APARTMENT":
                           return (
                             <MaterialIcons
                               name="apartment"
@@ -346,7 +346,7 @@ export default function PropertyDetailsScreen() {
                               color={theme.colors.onPrimary}
                             />
                           );
-                        case "house":
+                        case "HOUSE":
                           return (
                             <FontAwesome6
                               name="house-chimney"
@@ -354,7 +354,7 @@ export default function PropertyDetailsScreen() {
                               color={theme.colors.onPrimary}
                             />
                           );
-                        case "land":
+                        case "LAND":
                           return (
                             <MaterialIcons
                               name="terrain"
@@ -362,7 +362,7 @@ export default function PropertyDetailsScreen() {
                               color={theme.colors.onPrimary}
                             />
                           );
-                        case "coastal":
+                        case "COASTAL":
                           return (
                             <MaterialCommunityIcons
                               name="island"
@@ -370,7 +370,7 @@ export default function PropertyDetailsScreen() {
                               color={theme.colors.onPrimary}
                             />
                           );
-                        case "commercial":
+                        case "COMMERCIAL":
                           return (
                             <FontAwesome6
                               name="warehouse"

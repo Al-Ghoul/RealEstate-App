@@ -91,8 +91,8 @@ export default function EditProfile() {
     resetProfileInputs,
     currentUserProfile.data?.firstName,
     currentUserProfile.data?.lastName,
-    currentUserProfile.data?.bio]);
-
+    currentUserProfile.data?.bio,
+  ]);
 
   const [isUnsavedChangesDialogVisible, setIsUnsavedChangesDialogVisible] =
     useState(false);
@@ -235,10 +235,10 @@ export default function EditProfile() {
             {currentUser.isError
               ? LL.ERROR_FETCHING_USER_DATA()
               : currentUserProfile.isError
-                ? LL.ERROR_FETCHING_USER_PROFILE_DATA()
-                : accounts.isError
-                  ? LL.ERROR_FETCHING_USER_ACCOUNTS_DATA()
-                  : null}
+              ? LL.ERROR_FETCHING_USER_PROFILE_DATA()
+              : accounts.isError
+              ? LL.ERROR_FETCHING_USER_ACCOUNTS_DATA()
+              : null}
           </Text>
         </Banner>
 

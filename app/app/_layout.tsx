@@ -58,7 +58,10 @@ export default function RootLayout() {
 
 function RootLayoutChild() {
   const setTheme = useThemeStore((state) => state.setTheme);
-  const currentTheme = useThemeStore((state) => state.theme) ?? Appearance.getColorScheme() ?? "light";
+  const currentTheme =
+    useThemeStore((state) => state.theme) ??
+    Appearance.getColorScheme() ??
+    "light";
   const theme = useTheme();
 
   const [showAnimation, setShowAnimation] = useState(true);

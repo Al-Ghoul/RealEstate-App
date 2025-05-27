@@ -132,7 +132,7 @@ export default function AddPropertyScreen() {
     }, [backAction]),
   );
 
-  if (!roles?.includes("admin") && !roles?.includes("agent"))
+  if (!roles?.includes("ADMIN") && !roles?.includes("AGENT"))
     return <Redirect href="/" />;
 
   return (

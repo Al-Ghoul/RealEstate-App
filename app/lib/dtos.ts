@@ -186,8 +186,8 @@ export const createPropertyDTO = z.object({
   price: z.string().refine((val) => /^-?\d+(\.\d+)?$/.test(val)),
   rooms: z.string().refine((val) => /^-?\d+$/.test(val)),
   area: z.string().refine((val) => /^-?\d+(\.\d+)?$/.test(val)),
-  type: z.enum(["house", "apartment", "land", "coastal", "commercial"]),
-  status: z.enum(["available", "rented", "sold"]),
+  type: z.enum(["HOUSE", "APARTMENT", "LAND", "COASTAL", "COMMERCIAL"]),
+  status: z.enum(["AVAILABLE", "RENTED", "SOLD"]),
   location: z.object({
     x: z.number(),
     y: z.number(),

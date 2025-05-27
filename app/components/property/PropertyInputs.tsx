@@ -31,17 +31,17 @@ export default function PropertyInputs({
   const { LL, locale } = useI18nContext();
   const forceRTL = locale === "ar";
   const [propertyTypes] = useState([
-    { label: LL.APARTMENT_LABEL(), value: "apartment" },
-    { label: LL.HOUSE_LABEL(), value: "house" },
-    { label: LL.LAND_LABEL(), value: "land" },
-    { label: LL.COASTAL(), value: "coastal" },
-    { label: LL.COMMERCIAL_LABEL(), value: "commercial" },
+    { label: LL.APARTMENT_LABEL(), value: "APARTMENT" },
+    { label: LL.HOUSE_LABEL(), value: "HOUSE" },
+    { label: LL.LAND_LABEL(), value: "LAND" },
+    { label: LL.COASTAL(), value: "COASTAL" },
+    { label: LL.COMMERCIAL_LABEL(), value: "COMMERCIAL" },
   ]);
 
   const [propertyStatuses] = useState([
-    { label: LL.AVAILABLE_LABEL(), value: "available" },
-    { label: LL.RENTED_LABEL(), value: "rented" },
-    { label: LL.SOLD_LABEL(), value: "sold" },
+    { label: LL.AVAILABLE_LABEL(), value: "AVAILABLE" },
+    { label: LL.RENTED_LABEL(), value: "RENTED" },
+    { label: LL.SOLD_LABEL(), value: "SOLD" },
   ]);
   const sheet = useRef<TrueSheet>(null);
   const { errors } = useFormState<CreatePropertyDTO>({

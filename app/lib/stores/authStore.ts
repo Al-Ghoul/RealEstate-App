@@ -4,8 +4,6 @@ import { addAuthHeader, xiorInstance } from "../fetcher";
 import { createSecureStorage } from "./storage";
 import { queryClient } from "../client";
 
-type Role = "agent" | "client" | "admin";
-
 type Session = {
   tokens: JWTPayload;
   roles: Role[];

@@ -58,7 +58,7 @@ export default function PropertyCard({
           <Chip
             icon={() => {
               switch (property.type) {
-                case "apartment":
+                case "APARTMENT":
                   return (
                     <MaterialIcons
                       name="apartment"
@@ -66,7 +66,7 @@ export default function PropertyCard({
                       color={theme.colors.primary}
                     />
                   );
-                case "house":
+                case "HOUSE":
                   return (
                     <FontAwesome6
                       name="house-chimney"
@@ -74,7 +74,7 @@ export default function PropertyCard({
                       color={theme.colors.primary}
                     />
                   );
-                case "land":
+                case "LAND":
                   return (
                     <MaterialIcons
                       name="terrain"
@@ -82,7 +82,7 @@ export default function PropertyCard({
                       color={theme.colors.primary}
                     />
                   );
-                case "coastal":
+                case "COASTAL":
                   return (
                     <MaterialCommunityIcons
                       name="island"
@@ -90,7 +90,7 @@ export default function PropertyCard({
                       color={theme.colors.primary}
                     />
                   );
-                case "commercial":
+                case "COMMERCIAL":
                   return (
                     <FontAwesome6
                       name="warehouse"

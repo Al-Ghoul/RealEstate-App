@@ -40,7 +40,7 @@ export default function Register() {
   const [registerAsAnAgent, setRegisterAsAnAgent] = useState(false);
 
   const { mutateAsync: registerSubmit, isPending } = useMutation({
-    mutationFn: (data: RegisterDTO & { role: string }) =>
+    mutationFn: (data: RegisterDTO & { role: Role }) =>
       xiorInstance.post("/auth/register", data).then((res) => res.data),
     onSuccess: (res) => toast.success(res.message),
     onError: (error) => {
@@ -234,7 +234,7 @@ export default function Register() {
             onPress={handleSubmit((data) =>
               registerSubmit({
                 ...data,
-                role: registerAsAnAgent ? "agent" : "client",
+                role: registerAsAnAgent ? "AGENT" : "CLIENT",
               }).then(() => router.replace("/login")),
             )}
           >

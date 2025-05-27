@@ -26,6 +26,8 @@ declare global {
     updatedAt: Date;
   };
 
+  type Role = "AGENT" | "CLIENT" | "ADMIN";
+
   type LocationType = {
     x: number;
     y: number;
@@ -46,8 +48,8 @@ declare global {
     title: string;
     description: string;
     price: number;
-    type: "house" | "apartment" | "land" | "house" | "coastal" | "commercial";
-    status: "available" | "rented" | "sold";
+    type: "HOUSE" | "APARTMENT" | "LAND" | "HOUSE" | "COASTAL" | "COMMERCIAL";
+    status: "AVAILABLE" | "RENTED" | "SOLD";
     area: number;
     rooms: number;
     isPublished: boolean;
@@ -61,7 +63,7 @@ declare global {
     id: number;
     propertyId: Property["id"];
     url: string;
-    type: "image" | "video";
+    type: "IMAGE" | "VIDEO";
     mimeType: string;
   };
 

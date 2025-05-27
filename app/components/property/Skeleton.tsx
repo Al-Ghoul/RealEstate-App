@@ -1,4 +1,7 @@
-import ContentLoader, { Rect, type IContentLoaderProps } from "react-content-loader/native";
+import ContentLoader, {
+  Rect,
+  type IContentLoaderProps,
+} from "react-content-loader/native";
 import { Dimensions, View } from "react-native";
 import { useTheme } from "react-native-paper";
 

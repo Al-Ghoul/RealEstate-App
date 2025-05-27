@@ -130,11 +130,11 @@ export default function HomeScreen() {
   const [type, setType] = useState<string | undefined>();
   const typeOptions = useMemo(
     () => [
-      { label: LL.APARTMENT_LABEL(), value: "apartment" },
-      { label: LL.HOUSE_LABEL(), value: "house" },
-      { label: LL.LAND_LABEL(), value: "land" },
-      { label: LL.COASTAL(), value: "coastal" },
-      { label: LL.COMMERCIAL_LABEL(), value: "commercial" },
+      { label: LL.APARTMENT_LABEL(), value: "APARTMENT" },
+      { label: LL.HOUSE_LABEL(), value: "HOUSE" },
+      { label: LL.LAND_LABEL(), value: "LAND" },
+      { label: LL.COASTAL(), value: "COASTAL" },
+      { label: LL.COMMERCIAL_LABEL(), value: "COMMERCIAL" },
     ],
     [LL],
   );
@@ -142,9 +142,9 @@ export default function HomeScreen() {
   const [status, setStatus] = useState<string | undefined>();
   const statusOptions = useMemo(
     () => [
-      { label: LL.AVAILABLE_LABEL(), value: "available" },
-      { label: LL.RENTED_LABEL(), value: "rented" },
-      { label: LL.SOLD_LABEL(), value: "sold" },
+      { label: LL.AVAILABLE_LABEL(), value: "AVAILABLE" },
+      { label: LL.RENTED_LABEL(), value: "RENTED" },
+      { label: LL.SOLD_LABEL(), value: "SOLD" },
     ],
     [LL],
   );
@@ -702,8 +702,9 @@ export default function HomeScreen() {
             if (hasNextPage) fetchNextPage();
           }}
           renderItem={({ item }) => <PropertyCard property={item} withLink />}
-        />)}
-      {roles?.includes("admin") || roles?.includes("agent") ? (
+        />
+      )}
+      {roles?.includes("ADMIN") || roles?.includes("AGENT") ? (
         <FAB
           icon="plus"
           style={styles.fab}
