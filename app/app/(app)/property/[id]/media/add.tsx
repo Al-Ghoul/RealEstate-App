@@ -1,4 +1,10 @@
-import { View, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  BackHandler,
+} from "react-native";
 import {
   Button,
   Dialog,
@@ -15,7 +21,12 @@ import { Image } from "expo-image";
 import { useVideoPlayer, VideoView } from "expo-video";
 import Feather from "@expo/vector-icons/Feather";
 import { useMutation } from "@tanstack/react-query";
-import { router, Tabs, useLocalSearchParams } from "expo-router";
+import {
+  router,
+  Tabs,
+  useFocusEffect,
+  useLocalSearchParams,
+} from "expo-router";
 import * as FileSystem from "expo-file-system";
 import { useAuthStore } from "@/lib/stores/authStore";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -43,12 +54,9 @@ export default function AddPropertyMedia() {
   const { refetch: propertyMediaRefetch } = usePropertyMedia(parseInt(id));
 
   const backAction = useCallback(() => {
-    if (isUploading) {
-      setShowCancelDialog(true);
-      return true;
-    }
+    if (isUploading) setShowCancelDialog(true);
     router.push(`/property/${id}`);
-    return false;
+    return true;
   }, [isUploading, id]);
 
   const cancelUploads = async () => {
@@ -169,6 +177,19 @@ export default function AddPropertyMedia() {
 
     setMedia(newMedia);
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        backAction,
+      );
+
+      return () => {
+        backHandler.remove();
+      };
+    }, [backAction]),
+  );
 
   return (
     <>
