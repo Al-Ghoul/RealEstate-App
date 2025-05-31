@@ -20,6 +20,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { queryClient } from "@/lib/client";
 import { useAuthStore } from "@/lib/stores/authStore";
+import { useReactQueryDevTools } from "@dev-plugins/react-query";
 
 SplashScreen.preventAutoHideAsync();
 I18nManager.allowRTL(false);
@@ -69,6 +70,8 @@ function RootLayoutChild() {
   const locale = useLocaleStore((state) => state.locale);
 
   const session = useAuthStore((state) => state.session);
+
+  useReactQueryDevTools(queryClient);
 
   return (
     <PersistQueryClientProvider
