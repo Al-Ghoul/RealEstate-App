@@ -133,6 +133,7 @@ const ar = {
   SIGN_IN_IS_IN_PROGRESS: "جاري تسجيل الدخول",
   GPLAY_SERVICE_NOT_AVAILABLE: "خدمات جوجل بلاي غير متوفرة",
   AN_ERROR_OCCURRED_SIGNING_IN: "حدث خطأ أثناء تسجيل الدخول",
+  CONTACT: "تواصل",
 
   // ERRORS
   INVALID_EMAIL: "البريد الإلكتروني غير صحيح",

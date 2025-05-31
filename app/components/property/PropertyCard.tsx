@@ -1,7 +1,7 @@
 import { useI18nContext } from "@/i18n/i18n-react";
-import React, { type ReactNode } from "react";
+import React from "react";
 import { View, StyleSheet } from "react-native";
-import { Card, Chip, Badge, useTheme, Text } from "react-native-paper";
+import { Card, Chip, Badge, useTheme } from "react-native-paper";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -10,11 +10,9 @@ import { router } from "expo-router";
 export default function PropertyCard({
   property,
   withLink,
-  extra,
 }: {
   property: Property;
   withLink?: boolean;
-  extra?: ReactNode;
 }) {
   const theme = useTheme();
   const { LL, locale } = useI18nContext();
@@ -31,29 +29,25 @@ export default function PropertyCard({
     >
       <Card.Cover source={{ uri: property.thumbnailURL }} />
       <Card.Title
+        style={{
+          flexDirection: forceRTL ? "row-reverse" : "row",
+        }}
         titleStyle={forceRTL ? { textAlign: "right" } : {}}
         title={property.title}
-        right={() =>
-          property.isFeatured ? (
-            <Badge style={styles.featuredBadge}>Featured</Badge>
-          ) : null
-        }
+        right={() => (
+          <Badge
+            style={{
+              color: "white",
+              marginRight: 16,
+              backgroundColor:
+                property.status === "AVAILABLE" ? "#4CAF50" : "#FF9800",
+            }}
+          >
+            {property.price}
+          </Badge>
+        )}
       />
       <Card.Content>
-        <Text
-          variant="titleLarge"
-          style={[styles.price, forceRTL ? { textAlign: "right" } : {}]}
-        >
-          {property.price}
-        </Text>
-        <Text
-          variant="bodyMedium"
-          numberOfLines={3}
-          style={[styles.description, forceRTL ? { textAlign: "right" } : {}]}
-        >
-          {property.description}
-        </Text>
-
         <View style={styles.row}>
           <Chip
             icon={() => {
@@ -117,7 +111,6 @@ export default function PropertyCard({
             {LL.ROOMS_COUNT_LABEL({ count: property.rooms })}
           </Chip>
         </View>
-        {extra}
       </Card.Content>
     </Card>
   );
@@ -125,32 +118,12 @@ export default function PropertyCard({
 
 const styles = StyleSheet.create({
   card: {
-    marginVertical: 10,
     marginHorizontal: 16,
-    borderRadius: 12,
-    elevation: 2,
-  },
-  price: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginVertical: 6,
-  },
-  description: {
-    marginBottom: 8,
-    color: "#555",
   },
   row: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
     marginVertical: 6,
-  },
-  publishedRow: {
-    marginTop: 8,
-  },
-  featuredBadge: {
-    backgroundColor: "#FFD700",
-    marginRight: 12,
-    marginTop: 8,
   },
 });

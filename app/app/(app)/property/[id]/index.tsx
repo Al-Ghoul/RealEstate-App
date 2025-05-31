@@ -1,10 +1,17 @@
-import { router, useLocalSearchParams } from "expo-router";
+import { router, Tabs, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { RefreshControl, ScrollView, View } from "react-native";
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import {
   Banner,
-  Chip,
+  Button,
+  Divider,
   Text,
   TouchableRipple,
   useTheme,
@@ -13,11 +20,9 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useI18nContext } from "@/i18n/i18n-react";
 import { useMutation } from "@tanstack/react-query";
 import { xiorInstance } from "@/lib/fetcher";
-import PropertyCard from "@/components/property/PropertyCard";
-import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useCurrentUser } from "@/lib/queries/user";
+import { useCurrentUser, useGetUserProfile } from "@/lib/queries/user";
 import PagerView from "react-native-pager-view";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { Image } from "expo-image";
@@ -27,6 +32,9 @@ import { useProperty, usePropertyMedia } from "@/lib/queries/property";
 import { isXiorError } from "xior";
 import { queryClient } from "@/lib/client";
 import { PropertyCardSkeleton } from "@/components/property/Skeleton";
+import ProfileImage from "@/components/profile/Image";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { UserProfileSkeleton } from "@/components/profile/Skeleton";
 
 export default function PropertyDetailsScreen() {
   const params = useLocalSearchParams<{
@@ -40,14 +48,13 @@ export default function PropertyDetailsScreen() {
   const forceRTL = locale === "ar";
   const pagerRef = useRef<PagerView>(null);
   const [currentPage, setCurrentPage] = useState(0);
-
   const {
     data: propertyData,
-    error: propertyError,
     isError: isPropertyError,
     refetch: propertyRefetch,
     isFetching: isFetchingProperty,
     isLoading: isLoadingProperty,
+    isPending: isPendingProperty,
   } = useProperty(parseInt(id));
 
   const { data: propertyMediaData, refetch: propertyMediaRefetch } =
@@ -90,6 +97,25 @@ export default function PropertyDetailsScreen() {
     },
   });
 
+  const { data: userProfileData, isLoading: isLoadingUserProfile } =
+    useGetUserProfile(propertyData?.userId ?? "");
+
+  const [autoSlideActive, setAutoSlideActive] = useState(true);
+  const totalPages = (propertyMediaData?.length ?? 0) + 1;
+
+  useEffect(() => {
+    if (!autoSlideActive || !propertyMediaData?.length) return;
+
+    const interval = setInterval(() => {
+      let nextPage = (currentPage + 1) % totalPages;
+      if (nextPage === 0) nextPage += 1;
+
+      pagerRef.current?.setPage(nextPage);
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, [currentPage, autoSlideActive, totalPages, propertyMediaData]);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (mapRef.current && propertyData) {
@@ -108,8 +134,40 @@ export default function PropertyDetailsScreen() {
     return () => clearTimeout(timeout);
   }, [propertyData]);
 
+  if (isLoadingProperty || isPendingProperty) {
+    return (
+      <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <PropertyCardSkeleton />
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <Tabs.Screen
+        options={{
+          title: propertyData?.title,
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                width: 40,
+                height: 40,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onPress={() => router.back()}
+            >
+              <Ionicons
+                name="arrow-back"
+                size={18}
+                color={theme.colors.primary}
+              />
+            </TouchableOpacity>
+          ),
+          href: null,
+        }}
+      />
+
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -120,55 +178,85 @@ export default function PropertyDetailsScreen() {
             }}
           />
         }
-        contentContainerStyle={{ flex: 1 }}
       >
-        {propertyError ? (
-          <Banner
-            visible={isPropertyError && !isFetchingProperty}
+        <Banner
+          visible={isPropertyError && !isFetchingProperty}
+          style={{
+            backgroundColor: theme.colors.errorContainer,
+            marginBottom: 8,
+          }}
+          theme={{
+            colors: {
+              primary: theme.colors.onErrorContainer,
+            },
+          }}
+          actions={[
+            {
+              label: LL.RETRY(),
+              onPress: () => propertyRefetch(),
+            },
+          ]}
+        >
+          <Text
             style={{
-              backgroundColor: theme.colors.errorContainer,
-              marginBottom: 8,
+              color: theme.colors.onErrorContainer,
+              textAlign: forceRTL ? "right" : "left",
             }}
-            theme={{
-              colors: {
-                primary: theme.colors.onErrorContainer,
-              },
-            }}
-            actions={[
-              {
-                label: LL.RETRY(),
-                onPress: () => propertyRefetch(),
-              },
-            ]}
           >
-            <Text
-              style={{
-                color: theme.colors.onErrorContainer,
-                textAlign: forceRTL ? "right" : "left",
-              }}
-            >
-              {isPropertyError ? LL.ERROR_FETCHING_PROPERTY_DATA() : null}
-            </Text>
-          </Banner>
-        ) : isLoadingProperty ? (
-          <View style={{ flex: 1, marginHorizontal: 16 }}>
-            <View style={{ flex: 1 }}>
-              <PropertyCardSkeleton />
-            </View>
-          </View>
-        ) : (
-          propertyData && (
-            <>
-              <PagerView
-                ref={pagerRef}
-                style={{ flex: 1 }}
-                initialPage={
-                  propertyMediaData && propertyMediaData.length ? 1 : 0
-                }
-                scrollEnabled={propertyMediaData && !!propertyMediaData.length}
-                onPageSelected={(e) => setCurrentPage(e.nativeEvent.position)}
-              >
-                <>
+            {isPropertyError ? LL.ERROR_FETCHING_PROPERTY_DATA() : null}
+          </Text>
+        </Banner>
+
+        {propertyData && (
+          <>
+            <View>
+              <Image
+                style={{ height: 250, width: "100%" }}
+                source={{ uri: propertyData.thumbnailURL }}
+                contentFit="cover"
+                transition={1000}
+              />
+              {propertyData.userId === currentUser.data?.id && (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    position: "absolute",
+                    zIndex: 1,
+                    right: 16,
+                    top: 16,
+                    gap: 4,
+                  }}
+                >
+                  <TouchableRipple
+                    onPress={() => router.push(`/property/${id}/media/add`)}
+                    style={{
+                      backgroundColor: "rgba(0,0,0,0.5)",
+                      padding: 8,
+                      borderRadius: 50,
+                    }}
+                    borderless
+                  >
+                    <MaterialCommunityIcons
+                      name="image-plus"
+                      size={20}
+                      color={theme.colors.primary}
+                    />
+                  </TouchableRipple>
+                  <TouchableRipple
+                    onPress={() => router.push(`/property/${id}/edit/`)}
+                    style={{
+                      backgroundColor: "rgba(0,0,0,0.5)",
+                      padding: 8,
+                      borderRadius: 50,
+                    }}
+                    borderless
+                  >
+                    <Feather
+                      name="edit-2"
+                      size={20}
+                      color={theme.colors.primary}
+                    />
+                  </TouchableRipple>
                   <TouchableRipple
                     onPress={() =>
                       deleteProperty().then(() =>
@@ -181,64 +269,230 @@ export default function PropertyDetailsScreen() {
                       backgroundColor: "rgba(0,0,0,0.5)",
                       padding: 8,
                       borderRadius: 50,
-                      position: "absolute",
-                      zIndex: 1,
-                      right: 25,
-                      top: 25,
                     }}
                     borderless
                   >
                     <Feather
                       name="trash-2"
-                      size={24}
+                      size={20}
                       color={theme.colors.error}
                     />
                   </TouchableRipple>
-                  {isLoadingProperty ? (
-                    <View style={{ flex: 1, marginHorizontal: 16 }}>
-                      <View style={{ flex: 1 }}>
-                        <PropertyCardSkeleton />
-                      </View>
-                    </View>
-                  ) : (
-                    <PropertyCard
-                      property={propertyData}
-                      {...(propertyData.userId === currentUser.data?.id && {
-                        extra: (
-                          <View style={{ flexDirection: "row", gap: 8 }}>
-                            <Chip
-                              style={{
-                                flex: 1,
-                                backgroundColor: theme.colors.secondary,
-                              }}
-                              textStyle={{ color: theme.colors.onSecondary }}
-                              onPress={() =>
-                                router.push(`/property/${id}/media/add`)
-                              }
-                            >
-                              {LL.ADD_PROPERTY_MEDIA()}
-                            </Chip>
-                            <Chip
-                              style={{
-                                flex: 1,
-                                backgroundColor: theme.colors.secondary,
-                              }}
-                              textStyle={{ color: theme.colors.onSecondary }}
-                              onPress={() =>
-                                router.push(`/property/${id}/edit/`)
-                              }
-                            >
-                              {LL.EDIT_PROPERTY()}
-                            </Chip>
-                          </View>
-                        ),
-                      })}
+                </View>
+              )}
+            </View>
+
+            <View
+              style={{
+                marginHorizontal: 8,
+                alignItems: forceRTL ? "flex-end" : "flex-start",
+              }}
+            >
+              <Text variant="headlineLarge">{propertyData.title}</Text>
+              <Text variant="bodyMedium">{propertyData.description}</Text>
+            </View>
+
+            <Divider style={{ marginVertical: 8, marginHorizontal: 8 }} />
+
+            <View style={{ margin: 8 }}>
+              {isLoadingUserProfile ? (
+                <View style={{ alignItems: "center" }}>
+                  <UserProfileSkeleton />
+                </View>
+              ) : (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    gap: 8,
+                  }}
+                >
+                  <Pressable
+                    onPress={() =>
+                      router.push(
+                        `/(app)/(user)/user/${propertyData.userId}/profile`,
+                      )
+                    }
+                    style={{ width: 48, height: 48, borderRadius: 50 }}
+                  >
+                    <ProfileImage
+                      source={userProfileData?.image!}
+                      blurHash={userProfileData?.imageBlurHash!}
                     />
-                  )}
-                </>
-                {propertyMediaData && propertyMediaData.length > 0
+                  </Pressable>
+                  <View>
+                    <Pressable
+                      onPress={() =>
+                        router.push(
+                          `/(app)/(user)/user/${propertyData.userId}/profile`,
+                        )
+                      }
+                    >
+                      <Text
+                        style={{
+                          color: theme.colors.onBackground,
+                        }}
+                        variant="bodyMedium"
+                      >
+                        {userProfileData?.firstName} {userProfileData?.lastName}
+                      </Text>
+                    </Pressable>
+                    <Divider style={{ marginVertical: 4 }} />
+                    <Button icon="email" mode="text" compact>
+                      {LL.CONTACT()}
+                    </Button>
+                  </View>
+                </View>
+              )}
+              <View
+                style={{
+                  flexDirection: forceRTL ? "row-reverse" : "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text>{LL.PRICE()}</Text>
+                <Text>{propertyData.price}</Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: forceRTL ? "row-reverse" : "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text>{LL.PROPERTY_TYPE()}</Text>
+
+                <Text>
+                  {
+                    // @ts-ignore
+                    LL[propertyData.type.toUpperCase()]()
+                  }
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: forceRTL ? "row-reverse" : "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text>{LL.PROPERTY_STATUS()}</Text>
+                <Text>
+                  {
+                    // @ts-ignore
+                    LL[propertyData.status.toUpperCase()]()
+                  }
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: forceRTL ? "row-reverse" : "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text>{LL.AREA()}</Text>
+                <Text>{propertyData.area} m²</Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: forceRTL ? "row-reverse" : "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text>{LL.ROOMS_COUNT()}</Text>
+                <Text>{propertyData.rooms}</Text>
+              </View>
+            </View>
+
+            <MapView
+              ref={mapRef}
+              scrollEnabled={false}
+              style={{ width: "100%", height: 250 }}
+              initialRegion={{
+                latitude: 31.1249,
+                longitude: 33.798,
+                latitudeDelta: 0.002,
+                longitudeDelta: 0.002,
+              }}
+            >
+              <Marker
+                coordinate={{
+                  latitude: propertyData.location.y,
+                  longitude: propertyData.location.x,
+                }}
+                anchor={{ x: 0.5, y: 0.5 }}
+              >
+                <View style={{ alignItems: "center" }}>
+                  <Text
+                    style={{
+                      color: "green",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {LL.PRICE_LABEL({ price: propertyData.price })}
+                  </Text>
+                  {(() => {
+                    switch (propertyData.type) {
+                      case "APARTMENT":
+                        return (
+                          <MaterialIcons
+                            name="apartment"
+                            size={24}
+                            color="green"
+                          />
+                        );
+                      case "HOUSE":
+                        return (
+                          <FontAwesome6
+                            name="house-chimney"
+                            size={16}
+                            color="green"
+                          />
+                        );
+                      case "LAND":
+                        return (
+                          <MaterialIcons
+                            name="terrain"
+                            size={24}
+                            color="green"
+                          />
+                        );
+                      case "COASTAL":
+                        return (
+                          <MaterialCommunityIcons
+                            name="island"
+                            size={24}
+                            color="green"
+                          />
+                        );
+                      case "COMMERCIAL":
+                        return (
+                          <FontAwesome6
+                            name="warehouse"
+                            size={24}
+                            color="green"
+                          />
+                        );
+                    }
+                  })()}
+                </View>
+              </Marker>
+            </MapView>
+
+            {propertyMediaData && propertyMediaData.length > 0 && (
+              <PagerView
+                ref={pagerRef}
+                style={{ height: 250 }}
+                scrollEnabled={!!propertyMediaData.length}
+                onPageSelected={(e) => setCurrentPage(e.nativeEvent.position)}
+                onTouchStart={() => {
+                  setAutoSlideActive(false);
+                }}
+                onTouchEnd={() => {
+                  setAutoSlideActive(true);
+                }}
+              >
+                {propertyMediaData.length > 0
                   ? propertyMediaData.map((item, index) => (
-                      <View key={index} style={{ flex: 1 }}>
+                      <View key={`media-${item.id}`} style={{ flex: 1 }}>
                         <View
                           style={{
                             flexDirection: "row",
@@ -309,85 +563,11 @@ export default function PropertyDetailsScreen() {
                     ))
                   : null}
               </PagerView>
-
-              <MapView
-                ref={mapRef}
-                style={{ width: "100%", height: 250, borderRadius: 24 }}
-                initialRegion={{
-                  latitude: 31.1249,
-                  longitude: 33.798,
-                  latitudeDelta: 0.002,
-                  longitudeDelta: 0.002,
-                }}
-              >
-                <Marker
-                  coordinate={{
-                    latitude: propertyData.location.y,
-                    longitude: propertyData.location.x,
-                  }}
-                  anchor={{ x: 0.5, y: 0.5 }}
-                >
-                  <View style={{ alignItems: "center" }}>
-                    <Text
-                      style={{
-                        color: theme.colors.primaryContainer,
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {LL.PRICE_LABEL({ price: 1500 })}
-                    </Text>
-                    {(() => {
-                      switch (propertyData.type) {
-                        case "APARTMENT":
-                          return (
-                            <MaterialIcons
-                              name="apartment"
-                              size={24}
-                              color={theme.colors.onPrimary}
-                            />
-                          );
-                        case "HOUSE":
-                          return (
-                            <FontAwesome6
-                              name="house-chimney"
-                              size={16}
-                              color={theme.colors.onPrimary}
-                            />
-                          );
-                        case "LAND":
-                          return (
-                            <MaterialIcons
-                              name="terrain"
-                              size={24}
-                              color={theme.colors.onPrimary}
-                            />
-                          );
-                        case "COASTAL":
-                          return (
-                            <MaterialCommunityIcons
-                              name="island"
-                              size={24}
-                              color={theme.colors.onPrimary}
-                            />
-                          );
-                        case "COMMERCIAL":
-                          return (
-                            <FontAwesome6
-                              name="warehouse"
-                              size={24}
-                              color={theme.colors.onPrimary}
-                            />
-                          );
-                      }
-                    })()}
-                  </View>
-                </Marker>
-              </MapView>
-            </>
-          )
+            )}
+          </>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

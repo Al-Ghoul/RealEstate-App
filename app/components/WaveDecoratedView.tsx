@@ -133,6 +133,7 @@ export default function WaveDecoratedView({
             aspectRatio,
             position: "absolute",
             bottom: 0,
+            zIndex: -1,
           }}
         >
           <Svg

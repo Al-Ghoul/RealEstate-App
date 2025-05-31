@@ -139,6 +139,7 @@ const en = {
   SIGN_IN_IS_IN_PROGRESS: "Signing in is in progress",
   GPLAY_SERVICE_NOT_AVAILABLE: "Google Play services are not available",
   AN_ERROR_OCCURRED_SIGNING_IN: "An error occurred signing in",
+  CONTACT: "Contact",
 
   // ERRORS
   INVALID_EMAIL: "Invalid email",
