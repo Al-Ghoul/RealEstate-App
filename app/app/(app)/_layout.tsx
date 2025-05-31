@@ -96,6 +96,8 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      initialRouteName="index"
+      backBehavior="history"
       screenOptions={{
         headerShown: true,
         headerTitleAllowFontScaling: true,

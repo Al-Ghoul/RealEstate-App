@@ -70,7 +70,7 @@ export default function WaveDecoratedView({
                 buttonColor={theme.colors.primary}
                 textColor={theme.colors.onPrimary}
                 onPress={() => {
-                  router.push("/edit-profile", { withAnchor: true });
+                  router.push("/edit-profile");
                 }}
               >
                 {LL.EDIT_PROFILE()}

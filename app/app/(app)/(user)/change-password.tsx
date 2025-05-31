@@ -68,7 +68,7 @@ export default function ChangePassword() {
     if (isDirty) {
       setIsUnsavedChangesDialogVisible(true);
     } else {
-      router.replace("/profile");
+      router.back();
     }
 
     return true;
@@ -129,7 +129,7 @@ export default function ChangePassword() {
             <Button
               onPress={() => {
                 reset();
-                router.replace("/profile");
+                router.back();
                 setIsUnsavedChangesDialogVisible(false);
               }}
             >
@@ -245,7 +245,7 @@ export default function ChangePassword() {
           onPress={handleSubmit((data) =>
             updateUserPassword(data).then(() => {
               reset();
-              router.replace("/profile");
+              router.back();
             }),
           )}
           disabled={!isDirty || isUpdateUserPasswordPending}

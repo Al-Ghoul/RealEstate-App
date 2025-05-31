@@ -67,7 +67,7 @@ export default function SetPassword() {
     if (isDirty) {
       setIsUnsavedChangesDialogVisible(true);
     } else {
-      router.replace("/profile");
+      router.back();
     }
     return true;
   }, [isDirty]);
@@ -127,7 +127,7 @@ export default function SetPassword() {
             <Button
               onPress={() => {
                 reset();
-                router.replace("/profile");
+                router.back();
                 setIsUnsavedChangesDialogVisible(false);
               }}
             >
@@ -205,7 +205,7 @@ export default function SetPassword() {
             setUserPassword(data).then(() => {
               reset();
               currentUser.refetch();
-              router.replace("/profile");
+              router.back();
             }),
           )}
           disabled={!isDirty || isSetPasswordPending}

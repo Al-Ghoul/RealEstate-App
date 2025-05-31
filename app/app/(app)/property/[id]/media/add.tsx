@@ -55,9 +55,9 @@ export default function AddPropertyMedia() {
 
   const backAction = useCallback(() => {
     if (isUploading) setShowCancelDialog(true);
-    router.push(`/property/${id}`);
+    router.back();
     return true;
-  }, [isUploading, id]);
+  }, [isUploading]);
 
   const cancelUploads = async () => {
     try {
@@ -68,7 +68,7 @@ export default function AddPropertyMedia() {
       setUploadProgress({});
       uploadTasksRef.current = [];
       setShowCancelDialog(false);
-      router.push(`/property/${id}`);
+      router.back();
     } catch {
       toast.error("Error cancelling uploads");
     }
@@ -113,7 +113,7 @@ export default function AddPropertyMedia() {
           const res = await uploadTask.uploadAsync();
 
           if (res?.status === 401) propertyMediaRefetch();
-          else if (res?.status !== 200)
+          else if (res?.status !== 201)
             throw JSON.parse(res?.body!) as ErrorResponse;
         }
       } catch (error) {
@@ -298,9 +298,8 @@ export default function AddPropertyMedia() {
               onPress={() =>
                 uploadMedia(media).then(() => {
                   setMedia([]);
-                  backAction();
                   propertyMediaRefetch();
-                  router.push(`/property/${id}`);
+                  backAction();
                 })
               }
               disabled={isUploading || media.length === 0}

@@ -101,7 +101,7 @@ export default function EditProfile() {
     if (updateEmailIsDirty || profileIsDirty) {
       setIsUnsavedChangesDialogVisible(true);
     } else {
-      router.replace("/profile");
+      router.back();
     }
     return true;
   }, [updateEmailIsDirty, profileIsDirty]);
@@ -174,7 +174,7 @@ export default function EditProfile() {
               onPress={() => {
                 resetEmailInput();
                 resetProfileInputs();
-                router.replace("/profile");
+                router.back();
                 setIsUnsavedChangesDialogVisible(false);
               }}
             >

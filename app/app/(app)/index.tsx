@@ -708,7 +708,7 @@ export default function HomeScreen() {
         <FAB
           icon="plus"
           style={styles.fab}
-          onPress={() => router.push("/property/add", { withAnchor: true })}
+          onPress={() => router.push("/property/add")}
         />
       ) : null}
     </SafeAreaView>

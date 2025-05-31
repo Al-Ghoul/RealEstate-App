@@ -177,9 +177,9 @@ export default function EditPropertyScreen() {
 
   const backAction = useCallback(() => {
     if (isPropertyInputDirty) setIsDiscardChangesDialogVisible(true);
-    else router.push(`/property/${id}`);
+    else router.back();
     return true;
-  }, [isPropertyInputDirty, id]);
+  }, [isPropertyInputDirty]);
 
   useFocusEffect(
     useCallback(() => {
@@ -307,7 +307,7 @@ export default function EditPropertyScreen() {
                 onPress={() => {
                   setIsDiscardChangesDialogVisible(false);
                   resetPropertyInputs();
-                  router.push(`/property/${id}`);
+                  router.back();
                 }}
               >
                 {LL.DISCARD()}
