@@ -1,9 +1,11 @@
 import {
   RefreshControl,
-  ScrollView,
   TouchableOpacity,
   View,
   Text,
+  FlatList,
+  ScrollView,
+  Pressable,
 } from "react-native";
 import { Image } from "expo-image";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -20,11 +22,17 @@ import WaveDecoratedView from "@/components/WaveDecoratedView";
 import ProfileImage from "@/components/profile/Image";
 import { Banner, Button, Divider, useTheme } from "react-native-paper";
 import { useI18nContext } from "@/i18n/i18n-react";
+import { PropertyCardSkeleton } from "@/components/property/Skeleton";
+import PropertyCard from "@/components/property/PropertyCard";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { xiorInstance } from "@/lib/fetcher";
+import { useIsFocused } from "@react-navigation/native";
 
 export default function ProfileScreen() {
   const theme = useTheme();
   const { LL, locale } = useI18nContext();
   const forceRTL = locale === "ar";
+  const isFocused = useIsFocused();
   const currentUser = useCurrentUser();
   const currentUserProfile = useCurrentUserProfile();
   const {
@@ -51,11 +59,67 @@ export default function ProfileScreen() {
     currentUserProfile.refetch();
   };
 
+  const [order, setOrder] = useState<string | undefined>();
+
+  const {
+    data,
+    isError,
+    fetchNextPage,
+    refetch,
+    hasNextPage,
+    isFetching,
+    isLoading,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: [
+      "properties",
+      {
+        order,
+        userId: currentUser.data?.id,
+      },
+    ],
+
+    queryFn: async (input) => {
+      let params: {
+        limit: number;
+        order?: string;
+        cursor?: number;
+        userId?: string;
+      } = {
+        limit: 10,
+        cursor: input.pageParam.cursor,
+      };
+
+      if (order) params.order = order;
+      if (currentUser.data?.id) params.userId = currentUser.data.id;
+
+      const res = await xiorInstance.get("/properties", {
+        params,
+      });
+
+      return res.data;
+    },
+    initialPageParam: {
+      cursor: 0,
+      cursorCreatedAt: undefined,
+    },
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.meta.has_next_page) return undefined;
+
+      return {
+        cursor: lastPage.meta.next_cursor,
+        cursorCreatedAt: lastPage.meta.cursor_created_at,
+      };
+    },
+    subscribed: isFocused,
+  });
+
   return (
     <WaveDecoratedView>
       <ScrollView
-        contentContainerStyle={{
+        style={{
           marginTop: 40,
+          flexGrow: 0,
         }}
         refreshControl={
           <RefreshControl
@@ -153,7 +217,10 @@ export default function ProfileScreen() {
                     transition={500}
                   />
                 ) : (
-                  <ProfileImage />
+                  <ProfileImage
+                    source={currentUserProfile.data?.image!}
+                    blurHash={currentUserProfile?.data?.imageBlurHash!}
+                  />
                 )}
                 {!image ? (
                   <View
@@ -214,14 +281,14 @@ export default function ProfileScreen() {
           }}
         />
 
-        <View
-          style={{
-            flex: 1,
-            gap: 8,
-            marginTop: 40,
-          }}
-        >
-          {image ? (
+        {image ? (
+          <View
+            style={{
+              flex: 1,
+              gap: 8,
+              marginTop: 40,
+            }}
+          >
             <Button
               style={{
                 marginHorizontal: "auto",
@@ -241,9 +308,87 @@ export default function ProfileScreen() {
             >
               {LL.SAVE_IMAGE()}
             </Button>
-          ) : null}
-        </View>
+          </View>
+        ) : null}
       </ScrollView>
+
+      <Pressable
+        style={{ alignSelf: "flex-end", marginHorizontal: 16, marginTop: 16 }}
+        onPress={() => {
+          if (order === "asc") {
+            setOrder("desc");
+          } else {
+            setOrder("asc");
+          }
+        }}
+      >
+        {order === "asc" ? (
+          <MaterialCommunityIcons
+            name="sort-descending"
+            size={24}
+            color={theme.colors.primary}
+          />
+        ) : (
+          <MaterialCommunityIcons
+            name="sort-ascending"
+            size={24}
+            color={theme.colors.primary}
+          />
+        )}
+      </Pressable>
+
+      <Banner
+        visible={isError && !isFetching}
+        style={{
+          backgroundColor: theme.colors.errorContainer,
+        }}
+        theme={{
+          colors: {
+            primary: theme.colors.onErrorContainer,
+          },
+        }}
+        actions={[
+          {
+            label: LL.RETRY(),
+            onPress: () => refetch(),
+          },
+        ]}
+      >
+        <Text
+          style={{
+            color: theme.colors.onErrorContainer,
+            textAlign: forceRTL ? "right" : "left",
+          }}
+        >
+          {LL.ERROR_FETCHING_PROPERTIES_DATA()}
+        </Text>
+      </Banner>
+
+      {isLoading ? (
+        <View style={{ flex: 1, marginHorizontal: 16 }}>
+          <View style={{ flex: 1 }}>
+            <PropertyCardSkeleton />
+          </View>
+          <View style={{ flex: 1 }}>
+            <PropertyCardSkeleton />
+          </View>
+        </View>
+      ) : (
+        <FlatList
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            gap: 8,
+          }}
+          data={data?.pages.flatMap((page) => page.data)}
+          onRefresh={refetch}
+          refreshing={isFetching || isFetchingNextPage}
+          keyExtractor={(item) => item.id}
+          onEndReached={() => {
+            if (hasNextPage) fetchNextPage();
+          }}
+          renderItem={({ item }) => <PropertyCard property={item} withLink />}
+        />
+      )}
     </WaveDecoratedView>
   );
 }

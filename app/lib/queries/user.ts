@@ -9,7 +9,7 @@ export const useCurrentUser = () => {
   const isFocused = useIsFocused();
   const session = useAuthStore((state) => state.session);
   const query = useQuery<User>({
-    queryKey: ["currentUser"],
+    queryKey: ["current-user"],
     gcTime: Infinity,
     queryFn: () => xiorInstance.get("/users/me").then((res) => res.data.data),
     subscribed: isFocused && !!session,
@@ -23,7 +23,7 @@ export const useCurrentUserProfile = (enable: boolean = false) => {
   const isFocused = useIsFocused();
   const session = useAuthStore((state) => state.session);
   const query = useQuery<Profile>({
-    queryKey: ["currentUserProfile"],
+    queryKey: ["current-user-profile"],
     gcTime: Infinity,
     queryFn: () =>
       xiorInstance.get("/users/me/profile").then((res) => res.data.data),
@@ -53,7 +53,7 @@ export const useUploadUserProfileImage = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const mutation = useMutation({
-    mutationKey: ["profileImage"],
+    mutationKey: ["upload-user-profile-image"],
     mutationFn: async (image: ImagePicker.ImagePickerAsset | null) => {
       if (abortControllerRef.current) abortControllerRef.current.abort();
 
@@ -102,4 +102,34 @@ export const useUploadUserProfileImage = () => {
     cancel,
     isCancelled: mutation.error?.message === "UPLOAD_CANCELLED",
   };
+};
+
+export const useGetUser = (id: User["id"]) => {
+  const isFocused = useIsFocused();
+  const session = useAuthStore((state) => state.session);
+  const query = useQuery<User>({
+    queryKey: ["user", { id }],
+    gcTime: Infinity,
+    queryFn: () =>
+      xiorInstance.get("/users/" + id).then((res) => res.data.data),
+    subscribed: isFocused && !!session,
+    enabled: isFocused && !!session,
+  });
+
+  return query;
+};
+
+export const useGetUserProfile = (id: User["id"]) => {
+  const isFocused = useIsFocused();
+  const session = useAuthStore((state) => state.session);
+  const query = useQuery<Profile>({
+    queryKey: ["user-profile", { id }],
+    gcTime: Infinity,
+    queryFn: () =>
+      xiorInstance.get(`/users/${id}/profile`).then((res) => res.data.data),
+    subscribed: isFocused && !!session,
+    enabled: isFocused && !!session,
+  });
+
+  return query;
 };

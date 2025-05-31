@@ -10,7 +10,7 @@ import { Pressable, Appearance, View, Text } from "react-native";
 import ProfileImage from "@/components/profile/Image";
 import { useThemeStore } from "@/lib/stores/themeStore";
 import { useTheme } from "react-native-paper";
-import { useCurrentUser } from "@/lib/queries/user";
+import { useCurrentUserProfile } from "@/lib/queries/user";
 import { ProfileImageSkeleton } from "@/components/profile/Skeleton";
 import { useI18nContext } from "@/i18n/i18n-react";
 
@@ -21,7 +21,7 @@ export default function TabLayout() {
   const logout = useAuthStore((state) => state.logout);
   const login = useAuthStore((state) => state.login);
   const setTheme = useThemeStore((state) => state.setTheme);
-  const currentUser = useCurrentUser();
+  const currentUserProfile = useCurrentUserProfile();
   const currentTheme =
     useThemeStore((state) => state.theme) ??
     Appearance.getColorScheme() ??
@@ -154,7 +154,14 @@ export default function TabLayout() {
                 height: focused ? 20 : 28,
               }}
             >
-              {currentUser.data ? <ProfileImage /> : <ProfileImageSkeleton />}
+              {currentUserProfile?.data ? (
+                <ProfileImage
+                  source={currentUserProfile.data.image}
+                  blurHash={currentUserProfile.data.imageBlurHash!}
+                />
+              ) : (
+                <ProfileImageSkeleton />
+              )}
             </View>
           ),
         }}
@@ -194,7 +201,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="property/[id]/index"
         options={{
-          headerShown: false,
+          headerShown: true,
           title: "Property Details",
           href: null,
         }}
@@ -214,6 +221,15 @@ export default function TabLayout() {
         options={{
           headerShown: true,
           title: "Add Media",
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="(user)/user/[id]/profile/index"
+        options={{
+          headerShown: true,
+          title: "User Profile",
           href: null,
         }}
       />

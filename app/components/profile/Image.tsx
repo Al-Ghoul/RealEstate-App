@@ -1,15 +1,16 @@
 import { Image } from "expo-image";
-import { useCurrentUserProfile } from "@/lib/queries/user";
 
-export default function ProfileImage() {
-  const currentUserProfile = useCurrentUserProfile(true);
-
-  if (currentUserProfile.isLoading || !currentUserProfile.data) return null;
-
+export default function ProfileImage({
+  source,
+  blurHash,
+}: {
+  source: string;
+  blurHash?: string;
+}) {
   return (
     <Image
-      placeholder={{ blurhash: currentUserProfile.data.imageBlurHash }}
-      source={currentUserProfile.data.image}
+      placeholder={{ blurhash: blurHash }}
+      source={source}
       style={{
         width: "100%",
         height: "100%",

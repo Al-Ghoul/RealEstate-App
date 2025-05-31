@@ -41,3 +41,23 @@ export const ProfileImageSkeleton = () => {
     </ContentLoader>
   );
 };
+
+export const UserProfileSkeleton = () => {
+  const theme = useTheme();
+  const width = 152;
+  const height = 48;
+
+  return (
+    <ContentLoader
+      speed={1}
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      backgroundColor={theme.colors.onBackground}
+      foregroundColor="#999"
+    >
+      <Rect width={48} height={48} rx={24} />
+      <Rect width={96} height={9} x={56} y={8} rx={4.5} />
+    </ContentLoader>
+  );
+};
