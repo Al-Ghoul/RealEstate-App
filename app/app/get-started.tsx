@@ -1,4 +1,4 @@
-import { Redirect, router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Image } from "react-native";
 import Onboarding from "react-native-onboarding-swiper";
 import * as SecureStore from "expo-secure-store";
@@ -10,7 +10,9 @@ export default function GetStartedScreen() {
   const theme = useTheme();
   const { LL, locale } = useI18nContext();
 
-  if (readIntro) return <Redirect href="/login" />;
+  useFocusEffect(() => {
+    if (readIntro) router.replace("/login");
+  });
 
   const done = () => {
     SecureStore.setItemAsync("readIntro", "true");
@@ -22,43 +24,38 @@ export default function GetStartedScreen() {
       onSkip={done}
       onDone={done}
       skipLabel={LL.SKIP_LABEL()}
+      allowFontScaling
       nextLabel={LL.NEXT_LABEL()}
+      titleStyles={{
+        fontFamily: locale === "ar" ? "LemonBrush" : "Knewave",
+      }}
+      imageContainerStyles={{
+        paddingBottom: 0,
+      }}
       pages={[
         {
           backgroundColor: theme.colors.background,
           image: <Image source={require("../assets/intro/step1.png")} />,
           title: LL.FIRST_BOARDING_PAGE_TITLE(),
           subtitle: LL.FIRST_BOARDING_PAGE_DESCRIPTION(),
-          titleStyles: {
-            fontFamily: locale === "ar" ? "LemonBrush" : "Knewave",
-          },
         },
         {
           backgroundColor: theme.colors.background,
           image: <Image source={require("../assets/intro/step2.png")} />,
           title: LL.SECOND_BOARDING_PAGE_TITLE(),
           subtitle: LL.SECOND_BOARDING_PAGE_DESCRIPTION(),
-          titleStyles: {
-            fontFamily: locale === "ar" ? "LemonBrush" : "Knewave",
-          },
         },
         {
           backgroundColor: theme.colors.background,
           image: <Image source={require("../assets/intro/step3.png")} />,
           title: LL.THIRD_BOARDING_PAGE_TITLE(),
           subtitle: LL.THIRD_BOARDING_PAGE_DESCRIPTION(),
-          titleStyles: {
-            fontFamily: locale === "ar" ? "LemonBrush" : "Knewave",
-          },
         },
         {
           backgroundColor: theme.colors.background,
           image: <Image source={require("../assets/intro/step2.png")} />,
           title: LL.FOUTRTH_BOARDING_PAGE_TITLE(),
           subtitle: LL.FOUTRTH_BOARDING_PAGE_DESCRIPTION(),
-          titleStyles: {
-            fontFamily: locale === "ar" ? "LemonBrush" : "Knewave",
-          },
         },
       ]}
     />
