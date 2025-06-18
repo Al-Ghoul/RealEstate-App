@@ -14,6 +14,7 @@ import ControlledInput from "@/components/ControlledInput";
 import { useI18nContext } from "@/i18n/i18n-react";
 import { toast } from "sonner-native";
 import { isXiorError } from "xior";
+import Animated, { BounceInUp, BounceOutDown } from "react-native-reanimated";
 
 export default function ChangePassword() {
   const theme = useTheme();
@@ -141,13 +142,15 @@ export default function ChangePassword() {
           </Dialog.Actions>
         </Dialog>
       </Portal>
-      <View
+      <Animated.View
         style={{
           flex: 1,
           gap: 8,
           margin: 8,
           marginTop: 16,
         }}
+        entering={BounceInUp.delay(200)}
+        exiting={BounceOutDown}
       >
         <ControlledInput
           control={control}
@@ -253,7 +256,7 @@ export default function ChangePassword() {
         >
           {LL.SAVE_CHANGES()}
         </Button>
-      </View>
+      </Animated.View>
     </WaveDecoratedView>
   );
 }

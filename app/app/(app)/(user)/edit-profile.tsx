@@ -14,7 +14,7 @@ import { Image } from "expo-image";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { router, Tabs, useFocusEffect, usePathname } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { ProfileSkeleton } from "@/components/profile/Skeleton";
+import { ProfileImageSkeleton } from "@/components/profile/Skeleton";
 import WaveDecoratedView from "@/components/WaveDecoratedView";
 import { TrueSheet } from "@lodev09/react-native-true-sheet";
 import LinkAccounts from "@/components/profile/LinkAccounts";
@@ -39,6 +39,7 @@ import {
   useTheme,
 } from "react-native-paper";
 import { useI18nContext } from "@/i18n/i18n-react";
+import Animated, { BounceInUp, BounceOutDown } from "react-native-reanimated";
 
 export default function EditProfile() {
   const theme = useTheme();
@@ -242,16 +243,16 @@ export default function EditProfile() {
           </Text>
         </Banner>
 
-        <View
+        <Animated.View
           style={{
             gap: 24,
             marginHorizontal: 8,
           }}
+          entering={BounceInUp.delay(200)}
+          exiting={BounceOutDown}
         >
           {currentUser.isLoading ? (
-            <View style={{ alignItems: "center" }}>
-              <ProfileSkeleton />
-            </View>
+            <ProfileImageSkeleton style={{ width: 96, height: 96 }} isLoading />
           ) : (
             <View
               style={{
@@ -287,7 +288,7 @@ export default function EditProfile() {
           />
 
           <LinkAccounts />
-        </View>
+        </Animated.View>
       </ScrollView>
 
       <TrueSheet
