@@ -14,6 +14,7 @@ import PropertyInputs from "@/components/property/PropertyInputs";
 import { toast } from "sonner-native";
 import { isXiorError } from "xior";
 import { queryClient } from "@/lib/client";
+import Animated, { FadeInLeft, FadeOutRight } from "react-native-reanimated";
 
 export default function AddPropertyScreen() {
   const theme = useTheme();
@@ -88,7 +89,7 @@ export default function AddPropertyScreen() {
       formData.append("isPublished", input.isPublished.toString());
 
       const res = await xiorInstance.post("/properties", formData);
-      return res.data as SuccessfulResponse<Property>;
+      return res.data as SuccessResponse<Property>;
     },
     onSuccess: (data) => {
       toast.success(data.message);
@@ -163,29 +164,35 @@ export default function AddPropertyScreen() {
         }}
       />
 
-      <PropertyInputs
-        control={control}
-        submitButton={
-          <Button
-            style={{
-              marginHorizontal: 24,
-            }}
-            buttonColor={theme.colors.primary}
-            textColor={theme.colors.onPrimary}
-            disabled={isPending || !isPropertyInputDirty}
-            loading={isPending}
-            onPress={handleSubmit((input) =>
-              propertySubmit(input).then((res) => {
-                resetPropertyInputs();
-                queryClient.invalidateQueries({ queryKey: ["properties"] });
-                router.push(`/property/${res.data.id}/media/add`);
-              }),
-            )}
-          >
-            {LL.ADD_PROPERTY()}
-          </Button>
-        }
-      />
+      <Animated.View
+        style={{ flex: 1 }}
+        entering={FadeInLeft.delay(550)}
+        exiting={FadeOutRight}
+      >
+        <PropertyInputs
+          control={control}
+          submitButton={
+            <Button
+              style={{
+                marginHorizontal: 24,
+              }}
+              buttonColor={theme.colors.primary}
+              textColor={theme.colors.onPrimary}
+              disabled={isPending || !isPropertyInputDirty}
+              loading={isPending}
+              onPress={handleSubmit((input) =>
+                propertySubmit(input).then((res) => {
+                  resetPropertyInputs();
+                  queryClient.invalidateQueries({ queryKey: ["properties"] });
+                  router.push(`/property/${res.data.id}/media/add`);
+                }),
+              )}
+            >
+              {LL.ADD_PROPERTY()}
+            </Button>
+          }
+        />
+      </Animated.View>
 
       <Portal>
         <Dialog

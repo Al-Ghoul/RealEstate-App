@@ -126,17 +126,19 @@ export default function AddPropertyMedia() {
     [id, session?.tokens?.accessToken, propertyMediaRefetch],
   );
 
-  const { mutateAsync: uploadMedia } = useMutation({
-    mutationFn: uploadMediaSequentially,
-    onSuccess: () => toast.success(LL.MEDIA_UPLOAD_SUCCESS()),
-    onError: (error) => {
-      if (typeof error === "object" && "requestId" in error) {
-        toast.error(error.message, {
-          description: LL.REQUEST_ID({ requestId: error.requestId }),
-        });
-      }
+  const { mutateAsync: uploadMedia, isPending: isUploadingMedia } = useMutation(
+    {
+      mutationFn: uploadMediaSequentially,
+      onSuccess: () => toast.success(LL.MEDIA_UPLOAD_SUCCESS()),
+      onError: (error) => {
+        if (typeof error === "object" && "requestId" in error) {
+          toast.error(error.message, {
+            description: LL.REQUEST_ID({ requestId: error.requestId }),
+          });
+        }
+      },
     },
-  });
+  );
 
   const pickMultipleMedia = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -302,8 +304,8 @@ export default function AddPropertyMedia() {
                   backAction();
                 })
               }
-              disabled={isUploading || media.length === 0}
-              loading={isUploading}
+              disabled={media.length === 0}
+              loading={isUploading || isUploadingMedia}
               style={{ margin: 16 }}
             >
               {isUploading ? LL.UPLOADING_MEDIA() : LL.SAVE_MEDIA()}

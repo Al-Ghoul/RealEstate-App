@@ -33,7 +33,7 @@ declare global {
     y: number;
   };
 
-  type SuccessfulResponse<T> = {
+  type SuccessResponse<T> = {
     message: string;
     data: T;
   };
@@ -65,6 +65,34 @@ declare global {
     url: string;
     type: "IMAGE" | "VIDEO";
     mimeType: string;
+  };
+
+  type Message = {
+    _tempId?: string;
+    _status?: "SENDING" | "SENT" | "FAILED"; // Client-only state
+    id: string;
+    chatId: string;
+    senderId: string;
+    content: string;
+    createdAt: string;
+    replyToId?: string;
+    replyTo?: {
+      id: string;
+      senderId: string;
+      content: string;
+      createdAt: Date;
+    };
+  };
+
+  type Chat = {
+    chatId: string;
+    otherUserId: string;
+    otherUserFullName: string;
+    lastMessageId: string;
+    lastMessageContent: string;
+    lastMessageCreatedAt: string;
+    lastMessageSenderId: string;
+    unreadCount: number;
   };
 
   declare module "*.svg" {

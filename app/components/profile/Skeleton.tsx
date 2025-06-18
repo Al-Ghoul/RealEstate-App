@@ -1,63 +1,101 @@
-import ContentLoader, {
-  Rect,
-  type IContentLoaderProps,
-} from "react-content-loader/native";
+import type { ViewStyle } from "react-native";
 import { useTheme } from "react-native-paper";
+import Skeleton from "react-native-reanimated-skeleton";
 
-export const ProfileSkeleton = (props: IContentLoaderProps) => {
+export const ProfileImageSkeleton = ({
+  isLoading,
+  style,
+}: {
+  isLoading: boolean;
+  style?: ViewStyle;
+}) => {
   const theme = useTheme();
+
   return (
-    <ContentLoader
-      width={420}
-      height={96}
-      speed={1}
-      backgroundColor={theme.colors.onBackground}
-      foregroundColor="#999"
-      {...props}
-    >
-      <Rect width={96} height={96} rx={48} />
-      <Rect width={96} height={9} x={120} y={8} rx={4.5} />
-      <Rect width={300} height={58} x={120} y={25} rx={5} />
-    </ContentLoader>
+    <Skeleton
+      animationDirection="diagonalTopLeft"
+      isLoading={isLoading}
+      boneColor={theme.colors.onBackground}
+      highlightColor={theme.colors.background}
+      layout={[
+        {
+          key: "pfp",
+          width: 28,
+          height: 28,
+          ...style,
+          borderRadius: 50,
+        },
+      ]}
+    />
   );
 };
 
-export const ProfileImageSkeleton = () => {
+export const UserProfileSkeleton = ({ isLoading }: { isLoading: boolean }) => {
   const theme = useTheme();
-  const width = 96;
-  const height = 96;
 
   return (
-    <ContentLoader
-      speed={1}
-      backgroundColor={theme.colors.onBackground}
-      foregroundColor="#999"
-      viewBox={`0 0 ${width} ${height}`}
-      style={{
-        borderRadius: 50,
+    <Skeleton
+      animationDirection="diagonalTopLeft"
+      isLoading={isLoading}
+      boneColor={theme.colors.onBackground}
+      highlightColor={theme.colors.background}
+      containerStyle={{
+        flexDirection: "row",
+        justifyContent: "center",
+        gap: 8,
       }}
-    >
-      <Rect width={width} height={height} rx={48} />
-    </ContentLoader>
+      layout={[
+        {
+          key: "pfp",
+          width: 48,
+          height: 48,
+          borderRadius: 50,
+        },
+        {
+          key: "user-full-name",
+          children: [{ key: "bio", width: 80, height: 10, borderRadius: 10 }],
+        },
+      ]}
+    />
   );
 };
 
-export const UserProfileSkeleton = () => {
+export function ProfileSkeleton({ isLoading }: { isLoading: boolean }) {
   const theme = useTheme();
-  const width = 152;
-  const height = 48;
 
   return (
-    <ContentLoader
-      speed={1}
-      width={width}
-      height={height}
-      viewBox={`0 0 ${width} ${height}`}
-      backgroundColor={theme.colors.onBackground}
-      foregroundColor="#999"
-    >
-      <Rect width={48} height={48} rx={24} />
-      <Rect width={96} height={9} x={56} y={8} rx={4.5} />
-    </ContentLoader>
+    <Skeleton
+      animationDirection="diagonalTopLeft"
+      isLoading={isLoading}
+      boneColor={theme.colors.onBackground}
+      highlightColor={theme.colors.background}
+      containerStyle={{
+        flex: 1,
+        flexDirection: "row",
+        justifyContent: "center",
+        gap: 4,
+      }}
+      layout={[
+        {
+          key: "pfp",
+          width: 64,
+          height: 64,
+          borderRadius: 50,
+        },
+        {
+          key: "user-full-name",
+          children: [
+            { key: "bio", width: 150, height: 15, borderRadius: 10 },
+            {
+              key: "other",
+              width: 250,
+              height: 40,
+              marginTop: 8,
+              justifyContent: "center",
+            },
+          ],
+        },
+      ]}
+    />
   );
-};
+}

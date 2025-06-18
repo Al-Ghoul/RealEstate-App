@@ -5,7 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useState } from "react";
 import AnimationScreen from "@/components/SplashScreen";
 import { StatusBar } from "expo-status-bar";
-import { Appearance, I18nManager, Pressable, Text } from "react-native";
+import { Appearance, I18nManager, View } from "react-native";
 import { useThemeStore } from "@/lib/stores/themeStore";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider, useTheme } from "react-native-paper";
@@ -21,6 +21,9 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { queryClient } from "@/lib/client";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { useReactQueryDevTools } from "@dev-plugins/react-query";
+import { KeyboardProvider } from "react-native-keyboard-controller";
+import ThemeToggle from "@/components/ThemeToggle";
+import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 
 SplashScreen.preventAutoHideAsync();
 I18nManager.allowRTL(false);
@@ -67,9 +70,8 @@ function RootLayoutChild() {
 
   const [showAnimation, setShowAnimation] = useState(true);
 
-  const locale = useLocaleStore((state) => state.locale);
-
   const session = useAuthStore((state) => state.session);
+  const locale = useLocaleStore((state) => state.locale);
 
   useReactQueryDevTools(queryClient);
 
@@ -89,92 +91,84 @@ function RootLayoutChild() {
         },
       }}
     >
-      <TypesafeI18n locale={locale}>
-        <I18NWrapper>
-          <SafeAreaProvider>
-            <GestureHandlerRootView>
-              {showAnimation ? (
-                <AnimationScreen setShowAnimation={setShowAnimation} />
-              ) : (
-                <Stack
-                  screenOptions={{
-                    headerShown: true,
-                    headerStyle: {
-                      backgroundColor: theme.colors.primary,
-                    },
-                    headerTintColor: theme.colors.onPrimary,
-                    headerRight: () => (
-                      <Pressable
-                        onPress={() =>
-                          setTheme(currentTheme === "light" ? "dark" : "light")
-                        }
-                      >
-                        <Text>Toggle Theme</Text>
-                      </Pressable>
-                    ),
-                  }}
-                >
-                  <Stack.Screen
-                    name="(app)"
-                    options={{
-                      headerShown: false,
-                      animation: "fade_from_bottom",
-                    }}
-                  />
+      <ActionSheetProvider>
+        <TypesafeI18n locale={locale}>
+          <I18NWrapper>
+            <SafeAreaProvider>
+              <KeyboardProvider>
+                <GestureHandlerRootView>
+                  {showAnimation ? (
+                    <AnimationScreen setShowAnimation={setShowAnimation} />
+                  ) : (
+                    <Stack
+                      screenOptions={{
+                        animation: "slide_from_right",
+                        headerShown: false,
+                        headerStyle: {
+                          backgroundColor: theme.colors.primary,
+                        },
+                        headerTintColor: theme.colors.onPrimary,
+                        headerRight: () => (
+                          <View style={{ margin: 16 }}>
+                            <ThemeToggle
+                              setTheme={setTheme}
+                              currentTheme={currentTheme}
+                            />
+                          </View>
+                        ),
+                      }}
+                    >
+                      <Stack.Screen name="(app)" options={{ title: "Home" }} />
 
-                  <Stack.Screen
-                    name="get-started"
-                    options={{ title: "Get-Started", headerShown: false }}
-                  />
+                      <Stack.Screen
+                        name="get-started"
+                        options={{ title: "Get-Started" }}
+                      />
 
-                  <Stack.Screen
-                    name="login"
-                    options={{
-                      headerShown: false,
-                      title: "Login",
-                      animation: "ios_from_right",
-                    }}
-                  />
+                      <Stack.Screen
+                        name="login"
+                        options={{
+                          title: "Login",
+                        }}
+                      />
 
-                  <Stack.Screen
-                    name="register"
-                    options={{
-                      title: "Register",
-                      headerShown: false,
-                      animation: "ios_from_right",
-                    }}
-                  />
+                      <Stack.Screen
+                        name="register"
+                        options={{
+                          title: "Register",
+                        }}
+                      />
 
-                  <Stack.Screen
-                    name="reset-password"
-                    options={{
-                      title: "Reset Password",
-                      headerShown: false,
-                      animation: "ios_from_right",
-                    }}
-                  />
+                      <Stack.Screen
+                        name="reset-password"
+                        options={{
+                          title: "Reset Password",
+                        }}
+                      />
 
-                  <Stack.Screen
-                    name="+not-found"
-                    options={{ headerShown: true }}
+                      <Stack.Screen
+                        name="+not-found"
+                        options={{ headerShown: true }}
+                      />
+                    </Stack>
+                  )}
+                  <StatusBar
+                    style={currentTheme === "light" ? "dark" : "light"}
+                    translucent
+                    hideTransitionAnimation="fade"
                   />
-                </Stack>
-              )}
-              <StatusBar
-                style={currentTheme === "light" ? "dark" : "light"}
-                translucent
-                hideTransitionAnimation="fade"
-              />
-              <Toaster
-                pauseWhenPageIsHidden
-                swipeToDismissDirection="left"
-                autoWiggleOnUpdate="always"
-                richColors
-              />
-            </GestureHandlerRootView>
-          </SafeAreaProvider>
-        </I18NWrapper>
-      </TypesafeI18n>
+                  <Toaster
+                    pauseWhenPageIsHidden
+                    swipeToDismissDirection="left"
+                    autoWiggleOnUpdate="always"
+                    richColors
+                  />
+                </GestureHandlerRootView>
+              </KeyboardProvider>
+            </SafeAreaProvider>
+          </I18NWrapper>
+        </TypesafeI18n>
+      </ActionSheetProvider>
     </PersistQueryClientProvider>
   );
 }

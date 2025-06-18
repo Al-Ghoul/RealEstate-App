@@ -43,7 +43,7 @@ export default function PropertyDetailsScreen() {
   const { id } = params;
   const mapRef = useRef<MapView>(null);
   const theme = useTheme();
-  const currentUser = useCurrentUser();
+  const { data: currentUser } = useCurrentUser();
   const { LL, locale } = useI18nContext();
   const forceRTL = locale === "ar";
   const pagerRef = useRef<PagerView>(null);
@@ -137,7 +137,7 @@ export default function PropertyDetailsScreen() {
   if (isLoadingProperty || isPendingProperty) {
     return (
       <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-        <PropertyCardSkeleton />
+        <PropertyCardSkeleton isLoading={true} />
       </View>
     );
   }
@@ -183,7 +183,6 @@ export default function PropertyDetailsScreen() {
           visible={isPropertyError && !isFetchingProperty}
           style={{
             backgroundColor: theme.colors.errorContainer,
-            marginBottom: 8,
           }}
           theme={{
             colors: {
@@ -216,7 +215,7 @@ export default function PropertyDetailsScreen() {
                 contentFit="cover"
                 transition={1000}
               />
-              {propertyData.userId === currentUser.data?.id && (
+              {propertyData.userId === currentUser?.id && (
                 <View
                   style={{
                     flexDirection: "row",
@@ -294,11 +293,9 @@ export default function PropertyDetailsScreen() {
 
             <Divider style={{ marginVertical: 8, marginHorizontal: 8 }} />
 
-            <View style={{ margin: 8 }}>
+            <View style={{ flex: 1, margin: 8 }}>
               {isLoadingUserProfile ? (
-                <View style={{ alignItems: "center" }}>
-                  <UserProfileSkeleton />
-                </View>
+                <UserProfileSkeleton isLoading={isLoadingUserProfile} />
               ) : (
                 <View
                   style={{
@@ -308,11 +305,13 @@ export default function PropertyDetailsScreen() {
                   }}
                 >
                   <Pressable
-                    onPress={() =>
-                      router.push(
-                        `/(app)/(user)/user/${propertyData.userId}/profile`,
-                      )
-                    }
+                    onPress={() => {
+                      if (currentUser?.id !== propertyData.userId) {
+                        router.push(
+                          `/(app)/(user)/user/${propertyData.userId}/profile`,
+                        );
+                      }
+                    }}
                     style={{ width: 48, height: 48, borderRadius: 50 }}
                   >
                     <ProfileImage
@@ -322,11 +321,13 @@ export default function PropertyDetailsScreen() {
                   </Pressable>
                   <View>
                     <Pressable
-                      onPress={() =>
-                        router.push(
-                          `/(app)/(user)/user/${propertyData.userId}/profile`,
-                        )
-                      }
+                      onPress={() => {
+                        if (currentUser?.id !== propertyData.userId) {
+                          router.push(
+                            `/(app)/(user)/user/${propertyData.userId}/profile`,
+                          );
+                        }
+                      }}
                     >
                       <Text
                         style={{
@@ -338,9 +339,23 @@ export default function PropertyDetailsScreen() {
                       </Text>
                     </Pressable>
                     <Divider style={{ marginVertical: 4 }} />
-                    <Button icon="email" mode="text" compact>
-                      {LL.CONTACT()}
-                    </Button>
+                    {currentUser?.id !== propertyData.userId ? (
+                      <Button
+                        icon="email"
+                        mode="text"
+                        compact
+                        onPress={() => {
+                          const ids = [
+                            currentUser?.id,
+                            propertyData.userId,
+                          ].sort();
+
+                          router.push(`/(chat)/${ids[0]}_${ids[1]}/chat`);
+                        }}
+                      >
+                        {LL.CONTACT()}
+                      </Button>
+                    ) : null}
                   </View>
                 </View>
               )}
@@ -516,7 +531,7 @@ export default function PropertyDetailsScreen() {
                           >
                             {index + 1} / {propertyMediaData.length}
                           </Text>
-                          {propertyData.userId === currentUser.data?.id && (
+                          {propertyData.userId === currentUser?.id && (
                             <TouchableRipple
                               onPress={() =>
                                 deleteMedia(item).then(() => {

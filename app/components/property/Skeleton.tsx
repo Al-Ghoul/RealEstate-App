@@ -1,35 +1,67 @@
-import ContentLoader, {
-  Rect,
-  type IContentLoaderProps,
-} from "react-content-loader/native";
-import { Dimensions, View } from "react-native";
-import { useTheme } from "react-native-paper";
+import { Card, useTheme } from "react-native-paper";
+import Skeleton from "react-native-reanimated-skeleton";
 
-export const PropertyCardSkeleton = (props: IContentLoaderProps) => {
+export function PropertyCardSkeleton({ isLoading }: { isLoading: boolean }) {
   const theme = useTheme();
-  const { width, height } = Dimensions.get("window");
-  const aspectRatio = width / height;
 
   return (
-    <View style={{ width: "100%", aspectRatio }}>
-      <ContentLoader
-        speed={1}
-        backgroundColor={theme.colors.onBackground}
-        foregroundColor="#999"
-        viewBox={`0 0 ${width} ${height}`}
-        width="100%"
-        height="100%"
-        {...props}
-      >
-        <Rect width={96} height={9} y={237} rx={4.5} />
-        <Rect width={58} height={16} x={13} y={292} rx={8} />
-        <Rect width={58} height={16} x={85} y={292} rx={8} />
-        <Rect width={58} height={16} x={157} y={292} rx={8} />
-        <Rect width={58} height={16} x={229} y={292} rx={8} />
-        <Rect width={width} height={9} y={214} rx={4.5} />
-        <Rect width={width} height={18} y={260} rx={9} />
-        <Rect width={width} height={200} rx={5} />
-      </ContentLoader>
-    </View>
+    <Card
+      style={{
+        marginHorizontal: 16,
+      }}
+    >
+      <Skeleton
+        animationDirection="diagonalTopLeft"
+        isLoading={isLoading}
+        boneColor={theme.colors.onBackground}
+        highlightColor={theme.colors.background}
+        containerStyle={{}}
+        layout={[
+          {
+            key: "card-image",
+            width: "100%",
+            height: 200,
+            borderRadius: theme.roundness * 3,
+          },
+          {
+            key: "card-content",
+            width: "100%",
+            height: 100,
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 8,
+            marginVertical: 6,
+            marginHorizontal: 16,
+            marginTop: 30,
+            children: [
+              {
+                key: "type",
+                width: 72,
+                height: 30,
+                borderRadius: theme.roundness * 2,
+              },
+              {
+                key: "status",
+                width: 72,
+                height: 30,
+                borderRadius: theme.roundness * 2,
+              },
+              {
+                key: "area",
+                width: 72,
+                height: 30,
+                borderRadius: theme.roundness * 2,
+              },
+              {
+                key: "rooms",
+                width: 72,
+                height: 30,
+                borderRadius: theme.roundness * 2,
+              },
+            ],
+          },
+        ]}
+      />
+    </Card>
   );
-};
+}

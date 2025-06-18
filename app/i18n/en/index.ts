@@ -82,6 +82,8 @@ const en = {
   ASCENDING: "Ascending",
   DESCENDING: "Descending",
   LOCATION_PERMISSION_REQUIRED: "Location permission required",
+  PLEASE_TRY_AGAIN_LATER: "Please try again later",
+  PENDING_TASK: "Pending task",
   COULD_NOT_GET_YOUR_LOCATION: "Could not get your location",
   OK: "OK",
   LOCATION_SERVICE_ERROR: "Location service error",
@@ -130,8 +132,6 @@ const en = {
   GO_TO_MY_LOCATION: "Go to my location",
   LOCATION_PERMISSION_DENIED_DETAIL:
     "Please allow location services and permissions.",
-  PLEASE_TRY_AGAIN_LATER: "Please try again later.",
-  PENDING_TASK: "Pending task",
   YOUR_PFP_UPLOAD_IN_PROGRESS_PROMPT:
     "Your profile picture upload is in progress, are you sure you want to exit?",
   EXIT: "Exit",
@@ -140,6 +140,25 @@ const en = {
   GPLAY_SERVICE_NOT_AVAILABLE: "Google Play services are not available",
   AN_ERROR_OCCURRED_SIGNING_IN: "An error occurred signing in",
   CONTACT: "Contact",
+  CHAT_DELETED_SUCCESSFULLY: "Chat deleted successfully",
+  MISSING_AUTHORIZATION_TOKEN: "Missing authorization token",
+  INVALID_ACCESS_TOKEN: "Invalid access token",
+  REVOKED_ACCESS_TOKEN: "Revoked access token",
+  ERROR_FETCHING_CHAT_DATA: "An error occurred while fetching chat data",
+  TYPE_A_MESSAGE: "Type a message",
+  REPLY_TO_MESSAGE: "Reply to message",
+  SEND: "Send",
+  YOU: "You",
+  USER: "User",
+  DELETE: "Delete",
+  DELETE_FOR_EVERYONE: "Delete for everyone",
+  MESSAGE_OPTIONS: "Message options",
+  CHAT: "Chat",
+  FAILED_TO_LOAD_MESSAGES: "Failed to load messages",
+  FAILED_TO_LOAD_MESSAGES_DETAIL:
+    "Something went wrong while loading your messages",
+  LOADING_MORE_MESSAGES: "Loading more messages...",
+  DELETE_CHAT_PROMPT: "Are you sure you want to delete this chat?",
 
   // ERRORS
   INVALID_EMAIL: "Invalid email",

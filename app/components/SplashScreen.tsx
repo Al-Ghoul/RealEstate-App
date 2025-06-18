@@ -2,15 +2,18 @@ import LottieView from "lottie-react-native";
 import { StyleSheet } from "react-native";
 import { useTheme } from "react-native-paper";
 import Animated, { FadeOut } from "react-native-reanimated";
-
+import * as SystemUI from "expo-system-ui";
 interface AnimatedScreenProps {
   setShowAnimation: React.Dispatch<React.SetStateAction<boolean>>;
 }
+
+SystemUI.setBackgroundColorAsync("transparent");
 
 export default function AnimationScreen({
   setShowAnimation,
 }: AnimatedScreenProps) {
   const theme = useTheme();
+
   return (
     <Animated.View
       exiting={FadeOut.duration(1000)}
@@ -39,6 +42,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 1000,
   },
 });

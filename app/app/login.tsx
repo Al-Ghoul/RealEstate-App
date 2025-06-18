@@ -7,7 +7,13 @@ import { loginDTO, type LoginDTO } from "@/lib/dtos";
 import Svg, { Circle, Ellipse } from "react-native-svg";
 import { useAuthStore } from "@/lib/stores/authStore";
 import Animated, {
+  BounceInLeft,
+  BounceInRight,
+  BounceOutLeft,
+  BounceOutRight,
   Easing,
+  FlipInEasyX,
+  FlipOutEasyX,
   interpolate,
   useAnimatedProps,
   useSharedValue,
@@ -104,9 +110,7 @@ export default function Login() {
       <View
         style={{
           flex: 1,
-          marginHorizontal: 16,
           justifyContent: "center",
-          gap: 8,
         }}
       >
         <View
@@ -115,11 +119,11 @@ export default function Login() {
             right: 0,
           }}
         >
-          <Svg height="300" width="300" viewBox="0 0 100 100">
+          <Svg height="300" width="200" viewBox="0 0 100 100">
             <AnimatedCircle
-              cx="20"
-              cy="20"
-              r="5"
+              cx="30"
+              cy="30"
+              r="7"
               opacity={0.9}
               fill={theme.colors.primary}
               animatedProps={floatingProps}
@@ -127,125 +131,151 @@ export default function Login() {
           </Svg>
         </View>
 
-        <ControlledInput
-          control={control}
-          name="email"
-          id="email"
-          placeholder={LL.EMAIL()}
-          keyboardType="email-address"
+        <View
           style={{
-            width: "100%",
-            borderWidth: 1,
-            borderColor: theme.colors.primary,
-            borderRadius: 8,
-            padding: 8,
-          }}
-        />
-
-        <ControlledInput
-          control={control}
-          id="password"
-          name="password"
-          placeholder={LL.PASSWORD()}
-          keyboardType="default"
-          secureTextEntry={!showPassword}
-          style={{
-            width: "100%",
-            borderWidth: 1,
-            borderColor: theme.colors.primary,
-            borderRadius: 8,
-            padding: 8,
+            flex: 1,
+            gap: 8,
+            justifyContent: "center",
+            marginTop: 80,
+            marginHorizontal: 16,
           }}
         >
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 4,
-              position: "absolute",
-              right: !forceRTL ? 20 : undefined,
-              left: forceRTL ? 20 : undefined,
-            }}
+          <Animated.View
+            entering={BounceInLeft.delay(550)}
+            exiting={BounceOutRight}
           >
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Feather
-                name={showPassword ? "eye-off" : "eye"}
-                size={20}
-                color={theme.colors.primary}
-              />
-            </TouchableOpacity>
+            <ControlledInput
+              control={control}
+              name="email"
+              id="email"
+              placeholder={LL.EMAIL()}
+              keyboardType="email-address"
+              style={{
+                width: "100%",
+                borderWidth: 1,
+                borderColor: theme.colors.primary,
+                borderRadius: 8,
+                padding: 8,
+              }}
+            />
+          </Animated.View>
+
+          <Animated.View
+            entering={BounceInRight.delay(550)}
+            exiting={BounceOutLeft}
+          >
+            <ControlledInput
+              control={control}
+              id="password"
+              name="password"
+              placeholder={LL.PASSWORD()}
+              keyboardType="default"
+              secureTextEntry={!showPassword}
+              style={{
+                width: "100%",
+                borderWidth: 1,
+                borderColor: theme.colors.primary,
+                borderRadius: 8,
+                padding: 8,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 4,
+                  position: "absolute",
+                  right: !forceRTL ? 20 : undefined,
+                  left: forceRTL ? 20 : undefined,
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Feather
+                    name={showPassword ? "eye-off" : "eye"}
+                    size={20}
+                    color={theme.colors.primary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </ControlledInput>
+          </Animated.View>
+
+          <Animated.View
+            entering={FlipInEasyX.delay(550)}
+            exiting={FlipOutEasyX}
+          >
+            <Button
+              style={{
+                marginHorizontal: 24,
+              }}
+              buttonColor={theme.colors.primary}
+              textColor={theme.colors.onPrimary}
+              disabled={isPending}
+              onPress={handleSubmit((data) =>
+                loginSubmit(data).then((res) => {
+                  login(res.data as JWTPayload);
+                  router.replace("/");
+                }),
+              )}
+              loading={isPending}
+            >
+              {LL.LOGIN()}
+            </Button>
+          </Animated.View>
+
+          <View style={{ alignItems: "center" }}>
+            <Button
+              style={{
+                marginHorizontal: 24,
+                flexDirection: forceRTL ? "row-reverse" : "row",
+              }}
+              onPress={() => router.push("/reset-password")}
+            >
+              <Text
+                style={{
+                  color: theme.colors.secondary,
+                }}
+              >
+                {LL.FORGOT_PASSWORD()}{" "}
+              </Text>
+
+              <Text
+                style={{
+                  fontWeight: "bold",
+                  color: theme.colors.primary,
+                }}
+              >
+                {LL.RESET()}
+              </Text>
+            </Button>
+
+            <Button
+              style={{
+                marginHorizontal: 24,
+                flexDirection: forceRTL ? "row-reverse" : "row",
+              }}
+              onPress={() => router.push("/register")}
+            >
+              <Text
+                style={{
+                  color: theme.colors.secondary,
+                }}
+              >
+                {LL.DONT_HAVE_ACCOUNT()}{" "}
+              </Text>
+              <Text
+                style={{
+                  fontWeight: "bold",
+                  color: theme.colors.primary,
+                }}
+              >
+                {LL.REGISTER()}
+              </Text>
+            </Button>
           </View>
-        </ControlledInput>
-
-        <Button
-          style={{
-            marginHorizontal: 24,
-          }}
-          buttonColor={theme.colors.primary}
-          textColor={theme.colors.onPrimary}
-          disabled={isPending}
-          onPress={handleSubmit((data) =>
-            loginSubmit(data).then((res) => {
-              login(res.data as JWTPayload);
-              router.replace("/");
-            }),
-          )}
-          loading={isPending}
-        >
-          {LL.LOGIN()}
-        </Button>
-
-        <View style={{ flexDirection: "row", justifyContent: "center" }}>
-          <Button
-            style={{
-              marginHorizontal: 24,
-              flexDirection: forceRTL ? "row-reverse" : "row",
-            }}
-            onPress={() => router.push("/reset-password")}
-          >
-            <Text
-              style={{
-                color: theme.colors.secondary,
-              }}
-            >
-              {LL.FORGOT_PASSWORD()}{" "}
-            </Text>
-
-            <Text
-              style={{
-                fontWeight: "bold",
-                color: theme.colors.primary,
-              }}
-            >
-              {LL.RESET()}
-            </Text>
-          </Button>
-
-          <Button
-            style={{
-              marginHorizontal: 24,
-              flexDirection: forceRTL ? "row-reverse" : "row",
-            }}
-            onPress={() => router.push("/register")}
-          >
-            <Text
-              style={{
-                color: theme.colors.secondary,
-              }}
-            >
-              {LL.DONT_HAVE_ACCOUNT()}{" "}
-            </Text>
-            <Text
-              style={{
-                fontWeight: "bold",
-                color: theme.colors.primary,
-              }}
-            >
-              {LL.REGISTER()}
-            </Text>
-          </Button>
+          <SocialAuth />
         </View>
-
-        <SocialAuth />
       </View>
     </View>
   );

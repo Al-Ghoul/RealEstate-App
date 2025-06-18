@@ -7,10 +7,14 @@ import { registerDTO, type RegisterDTO } from "@/lib/dtos";
 import Svg, { Ellipse } from "react-native-svg";
 import Animated, {
   Easing,
+  BounceIn,
+  BounceOut,
   useAnimatedProps,
   useSharedValue,
   withRepeat,
   withTiming,
+  FlipInEasyX,
+  FlipOutEasyX,
 } from "react-native-reanimated";
 import { useEffect, useState } from "react";
 import SocialAuth from "@/components/SocialAuth";
@@ -108,100 +112,112 @@ export default function Register() {
             gap: 8,
           }}
         >
-          <ControlledInput
-            control={control}
-            name="email"
-            id="email"
-            placeholder={LL.EMAIL()}
-            keyboardType="email-address"
-            style={{
-              width: "100%",
-              borderWidth: 1,
-              borderColor: theme.colors.primary,
-              borderRadius: 8,
-              padding: 8,
-            }}
-          />
-
-          <ControlledInput
-            control={control}
-            id="firstName"
-            name="firstName"
-            placeholder={LL.FIRST_NAME()}
-            keyboardType="default"
-            style={{
-              width: "100%",
-              borderWidth: 1,
-              borderColor: theme.colors.primary,
-              borderRadius: 8,
-              padding: 8,
-            }}
-          />
-
-          <ControlledInput
-            control={control}
-            id="lastName"
-            name="lastName"
-            placeholder={LL.LAST_NAME()}
-            keyboardType="default"
-            style={{
-              width: "100%",
-              borderWidth: 1,
-              borderColor: theme.colors.primary,
-              borderRadius: 8,
-              padding: 8,
-            }}
-          />
-
-          <ControlledInput
-            control={control}
-            id="password"
-            name="password"
-            placeholder={LL.PASSWORD()}
-            keyboardType="default"
-            secureTextEntry={!showPassword}
-            style={{
-              width: "100%",
-              borderWidth: 1,
-              borderColor: theme.colors.primary,
-              borderRadius: 8,
-              padding: 8,
-            }}
-          >
-            <View
+          <Animated.View entering={BounceIn.delay(510)} exiting={BounceOut}>
+            <ControlledInput
+              control={control}
+              name="email"
+              id="email"
+              placeholder={LL.EMAIL()}
+              keyboardType="email-address"
               style={{
-                flexDirection: "row",
-                gap: 4,
-                position: "absolute",
-                right: !forceRTL ? 20 : undefined,
-                left: forceRTL ? 20 : undefined,
+                width: "100%",
+                borderWidth: 1,
+                borderColor: theme.colors.primary,
+                borderRadius: 8,
+                padding: 8,
+              }}
+            />
+          </Animated.View>
+
+          <Animated.View entering={BounceIn.delay(520)} exiting={BounceOut}>
+            <ControlledInput
+              control={control}
+              id="firstName"
+              name="firstName"
+              placeholder={LL.FIRST_NAME()}
+              keyboardType="default"
+              style={{
+                width: "100%",
+                borderWidth: 1,
+                borderColor: theme.colors.primary,
+                borderRadius: 8,
+                padding: 8,
+              }}
+            />
+          </Animated.View>
+
+          <Animated.View entering={BounceIn.delay(530)} exiting={BounceOut}>
+            <ControlledInput
+              control={control}
+              id="lastName"
+              name="lastName"
+              placeholder={LL.LAST_NAME()}
+              keyboardType="default"
+              style={{
+                width: "100%",
+                borderWidth: 1,
+                borderColor: theme.colors.primary,
+                borderRadius: 8,
+                padding: 8,
+              }}
+            />
+          </Animated.View>
+
+          <Animated.View entering={BounceIn.delay(520)} exiting={BounceOut}>
+            <ControlledInput
+              control={control}
+              id="password"
+              name="password"
+              placeholder={LL.PASSWORD()}
+              keyboardType="default"
+              secureTextEntry={!showPassword}
+              style={{
+                width: "100%",
+                borderWidth: 1,
+                borderColor: theme.colors.primary,
+                borderRadius: 8,
+                padding: 8,
               }}
             >
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Feather
-                  name={showPassword ? "eye-off" : "eye"}
-                  size={20}
-                  color={theme.colors.primary}
-                />
-              </TouchableOpacity>
-            </View>
-          </ControlledInput>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 4,
+                  position: "absolute",
+                  right: !forceRTL ? 20 : undefined,
+                  left: forceRTL ? 20 : undefined,
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Feather
+                    name={showPassword ? "eye-off" : "eye"}
+                    size={20}
+                    color={theme.colors.primary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </ControlledInput>
+          </Animated.View>
 
-          <ControlledInput
-            control={control}
-            id="confirmPassword"
-            name="confirmPassword"
-            placeholder={LL.CONFIRM_PASSWORD()}
-            keyboardType="default"
-            secureTextEntry={!showPassword}
-            style={{
-              width: "100%",
-              borderWidth: 1,
-              borderColor: theme.colors.primary,
-              borderRadius: 8,
-              padding: 8,
-            }}
-          />
+          <Animated.View entering={BounceIn.delay(540)} exiting={BounceOut}>
+            <ControlledInput
+              control={control}
+              id="confirmPassword"
+              name="confirmPassword"
+              placeholder={LL.CONFIRM_PASSWORD()}
+              keyboardType="default"
+              secureTextEntry={!showPassword}
+              style={{
+                width: "100%",
+                borderWidth: 1,
+                borderColor: theme.colors.primary,
+                borderRadius: 8,
+                padding: 8,
+              }}
+            />
+          </Animated.View>
 
           <View style={{ marginHorizontal: "auto" }}>
             <Tooltip title={LL.AGENT_DESCRIPTION()} enterTouchDelay={0}>
@@ -223,23 +239,28 @@ export default function Register() {
             </Tooltip>
           </View>
 
-          <Button
-            style={{
-              marginHorizontal: 24,
-            }}
-            buttonColor={theme.colors.primary}
-            textColor={theme.colors.onPrimary}
-            disabled={isPending}
-            loading={isPending}
-            onPress={handleSubmit((data) =>
-              registerSubmit({
-                ...data,
-                role: registerAsAnAgent ? "AGENT" : "CLIENT",
-              }).then(() => router.replace("/login")),
-            )}
+          <Animated.View
+            entering={FlipInEasyX.delay(550)}
+            exiting={FlipOutEasyX}
           >
-            {LL.REGISTER()}
-          </Button>
+            <Button
+              style={{
+                marginHorizontal: 24,
+              }}
+              buttonColor={theme.colors.primary}
+              textColor={theme.colors.onPrimary}
+              disabled={isPending}
+              loading={isPending}
+              onPress={handleSubmit((data) =>
+                registerSubmit({
+                  ...data,
+                  role: registerAsAnAgent ? "AGENT" : "CLIENT",
+                }).then(() => router.replace("/login")),
+              )}
+            >
+              {LL.REGISTER()}
+            </Button>
+          </Animated.View>
 
           <Button
             style={{

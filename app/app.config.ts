@@ -33,7 +33,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: "com.alghoul.realestate",
   },
   android: {
-    softwareKeyboardLayoutMode: "pan",
     adaptiveIcon: {
       foregroundImage: "./assets/images/adaptive-icon.png",
       backgroundColor: "#fdfcff",
@@ -90,11 +89,24 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         supportsPictureInPicture: true,
       },
     ],
+    [
+      "expo-build-properties",
+      {
+        android: {
+          usesCleartextTraffic: true, // NOTE: Disables HTTPS, should be used in testing ONLY
+        },
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
   },
   locales: {
     ar: "./assets/i18n/arabic.json",
+  },
+  extra: {
+    eas: {
+      projectId: "781ef74c-f415-43a7-8472-311ced1f75f0",
+    },
   },
 });

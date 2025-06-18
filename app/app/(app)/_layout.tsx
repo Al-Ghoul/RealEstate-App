@@ -1,4 +1,4 @@
-import { Redirect, Tabs } from "expo-router";
+import { router, Tabs, useFocusEffect } from "expo-router";
 import React, { useEffect } from "react";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { addAuthHeader, xiorInstance } from "@/lib/fetcher";
@@ -6,13 +6,16 @@ import type { XiorResponse } from "xior";
 import errorRetry from "xior/plugins/error-retry";
 import setupTokenRefresh from "xior/plugins/token-refresh";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { Pressable, Appearance, View, Text } from "react-native";
+import { Appearance, View } from "react-native";
 import ProfileImage from "@/components/profile/Image";
 import { useThemeStore } from "@/lib/stores/themeStore";
 import { useTheme } from "react-native-paper";
 import { useCurrentUserProfile } from "@/lib/queries/user";
 import { ProfileImageSkeleton } from "@/components/profile/Skeleton";
 import { useI18nContext } from "@/i18n/i18n-react";
+import ThemeToggle from "@/components/ThemeToggle";
+import { Entypo } from "@expo/vector-icons";
+import { useWebSocketStore } from "@/lib/stores/useWebSocketStore";
 
 export default function TabLayout() {
   const theme = useTheme();
@@ -26,6 +29,18 @@ export default function TabLayout() {
     useThemeStore((state) => state.theme) ??
     Appearance.getColorScheme() ??
     "light";
+  const { connect, disconnect } = useWebSocketStore();
+
+  useEffect(() => {
+    connect(
+      tokens?.accessToken
+        ? `ws://192.168.1.19:3001?token=${tokens.accessToken}`
+        : null,
+    );
+    return () => {
+      disconnect();
+    };
+  }, [tokens?.accessToken, connect, disconnect]);
 
   useEffect(() => {
     if (tokens) addAuthHeader(tokens.accessToken);
@@ -49,7 +64,10 @@ export default function TabLayout() {
       return Boolean(
         tokens?.accessToken &&
           response?.status &&
-          [401, 403].includes(response.status),
+          [401, 403].includes(response.status) &&
+          (response.data.message === LL.MISSING_AUTHORIZATION_TOKEN() ||
+            response.data.message === LL.INVALID_ACCESS_TOKEN() ||
+            response.data.message === LL.REVOKED_ACCESS_TOKEN()),
       );
     }
 
@@ -90,9 +108,11 @@ export default function TabLayout() {
       xiorInstance.interceptors.request.clear();
       xiorInstance.interceptors.response.clear();
     };
-  }, [tokens, login, logout]);
+  }, [tokens, login, logout, LL]);
 
-  if (!tokens) return <Redirect href="/get-started" />;
+  useFocusEffect(() => {
+    if (!tokens) return router.replace("/get-started");
+  });
 
   return (
     <Tabs
@@ -113,19 +133,9 @@ export default function TabLayout() {
         },
         tabBarShowLabel: true,
         headerRight: () => (
-          <Pressable
-            onPress={() =>
-              setTheme(currentTheme === "light" ? "dark" : "light")
-            }
-          >
-            <Text
-              style={{
-                color: theme.colors.primary,
-              }}
-            >
-              Toggle Theme
-            </Text>
-          </Pressable>
+          <View style={{ margin: 16 }}>
+            <ThemeToggle setTheme={setTheme} currentTheme={currentTheme} />
+          </View>
         ),
       }}
     >
@@ -141,29 +151,35 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="chat"
+        options={{
+          title: LL.CHAT(),
+          headerShown: true,
+          tabBarIcon: ({ color }) => (
+            <Entypo name="chat" size={24} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
         name="(user)/profile"
         options={{
           title: LL.PROFILE(),
           headerTitleAlign: "center",
           headerShown: false,
-          animation: "shift",
-          tabBarIcon: ({ focused }) => (
-            <View
-              style={{
-                width: focused ? 20 : 28,
-                height: focused ? 20 : 28,
-              }}
-            >
-              {currentUserProfile?.data ? (
-                <ProfileImage
-                  source={currentUserProfile.data.image}
-                  blurHash={currentUserProfile.data.imageBlurHash!}
-                />
-              ) : (
-                <ProfileImageSkeleton />
-              )}
-            </View>
-          ),
+          tabBarIcon: ({ focused }) =>
+            currentUserProfile?.data ? (
+              <ProfileImage
+                style={{ width: focused ? 20 : 28, height: focused ? 20 : 28 }}
+                source={currentUserProfile.data.image}
+                blurHash={currentUserProfile.data.imageBlurHash!}
+              />
+            ) : (
+              <ProfileImageSkeleton
+                style={{ width: 28, height: 28 }}
+                isLoading
+              />
+            ),
         }}
       />
 
@@ -230,6 +246,15 @@ export default function TabLayout() {
         options={{
           headerShown: true,
           title: "User Profile",
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="(chat)/[id]/chat"
+        options={{
+          headerShown: true,
+          title: "Chat",
           href: null,
         }}
       />

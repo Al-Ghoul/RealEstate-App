@@ -4,7 +4,7 @@ import PropertyCard from "@/components/property/PropertyCard";
 import { PropertyCardSkeleton } from "@/components/property/Skeleton";
 import { useI18nContext } from "@/i18n/i18n-react";
 import { xiorInstance } from "@/lib/fetcher";
-import { useGetUserProfile } from "@/lib/queries/user";
+import { useCurrentUser, useGetUserProfile } from "@/lib/queries/user";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useIsFocused } from "@react-navigation/native";
@@ -19,7 +19,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Banner, Divider, Text, useTheme } from "react-native-paper";
+import { Banner, Button, Divider, Text, useTheme } from "react-native-paper";
 
 export default function UserProfileScreen() {
   const params = useLocalSearchParams<{
@@ -38,6 +38,7 @@ export default function UserProfileScreen() {
     refetch: profileRefetch,
   } = useGetUserProfile(id);
   const [order, setOrder] = useState<string | undefined>();
+  const { data: currentUser } = useCurrentUser();
 
   const {
     data: propertiesData,
@@ -168,28 +169,40 @@ export default function UserProfileScreen() {
         </Banner>
 
         {isLoadingUserProfile ? (
-          <View style={{ alignItems: "center" }}>
-            <ProfileSkeleton />
-          </View>
+          <ProfileSkeleton isLoading />
         ) : (
           <View
             style={{
               flexDirection: "row",
               justifyContent: "center",
-              gap: 24,
+              gap: 8,
             }}
           >
-            <View
-              style={{
-                gap: 8,
-              }}
-            >
-              <View style={{ width: 96, height: 96, borderRadius: 50 }}>
+            <View>
+              <View
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 50,
+                  alignSelf: "center",
+                }}
+              >
                 <ProfileImage
                   source={userProfileData?.image!}
                   blurHash={userProfileData?.imageBlurHash!}
                 />
               </View>
+              <Button
+                icon="email"
+                mode="text"
+                compact
+                onPress={() => {
+                  const ids = [currentUser?.id, id].sort();
+                  router.push(`/(chat)/${ids[0]}_${ids[1]}/chat`);
+                }}
+              >
+                {LL.CONTACT()}
+              </Button>
             </View>
 
             <View
@@ -278,13 +291,12 @@ export default function UserProfileScreen() {
       </Banner>
 
       {isLoadingProperties ? (
-        <View style={{ flex: 1, marginHorizontal: 16 }}>
-          <View style={{ flex: 1, marginBottom: 32 }}>
-            <PropertyCardSkeleton />
-          </View>
-          <View style={{ flex: 1 }}>
-            <PropertyCardSkeleton />
-          </View>
+        <View style={{ flex: 1, gap: 8 }}>
+          {Array(5)
+            .fill(null)
+            .map((_, index) => (
+              <PropertyCardSkeleton key={index} isLoading={true} />
+            ))}
         </View>
       ) : (
         <FlatList

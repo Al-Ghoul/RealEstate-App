@@ -2,31 +2,44 @@ import {
   RefreshControl,
   TouchableOpacity,
   View,
-  Text,
   FlatList,
   ScrollView,
   Pressable,
+  Dimensions,
 } from "react-native";
-import { Image } from "expo-image";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
 import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
-import {
-  useCurrentUser,
-  useCurrentUserProfile,
-  useUploadUserProfileImage,
-} from "@/lib/queries/user";
-import { ProfileSkeleton } from "@/components/profile/Skeleton";
+import { useCallback, useRef, useState, type ReactNode } from "react";
+import { useCurrentUser, useCurrentUserProfile } from "@/lib/queries/user";
 import WaveDecoratedView from "@/components/WaveDecoratedView";
 import ProfileImage from "@/components/profile/Image";
-import { Banner, Button, Divider, useTheme } from "react-native-paper";
+import {
+  Banner,
+  Button,
+  Divider,
+  ProgressBar,
+  Text,
+  useTheme,
+} from "react-native-paper";
 import { useI18nContext } from "@/i18n/i18n-react";
 import { PropertyCardSkeleton } from "@/components/property/Skeleton";
 import PropertyCard from "@/components/property/PropertyCard";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { xiorInstance } from "@/lib/fetcher";
 import { useIsFocused } from "@react-navigation/native";
+import { useAuthStore } from "@/lib/stores/authStore";
+import { toast } from "sonner-native";
+import { DrawerLayout } from "react-native-gesture-handler";
+import { router } from "expo-router";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { LoginManager } from "react-native-fbsdk-next";
+import * as FileSystem from "expo-file-system";
+import { ProfileSkeleton } from "@/components/profile/Skeleton";
 
 export default function ProfileScreen() {
   const theme = useTheme();
@@ -35,11 +48,6 @@ export default function ProfileScreen() {
   const isFocused = useIsFocused();
   const currentUser = useCurrentUser();
   const currentUserProfile = useCurrentUserProfile();
-  const {
-    mutateAsync: updateUserProfileImage,
-    isPending: isUpdateUserProfileImagePending,
-    cancel: cancelUpdateUserProfileImage,
-  } = useUploadUserProfileImage();
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -57,6 +65,7 @@ export default function ProfileScreen() {
   const onRefresh = () => {
     currentUser.refetch();
     currentUserProfile.refetch();
+    refetch();
   };
 
   const [order, setOrder] = useState<string | undefined>();
@@ -114,33 +123,294 @@ export default function ProfileScreen() {
     subscribed: isFocused,
   });
 
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const session = useAuthStore((state) => state.session);
+  const uploadImageTaskRef = useRef<FileSystem.UploadTask | null>(null);
+  const uploadUserProfileImage = useCallback(
+    async (image: ImagePicker.ImagePickerAsset) => {
+      setIsUploading(true);
+
+      try {
+        const uploadTask = FileSystem.createUploadTask(
+          `${process.env.EXPO_PUBLIC_API_URL}/users/me/profile/image`,
+          image.uri,
+          {
+            httpMethod: "PUT",
+            uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+            fieldName: "image",
+            mimeType: image.mimeType,
+            headers: {
+              Authorization: `Bearer ${session?.tokens?.accessToken}`,
+            },
+          },
+          (progress) => {
+            const percent =
+              (progress.totalBytesSent / progress.totalBytesExpectedToSend) *
+              100;
+            setUploadProgress(percent);
+          },
+        );
+
+        uploadImageTaskRef.current = uploadTask;
+        const res = await uploadTask.uploadAsync();
+
+        if (res?.status === 401) refetch();
+        else if (res?.status !== 200)
+          throw JSON.parse(res?.body!) as ErrorResponse;
+        else return JSON.parse(res.body) as SuccessResponse<null>;
+      } catch (error) {
+        return Promise.reject(error);
+      } finally {
+        setIsUploading(false);
+        setUploadProgress(0);
+      }
+    },
+    [session?.tokens?.accessToken, refetch],
+  );
+
+  const {
+    mutateAsync: uploadUserProfileImageAsync,
+    isPending: isUploadingImage,
+  } = useMutation({
+    mutationFn: uploadUserProfileImage,
+    onSuccess: (res) => toast.success(res?.message!),
+    onError: (error) => {
+      if (typeof error === "object" && "requestId" in error) {
+        toast.error(error.message, {
+          description: LL.REQUEST_ID({ requestId: error.requestId }),
+        });
+      }
+    },
+  });
+
   return (
     <WaveDecoratedView>
-      <ScrollView
-        style={{
-          marginTop: 40,
-          flexGrow: 0,
-        }}
-        refreshControl={
-          <RefreshControl
-            refreshing={
-              currentUser.isLoading ||
-              currentUserProfile.isLoading ||
-              currentUser.isFetching ||
-              currentUserProfile.isFetching
-            }
-            onRefresh={onRefresh}
-          />
-        }
-      >
-        <Banner
-          visible={
-            (currentUser.isError || currentUserProfile.isError) &&
-            (!currentUser.isFetching || !currentUserProfile.isFetching)
+      <SettingsDrawer>
+        <ScrollView
+          style={{
+            marginTop: 40,
+            flexGrow: 0,
+          }}
+          refreshControl={
+            <RefreshControl
+              refreshing={
+                currentUser.isLoading ||
+                currentUserProfile.isLoading ||
+                currentUser.isFetching ||
+                currentUserProfile.isFetching ||
+                isFetching ||
+                isFetchingNextPage
+              }
+              onRefresh={onRefresh}
+            />
           }
+        >
+          <Banner
+            visible={
+              (currentUser.isError || currentUserProfile.isError) &&
+              (!currentUser.isFetching || !currentUserProfile.isFetching)
+            }
+            style={{
+              backgroundColor: theme.colors.errorContainer,
+            }}
+            theme={{
+              colors: {
+                primary: theme.colors.onErrorContainer,
+              },
+            }}
+            actions={[
+              {
+                label: LL.RETRY(),
+                onPress: onRefresh,
+              },
+            ]}
+          >
+            <Text
+              style={{
+                color: theme.colors.onErrorContainer,
+                textAlign: forceRTL ? "right" : "left",
+              }}
+            >
+              {currentUser.isError
+                ? LL.ERROR_FETCHING_USER_DATA()
+                : currentUserProfile.isError
+                ? LL.ERROR_FETCHING_USER_PROFILE_DATA()
+                : null}
+            </Text>
+          </Banner>
+
+          {currentUserProfile.isLoading ? (
+            <ProfileSkeleton isLoading />
+          ) : (
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                gap: 8,
+                justifyContent: "center",
+              }}
+            >
+              <View>
+                {image ? (
+                  <TouchableOpacity
+                    onPress={() => {
+                      uploadImageTaskRef.current?.cancelAsync();
+                      setImage(null);
+                    }}
+                    style={{
+                      width: 64,
+                      height: 64,
+                      backgroundColor: "rgba(0, 0, 0, 0.5)",
+                      borderRadius: 50,
+                      position: "absolute",
+                      zIndex: 1,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Feather name="x" size={24} color="white" />
+                  </TouchableOpacity>
+                ) : null}
+
+                <View
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 50,
+                    marginVertical: "auto",
+                  }}
+                >
+                  <ProfileImage
+                    source={
+                      image?.uri
+                        ? { uri: image.uri }
+                        : currentUserProfile.data?.image!
+                    }
+                    blurHash={currentUserProfile?.data?.imageBlurHash!}
+                  />
+
+                  {!image ? (
+                    <View
+                      style={{
+                        position: "absolute",
+                        width: 24,
+                        height: 24,
+                        bottom: 0,
+                        right: 0,
+                        backgroundColor: theme.colors.onPrimary,
+                        borderRadius: 50,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <TouchableOpacity onPress={pickImage}>
+                        <MaterialCommunityIcons
+                          name="camera-plus"
+                          size={16}
+                          color={theme.colors.primary}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
+                </View>
+              </View>
+
+              <View style={{}}>
+                <Text
+                  style={{
+                    color: theme.colors.onBackground,
+                  }}
+                  variant="titleMedium"
+                >
+                  {currentUserProfile.data?.firstName}{" "}
+                  {currentUserProfile.data?.lastName}
+                </Text>
+                <Text
+                  style={{
+                    color: theme.colors.onBackground,
+                    maxWidth: 300,
+                  }}
+                >
+                  {currentUserProfile.data?.bio?.replace(/\\n/g, "\n")}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          <Divider
+            style={{
+              flex: 1,
+              marginTop: 8,
+            }}
+          />
+
+          {image ? (
+            <View
+              style={{
+                flex: 1,
+                gap: 8,
+                marginTop: 40,
+              }}
+            >
+              <Button
+                style={{
+                  marginHorizontal: "auto",
+                  width: 150,
+                  borderRadius: 8,
+                }}
+                buttonColor={theme.colors.primary}
+                textColor={theme.colors.onPrimary}
+                disabled={!image}
+                onPress={() => {
+                  uploadUserProfileImageAsync(image).then(async () => {
+                    await currentUserProfile.refetch();
+                    setImage(null);
+                  });
+                }}
+                loading={isUploading || isUploadingImage}
+              >
+                {LL.SAVE_IMAGE()}
+              </Button>
+              <ProgressBar
+                visible={isUploadingImage}
+                progress={(uploadProgress || 0) / 100}
+                color={theme.colors.primary}
+                style={{ marginTop: 8 }}
+              />
+            </View>
+          ) : null}
+        </ScrollView>
+
+        <Pressable
+          style={{ alignSelf: "flex-end", marginHorizontal: 16, marginTop: 16 }}
+          onPress={() => {
+            if (order === "asc") {
+              setOrder("desc");
+            } else {
+              setOrder("asc");
+            }
+          }}
+        >
+          {order === "asc" ? (
+            <MaterialCommunityIcons
+              name="sort-descending"
+              size={24}
+              color={theme.colors.primary}
+            />
+          ) : (
+            <MaterialCommunityIcons
+              name="sort-ascending"
+              size={24}
+              color={theme.colors.primary}
+            />
+          )}
+        </Pressable>
+
+        <Banner
+          visible={isError && !isFetching}
           style={{
             backgroundColor: theme.colors.errorContainer,
-            marginBottom: 8,
           }}
           theme={{
             colors: {
@@ -150,7 +420,7 @@ export default function ProfileScreen() {
           actions={[
             {
               label: LL.RETRY(),
-              onPress: onRefresh,
+              onPress: () => refetch(),
             },
           ]}
         >
@@ -160,235 +430,134 @@ export default function ProfileScreen() {
               textAlign: forceRTL ? "right" : "left",
             }}
           >
-            {currentUser.isError
-              ? LL.ERROR_FETCHING_USER_DATA()
-              : currentUserProfile.isError
-              ? LL.ERROR_FETCHING_USER_PROFILE_DATA()
-              : null}
+            {LL.ERROR_FETCHING_PROPERTIES_DATA()}
           </Text>
         </Banner>
-        {currentUser.isLoading ? (
-          <View style={{ alignItems: "center" }}>
-            <ProfileSkeleton />
+
+        {isLoading ? (
+          <View style={{ flex: 1, gap: 8 }}>
+            {Array(5)
+              .fill(null)
+              .map((_, index) => (
+                <PropertyCardSkeleton key={index} isLoading={true} />
+              ))}
           </View>
         ) : (
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "center",
-              gap: 24,
+          <FlatList
+            style={{ flex: 1 }}
+            contentContainerStyle={{
+              gap: 8,
             }}
-          >
-            <View
-              style={{
-                gap: 8,
-              }}
-            >
-              {image ? (
-                <TouchableOpacity
-                  onPress={() => {
-                    cancelUpdateUserProfileImage();
-                    setImage(null);
-                  }}
-                  style={{
-                    width: 96,
-                    height: 96,
-                    backgroundColor: "rgba(0, 0, 0, 0.5)",
-                    borderRadius: 50,
-                    position: "absolute",
-                    zIndex: 1,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Feather name="x" size={24} color="white" />
-                </TouchableOpacity>
-              ) : null}
-
-              <View style={{ width: 96, height: 96, borderRadius: 50 }}>
-                {image ? (
-                  <Image
-                    source={{ uri: image.uri }}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      borderRadius: 50,
-                    }}
-                    transition={500}
-                  />
-                ) : (
-                  <ProfileImage
-                    source={currentUserProfile.data?.image!}
-                    blurHash={currentUserProfile?.data?.imageBlurHash!}
-                  />
-                )}
-                {!image ? (
-                  <View
-                    style={{
-                      position: "absolute",
-                      width: 32,
-                      height: 32,
-                      bottom: 0,
-                      right: 0,
-                      backgroundColor: theme.colors.onPrimary,
-                      borderRadius: 50,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <TouchableOpacity onPress={pickImage}>
-                      <MaterialCommunityIcons
-                        name="camera-plus"
-                        size={18}
-                        color={theme.colors.primary}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                ) : null}
-              </View>
-            </View>
-
-            <View
-              style={{
-                marginTop: 4,
-              }}
-            >
-              <Text
-                style={{
-                  color: theme.colors.onBackground,
-                  fontWeight: "bold",
-                }}
-              >
-                {currentUserProfile.data?.firstName}{" "}
-                {currentUserProfile.data?.lastName}
-              </Text>
-              <Text
-                style={{
-                  color: theme.colors.onBackground,
-                  width: 300,
-                }}
-              >
-                {currentUserProfile.data?.bio?.replace(/\\n/g, "\n")}
-              </Text>
-            </View>
-          </View>
+            data={data?.pages.flatMap((page) => page.data)}
+            keyExtractor={(item) => item.id}
+            onEndReached={() => {
+              if (hasNextPage) fetchNextPage();
+            }}
+            renderItem={({ item }) => <PropertyCard property={item} withLink />}
+          />
         )}
+      </SettingsDrawer>
+    </WaveDecoratedView>
+  );
+}
 
-        <Divider
-          style={{
-            flex: 1,
-            marginTop: 8,
-          }}
-        />
+function SettingsDrawer({ children }: { children: ReactNode }) {
+  const windowWidth = Dimensions.get("window").width;
+  const theme = useTheme();
+  const { LL } = useI18nContext();
+  const logout = useAuthStore((state) => state.logout);
+  const currentUser = useCurrentUser();
+  const queryClient = useQueryClient();
 
-        {image ? (
+  const { mutateAsync: logoutMutation, isPending: isLoggingOut } = useMutation({
+    mutationFn: () =>
+      xiorInstance.post("/auth/me/logout").then((res) => res.data),
+    onSuccess: (res) => toast.success(res.message),
+  });
+
+  return (
+    <DrawerLayout
+      drawerWidth={windowWidth / 2.3}
+      drawerPosition={"right"}
+      drawerType="slide"
+      renderNavigationView={() => (
+        <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
           <View
             style={{
               flex: 1,
               gap: 8,
               marginTop: 40,
+              margin: 8,
             }}
           >
             <Button
               style={{
-                marginHorizontal: "auto",
-                width: 150,
+                alignSelf: "center",
+                width: "100%",
                 borderRadius: 8,
               }}
               buttonColor={theme.colors.primary}
               textColor={theme.colors.onPrimary}
-              disabled={!image || isUpdateUserProfileImagePending}
+              compact
+              mode="outlined"
               onPress={() => {
-                updateUserProfileImage(image).then(async () => {
-                  await currentUserProfile.refetch();
-                  setImage(null);
-                });
+                router.push("/edit-profile");
               }}
-              loading={isUpdateUserProfileImagePending}
             >
-              {LL.SAVE_IMAGE()}
+              {LL.EDIT_PROFILE()}
+            </Button>
+
+            <Button
+              style={{
+                alignSelf: "center",
+                width: "100%",
+                borderRadius: 8,
+              }}
+              buttonColor={theme.colors.primary}
+              textColor={theme.colors.onPrimary}
+              onPress={() => {
+                if (currentUser.data?.hasPassword)
+                  router.push("/change-password");
+                else router.push("/set-password");
+              }}
+            >
+              {currentUser.data?.hasPassword
+                ? LL.CHANGE_PASSWORD()
+                : LL.SET_PASSWORD()}
             </Button>
           </View>
-        ) : null}
-      </ScrollView>
 
-      <Pressable
-        style={{ alignSelf: "flex-end", marginHorizontal: 16, marginTop: 16 }}
-        onPress={() => {
-          if (order === "asc") {
-            setOrder("desc");
-          } else {
-            setOrder("asc");
-          }
-        }}
-      >
-        {order === "asc" ? (
-          <MaterialCommunityIcons
-            name="sort-descending"
-            size={24}
-            color={theme.colors.primary}
-          />
-        ) : (
-          <MaterialCommunityIcons
-            name="sort-ascending"
-            size={24}
-            color={theme.colors.primary}
-          />
-        )}
-      </Pressable>
-
-      <Banner
-        visible={isError && !isFetching}
-        style={{
-          backgroundColor: theme.colors.errorContainer,
-        }}
-        theme={{
-          colors: {
-            primary: theme.colors.onErrorContainer,
-          },
-        }}
-        actions={[
-          {
-            label: LL.RETRY(),
-            onPress: () => refetch(),
-          },
-        ]}
-      >
-        <Text
-          style={{
-            color: theme.colors.onErrorContainer,
-            textAlign: forceRTL ? "right" : "left",
-          }}
-        >
-          {LL.ERROR_FETCHING_PROPERTIES_DATA()}
-        </Text>
-      </Banner>
-
-      {isLoading ? (
-        <View style={{ flex: 1, marginHorizontal: 16 }}>
-          <View style={{ flex: 1 }}>
-            <PropertyCardSkeleton />
-          </View>
-          <View style={{ flex: 1 }}>
-            <PropertyCardSkeleton />
+          <View
+            style={{
+              margin: 16,
+            }}
+          >
+            <Button
+              style={{
+                width: "100%",
+                borderRadius: 8,
+                alignSelf: "center",
+              }}
+              mode="outlined"
+              compact
+              disabled={isLoggingOut}
+              onPress={() => {
+                logoutMutation().finally(() => {
+                  logout();
+                  queryClient.clear();
+                  GoogleSignin.signOut();
+                  LoginManager.logOut();
+                  router.replace("/");
+                });
+              }}
+            >
+              {LL.LOGOUT()}
+            </Button>
           </View>
         </View>
-      ) : (
-        <FlatList
-          style={{ flex: 1 }}
-          contentContainerStyle={{
-            gap: 8,
-          }}
-          data={data?.pages.flatMap((page) => page.data)}
-          onRefresh={refetch}
-          refreshing={isFetching || isFetchingNextPage}
-          keyExtractor={(item) => item.id}
-          onEndReached={() => {
-            if (hasNextPage) fetchNextPage();
-          }}
-          renderItem={({ item }) => <PropertyCard property={item} withLink />}
-        />
       )}
-    </WaveDecoratedView>
+    >
+      {children}
+    </DrawerLayout>
   );
 }

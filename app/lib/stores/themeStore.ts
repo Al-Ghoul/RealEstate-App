@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { createSecureStorage } from "./storage";
 
-type Themes = "light" | "dark";
+export type Themes = "light" | "dark";
 
 interface ThemeState {
   theme: Themes | null;

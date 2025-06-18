@@ -1,4 +1,4 @@
-import { View, StyleSheet, FlatList, BackHandler } from "react-native";
+import { View, StyleSheet, FlatList } from "react-native";
 import {
   ActivityIndicator,
   Button,
@@ -16,11 +16,11 @@ import {
 } from "react-native-paper";
 import { useI18nContext } from "@/i18n/i18n-react";
 import { useAuthStore } from "@/lib/stores/authStore";
-import { router, useFocusEffect } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { router } from "expo-router";
+import React, { useEffect, useMemo, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { xiorInstance } from "@/lib/fetcher";
-import { useInfiniteQuery, useIsMutating } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import Slider from "@react-native-community/slider";
 import * as Location from "expo-location";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -31,6 +31,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useIsFocused } from "@react-navigation/native";
 import { PropertyCardSkeleton } from "@/components/property/Skeleton";
+import Animated, { BounceInDown, SlideInDown } from "react-native-reanimated";
 
 export default function HomeScreen() {
   const theme = useTheme();
@@ -315,40 +316,20 @@ export default function HomeScreen() {
     handleSubmit(onSubmit)();
   };
 
-  const isUploading = useIsMutating({ mutationKey: ["profileImage"] }) > 0;
-
-  const [isPendingUploadDialogVisible, setIsPendingUploadDialogVisible] =
-    useState(false);
-  useFocusEffect(
-    useCallback(() => {
-      const backAction = () => {
-        if (isUploading) setIsPendingUploadDialogVisible(true);
-        return false;
-      };
-
-      const backHandler = BackHandler.addEventListener(
-        "hardwareBackPress",
-        backAction,
-      );
-
-      return () => backHandler.remove();
-    }, [isUploading]),
-  );
-
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
-      <View
+      <Animated.View
         style={{
           flexDirection: "row",
-          alignItems: "center",
-          marginHorizontal: 32,
+          marginHorizontal: 16,
           gap: 8,
         }}
+        entering={BounceInDown}
       >
         <Searchbar
-          style={{ flex: 1 }}
+          style={{ flex: 1, marginTop: 16 }}
           placeholder={LL.SEARCH_FOR_PROPERTIES()}
           onChangeText={setSearchQuery}
           value={searchQuery}
@@ -356,41 +337,13 @@ export default function HomeScreen() {
         />
 
         <MaterialCommunityIcons
+          style={{ alignSelf: "center" }}
           name="filter"
-          size={32}
+          size={34}
           color={theme.colors.primary}
           onPress={showModal}
         />
-      </View>
-
-      <Portal>
-        <Dialog visible={isPendingUploadDialogVisible}>
-          <Dialog.Title style={{ textAlign: forceRTL ? "right" : "left" }}>
-            {LL.PENDING_TASK()}
-          </Dialog.Title>
-          <Dialog.Content>
-            <Text
-              style={{ textAlign: forceRTL ? "right" : "left" }}
-              variant="bodyMedium"
-            >
-              {LL.YOUR_PFP_UPLOAD_IN_PROGRESS_PROMPT()}
-            </Text>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button
-              onPress={() => {
-                setIsPendingUploadDialogVisible(false);
-                BackHandler.exitApp();
-              }}
-            >
-              {LL.EXIT()}
-            </Button>
-            <Button onPress={() => setIsPendingUploadDialogVisible(false)}>
-              {LL.CANCEL()}
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+      </Animated.View>
 
       <Portal>
         <Modal
@@ -681,13 +634,12 @@ export default function HomeScreen() {
       ) : null}
 
       {isLoading ? (
-        <View style={{ flex: 1, marginHorizontal: 16 }}>
-          <View style={{ flex: 1 }}>
-            <PropertyCardSkeleton />
-          </View>
-          <View style={{ flex: 1 }}>
-            <PropertyCardSkeleton />
-          </View>
+        <View style={{ flex: 1, gap: 8 }}>
+          {Array(5)
+            .fill(null)
+            .map((_, index) => (
+              <PropertyCardSkeleton key={index} isLoading />
+            ))}
         </View>
       ) : (
         <FlatList
@@ -704,12 +656,15 @@ export default function HomeScreen() {
           renderItem={({ item }) => <PropertyCard property={item} withLink />}
         />
       )}
+
       {roles?.includes("ADMIN") || roles?.includes("AGENT") ? (
-        <FAB
-          icon="plus"
-          style={styles.fab}
-          onPress={() => router.push("/property/add")}
-        />
+        <Animated.View entering={SlideInDown}>
+          <FAB
+            icon="plus"
+            style={styles.fab}
+            onPress={() => router.push("/property/add")}
+          />
+        </Animated.View>
       ) : null}
     </SafeAreaView>
   );
