@@ -34,7 +34,7 @@ export default function TabLayout() {
   useEffect(() => {
     connect(
       tokens?.accessToken
-        ? `ws://192.168.1.19:3001?token=${tokens.accessToken}`
+        ? `{process.env.EXPO_PUBLIC_WS_URL}?token=${tokens.accessToken}`
         : null,
     );
     return () => {
