@@ -16,6 +16,7 @@ import {
   Keyboard,
   type KeyboardEvent,
   Pressable,
+  TouchableWithoutFeedback,
 } from "react-native";
 import {
   ActivityIndicator,
@@ -25,7 +26,7 @@ import {
   Button,
 } from "react-native-paper";
 import { EmojiKeyboard } from "@abdoalghoul/react-native-emoji-keyboard";
-import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
+import { FontAwesome6 } from "@expo/vector-icons";
 import Graphemer from "graphemer";
 import Animated, {
   LinearTransition,
@@ -52,6 +53,7 @@ import { useNavigationStore } from "@/lib/stores/navigationStore";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { useI18nContext } from "@/i18n/i18n-react";
 import { truncateContent } from "@/lib/helpers";
+import KeyboardEmojiToggle from "@/components/KeyboardEmojiToggle";
 
 const BATCH_SIZE = 15;
 const WINDOW_SIZE = 12;
@@ -183,7 +185,8 @@ export default function UserChatScreen() {
   const isAtBottomRef = useRef(true);
   const theme = useTheme();
   const { LL } = useI18nContext();
-  const [emojiVisible, setEmojiVisible] = useState(false);
+  const [showEmojiKeyboard, setShowEmojiKeyboard] = useState(false);
+  const [isEmojiMode, setIsEmojiMode] = useState(false);
   const splitter = useMemo(() => new Graphemer(), []);
   const isFocused = useIsFocused();
   const { data: currentUser } = useCurrentUser();
@@ -404,7 +407,7 @@ export default function UserChatScreen() {
 
   const handleReply = useCallback((message: Message) => {
     setReplyingTo(message);
-    setEmojiVisible(false);
+    setShowEmojiKeyboard(false);
   }, []);
 
   const cancelReply = useCallback(() => {
@@ -449,6 +452,8 @@ export default function UserChatScreen() {
     const showSubscription = Keyboard.addListener(
       "keyboardDidShow",
       (_e: KeyboardEvent) => {
+        if (isEmojiMode) setIsEmojiMode(false);
+
         setTimeout(() => {
           if (isAtBottomRef.current) {
             flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
@@ -456,14 +461,42 @@ export default function UserChatScreen() {
         }, 50);
       },
     );
+
+    const hideSubscription = Keyboard.addListener(
+      "keyboardDidHide",
+      (_e: KeyboardEvent) => {
+        if (!isEmojiMode && showEmojiKeyboard) setIsEmojiMode(true);
+      },
+    );
     return () => {
       showSubscription.remove();
+      hideSubscription.remove();
     };
-  }, []);
+  }, [isEmojiMode, showEmojiKeyboard]);
+
+  const handleKeyboardToggle = useCallback(() => {
+    if (isEmojiMode) {
+      setIsEmojiMode(false);
+      messageInputRef.current?.focus();
+    } else {
+      setIsEmojiMode(true);
+      if (Keyboard.isVisible()) {
+        Keyboard.dismiss();
+      }
+      if (!showEmojiKeyboard) {
+        setShowEmojiKeyboard(true);
+      }
+    }
+  }, [isEmojiMode, showEmojiKeyboard]);
 
   const backAction = useCallback(() => {
-    if (emojiVisible) {
-      setEmojiVisible(false);
+    if (showEmojiKeyboard || isEmojiMode) {
+      if (Keyboard.isVisible()) Keyboard.dismiss();
+      if (showEmojiKeyboard) {
+        setShowEmojiKeyboard(false);
+        setIsEmojiMode(false);
+      }
+      return true;
     }
     if (replyingTo) {
       setReplyingTo(null);
@@ -471,7 +504,7 @@ export default function UserChatScreen() {
       router.back();
     }
     return true;
-  }, [replyingTo, emojiVisible]);
+  }, [replyingTo, showEmojiKeyboard, isEmojiMode]);
 
   useFocusEffect(
     useCallback(() => {
@@ -777,201 +810,193 @@ export default function UserChatScreen() {
   };
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    <TouchableWithoutFeedback
+      onPress={() => {
+        Keyboard.dismiss();
+        if (showEmojiKeyboard) {
+          setShowEmojiKeyboard(false);
+          setIsEmojiMode(false);
+        }
+      }}
+      accessible={false}
     >
-      {isError && !isFetching ? (
-        <ErrorState onRetry={refetch} />
-      ) : (
-        <KeyboardGestureArea interpolator="ios" style={{ flex: 1 }}>
-          <Tabs.Screen
-            options={{
-              title: LL.CHAT(),
-              headerLeft: () => (
-                <TouchableOpacity
-                  style={styles.headerButton}
-                  onPress={backAction}
-                >
-                  <Ionicons
-                    name="arrow-back"
-                    size={18}
-                    color={theme.colors.primary}
-                  />
-                </TouchableOpacity>
-              ),
-              href: null,
-            }}
-          />
-
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={"padding"}
-            keyboardVerticalOffset={85}
-          >
-            <Animated.FlatList
-              ref={flatListRef}
-              inverted
-              ListHeaderComponent={() =>
-                isFetchingNextPage && hasNextPage ? (
-                  <LoadingMoreIndicator />
-                ) : null
-              }
-              refreshing={isFetching && !isFetchingNextPage}
-              onRefresh={refetch}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
-              onContentSizeChange={handleContentSizeChange}
-              onEndReached={handleEndReached}
-              onScrollToIndexFailed={handleScrollToIndexFailed}
-              data={allMessages}
-              itemLayoutAnimation={LinearTransition}
-              keyExtractor={keyExtractor}
-              renderItem={renderItem}
-              contentContainerStyle={styles.messagesContainer}
-              onEndReachedThreshold={END_REACHED_THRESHOLD}
-              maxToRenderPerBatch={BATCH_SIZE}
-              windowSize={WINDOW_SIZE}
-              removeClippedSubviews
-              initialNumToRender={INITIAL_NUM_TO_RENDER}
-              maintainVisibleContentPosition={{
-                minIndexForVisible: 0,
-                autoscrollToTopThreshold: 100,
-              }}
-              updateCellsBatchingPeriod={50}
-            />
-            {isFetching && !isFetchingNextPage && !isLoading && (
-              <View style={styles.refetchOverlay}>
-                <ActivityIndicator size="small" />
-              </View>
-            )}
-
-            <View style={{ marginStart: 16 }}>
-              <TypingIndicator chatId={id} />
-            </View>
-
-            <MessageSearchIndicator
-              isVisible={Boolean(searchingForMessage)}
-              theme={theme}
-            />
-
-            <ReplyPreview
-              replyingTo={replyingTo}
-              theme={theme}
-              currentUser={currentUser}
-              otherUserProfile={otherUserProfile}
-              onCancel={cancelReply}
-            />
-
-            <View
-              style={[
-                styles.inputContainer,
-                { backgroundColor: theme.colors.background },
-              ]}
-            >
-              <TextInput
-                ref={messageInputRef}
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: theme.colors.onSecondaryContainer,
-                    color: theme.colors.inverseOnSurface,
-                  },
-                ]}
-                value={input}
-                onChangeText={onInputChange}
-                placeholder={
-                  replyingTo ? LL.REPLY_TO_MESSAGE() : LL.TYPE_A_MESSAGE()
-                }
-                placeholderTextColor={theme.colors.inverseOnSurface}
-                multiline
-                maxLength={2000}
-              />
-
-              <TouchableOpacity
-                style={styles.emojiButton}
-                onPress={() => {
-                  if (!emojiVisible) setEmojiVisible(true);
-                  else if (!Keyboard.isVisible())
-                    messageInputRef.current?.focus();
-                  else Keyboard.dismiss();
-                }}
-              >
-                {!emojiVisible ? (
-                  <Ionicons
-                    name="happy"
-                    size={24}
-                    color={theme.colors.primary}
-                  />
-                ) : (
-                  <FontAwesome5
-                    name="keyboard"
-                    size={24}
-                    color={theme.colors.primary}
-                  />
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={sendMessageFN}
-                style={[
-                  styles.sendButton,
-                  { backgroundColor: theme.colors.primary },
-                ]}
-                disabled={!input.trim()}
-              >
-                <Text style={{ color: theme.colors.onPrimary }}>
-                  {LL.SEND()}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </KeyboardAvoidingView>
-
-          {emojiVisible ? (
-            <Animated.View
-              style={styles.emojiContainer}
-              entering={SlideInDown}
-              exiting={SlideOutDown}
-            >
-              <EmojiKeyboard
-                emojiViewStyle={{
-                  flex: 1,
-                  backgroundColor: theme.colors.secondaryContainer,
-                }}
-                onEmojiSelected={(emoji) =>
-                  setInput((prevInput) => prevInput + emoji)
-                }
-              >
-                <View style={styles.emojiDeleteContainer}>
-                  <Pressable
-                    onPress={handleDelete}
-                    onLongPress={() => {
-                      handleDelete();
-
-                      deleteInterval.current = setInterval(handleDelete, 100);
-                    }}
-                    onPressOut={() => {
-                      if (deleteInterval.current) {
-                        clearInterval(
-                          deleteInterval.current as unknown as number,
-                        );
-                        deleteInterval.current = null;
-                      }
-                    }}
-                    delayLongPress={200}
+      <View
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+      >
+        {isError && !isFetching ? (
+          <ErrorState onRetry={refetch} />
+        ) : (
+          <KeyboardGestureArea interpolator="ios" style={{ flex: 1 }}>
+            <Tabs.Screen
+              options={{
+                title: LL.CHAT(),
+                headerLeft: () => (
+                  <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={backAction}
                   >
-                    <FontAwesome6
-                      name="delete-left"
-                      size={24}
+                    <Ionicons
+                      name="arrow-back"
+                      size={18}
                       color={theme.colors.primary}
                     />
-                  </Pressable>
+                  </TouchableOpacity>
+                ),
+                href: null,
+              }}
+            />
+
+            <KeyboardAvoidingView
+              style={{ flex: 1 }}
+              behavior={"padding"}
+              keyboardVerticalOffset={85}
+            >
+              <Animated.FlatList
+                ref={flatListRef}
+                inverted
+                ListHeaderComponent={() =>
+                  isFetchingNextPage && hasNextPage ? (
+                    <LoadingMoreIndicator />
+                  ) : null
+                }
+                refreshing={isFetching && !isFetchingNextPage}
+                onRefresh={refetch}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                onContentSizeChange={handleContentSizeChange}
+                onEndReached={handleEndReached}
+                onScrollToIndexFailed={handleScrollToIndexFailed}
+                data={allMessages}
+                itemLayoutAnimation={LinearTransition}
+                keyExtractor={keyExtractor}
+                renderItem={renderItem}
+                contentContainerStyle={styles.messagesContainer}
+                onEndReachedThreshold={END_REACHED_THRESHOLD}
+                maxToRenderPerBatch={BATCH_SIZE}
+                windowSize={WINDOW_SIZE}
+                removeClippedSubviews
+                initialNumToRender={INITIAL_NUM_TO_RENDER}
+                maintainVisibleContentPosition={{
+                  minIndexForVisible: 0,
+                  autoscrollToTopThreshold: 100,
+                }}
+                updateCellsBatchingPeriod={50}
+              />
+              {isFetching && !isFetchingNextPage && !isLoading && (
+                <View style={styles.refetchOverlay}>
+                  <ActivityIndicator size="small" />
                 </View>
-              </EmojiKeyboard>
-            </Animated.View>
-          ) : null}
-        </KeyboardGestureArea>
-      )}
-    </View>
+              )}
+
+              <View style={{ marginStart: 16 }}>
+                <TypingIndicator chatId={id} />
+              </View>
+
+              <MessageSearchIndicator
+                isVisible={Boolean(searchingForMessage)}
+                theme={theme}
+              />
+
+              <ReplyPreview
+                replyingTo={replyingTo}
+                theme={theme}
+                currentUser={currentUser}
+                otherUserProfile={otherUserProfile}
+                onCancel={cancelReply}
+              />
+
+              <View
+                style={[
+                  styles.inputContainer,
+                  { backgroundColor: theme.colors.background },
+                ]}
+              >
+                <TextInput
+                  ref={messageInputRef}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: theme.colors.onSecondaryContainer,
+                      color: theme.colors.inverseOnSurface,
+                    },
+                  ]}
+                  value={input}
+                  onChangeText={onInputChange}
+                  placeholder={
+                    replyingTo ? LL.REPLY_TO_MESSAGE() : LL.TYPE_A_MESSAGE()
+                  }
+                  placeholderTextColor={theme.colors.inverseOnSurface}
+                  multiline
+                  maxLength={2000}
+                />
+
+                <KeyboardEmojiToggle
+                  isEmojiMode={isEmojiMode}
+                  onToggle={handleKeyboardToggle}
+                  color={theme.colors.primary}
+                  size={24}
+                />
+                <TouchableOpacity
+                  onPress={sendMessageFN}
+                  style={[
+                    styles.sendButton,
+                    { backgroundColor: theme.colors.primary },
+                  ]}
+                  disabled={!input.trim()}
+                >
+                  <Text style={{ color: theme.colors.onPrimary }}>
+                    {LL.SEND()}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </KeyboardAvoidingView>
+
+            {showEmojiKeyboard ? (
+              <Animated.View
+                style={styles.emojiContainer}
+                entering={SlideInDown}
+                exiting={SlideOutDown}
+              >
+                <EmojiKeyboard
+                  emojiViewStyle={{
+                    flex: 1,
+                    backgroundColor: theme.colors.secondaryContainer,
+                  }}
+                  onEmojiSelected={(emoji) =>
+                    setInput((prevInput) => prevInput + emoji)
+                  }
+                >
+                  <View style={styles.emojiDeleteContainer}>
+                    <Pressable
+                      onPress={handleDelete}
+                      onLongPress={() => {
+                        handleDelete();
+                        deleteInterval.current = setInterval(handleDelete, 100);
+                      }}
+                      onPressOut={() => {
+                        if (deleteInterval.current) {
+                          clearInterval(
+                            deleteInterval.current as unknown as number,
+                          );
+                          deleteInterval.current = null;
+                        }
+                      }}
+                      delayLongPress={200}
+                    >
+                      <FontAwesome6
+                        name="delete-left"
+                        size={24}
+                        color={theme.colors.primary}
+                      />
+                    </Pressable>
+                  </View>
+                </EmojiKeyboard>
+              </Animated.View>
+            ) : null}
+          </KeyboardGestureArea>
+        )}
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 
