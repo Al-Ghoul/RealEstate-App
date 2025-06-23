@@ -24,7 +24,6 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useCurrentUser, useGetUserProfile } from "@/lib/queries/user";
 import PagerView from "react-native-pager-view";
-import { useVideoPlayer, VideoView } from "expo-video";
 import { Image } from "expo-image";
 import Feather from "@expo/vector-icons/Feather";
 import { toast } from "sonner-native";
@@ -35,6 +34,7 @@ import { PropertyCardSkeleton } from "@/components/property/Skeleton";
 import ProfileImage from "@/components/profile/Image";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { UserProfileSkeleton } from "@/components/profile/Skeleton";
+import { VideoPlayer } from "./media/add";
 
 export default function PropertyDetailsScreen() {
   const params = useLocalSearchParams<{
@@ -48,6 +48,8 @@ export default function PropertyDetailsScreen() {
   const forceRTL = locale === "ar";
   const pagerRef = useRef<PagerView>(null);
   const [currentPage, setCurrentPage] = useState(0);
+  const [autoSlideActive, setAutoSlideActive] = useState(true);
+
   const {
     data: propertyData,
     isError: isPropertyError,
@@ -69,6 +71,20 @@ export default function PropertyDetailsScreen() {
     onSuccess: (res) => {
       toast.success(res.message, {
         position: "bottom-center",
+      });
+      propertyMediaRefetch().then(() => {
+        const newMediaLength = (propertyMediaData?.length ?? 1) - 1;
+        if (newMediaLength === 0) {
+          setCurrentPage(0);
+        } else if (currentPage >= newMediaLength) {
+          const newPage = Math.max(0, newMediaLength - 1);
+          setCurrentPage(newPage);
+          setTimeout(() => {
+            if (pagerRef.current) {
+              pagerRef.current.setPage(newPage);
+            }
+          }, 100);
+        }
       });
       propertyRefetch();
     },
@@ -100,21 +116,38 @@ export default function PropertyDetailsScreen() {
   const { data: userProfileData, isLoading: isLoadingUserProfile } =
     useGetUserProfile(propertyData?.userId ?? "");
 
-  const [autoSlideActive, setAutoSlideActive] = useState(true);
-  const totalPages = (propertyMediaData?.length ?? 0) + 1;
+  const totalPages = propertyMediaData?.length ?? 0;
 
   useEffect(() => {
-    if (!autoSlideActive || !propertyMediaData?.length) return;
+    if (!autoSlideActive || !propertyMediaData?.length || totalPages <= 1)
+      return;
 
     const interval = setInterval(() => {
-      let nextPage = (currentPage + 1) % totalPages;
-      if (nextPage === 0) nextPage += 1;
-
-      pagerRef.current?.setPage(nextPage);
-    }, 1500);
+      setCurrentPage((prevPage) => {
+        const nextPage = (prevPage + 1) % totalPages;
+        if (pagerRef.current) {
+          pagerRef.current.setPage(nextPage);
+        }
+        return nextPage;
+      });
+    }, 3000);
 
     return () => clearInterval(interval);
-  }, [currentPage, autoSlideActive, totalPages, propertyMediaData]);
+  }, [autoSlideActive, totalPages, propertyMediaData]);
+
+  useEffect(() => {
+    if (
+      propertyMediaData &&
+      currentPage >= propertyMediaData.length &&
+      propertyMediaData.length > 0
+    ) {
+      const newPage = Math.max(0, propertyMediaData.length - 1);
+      setCurrentPage(newPage);
+      if (pagerRef.current) {
+        pagerRef.current.setPage(newPage);
+      }
+    }
+  }, [propertyMediaData, currentPage]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -220,7 +253,6 @@ export default function PropertyDetailsScreen() {
                   style={{
                     flexDirection: "row",
                     position: "absolute",
-                    zIndex: 1,
                     right: 16,
                     top: 16,
                     gap: 4,
@@ -494,107 +526,80 @@ export default function PropertyDetailsScreen() {
 
             {propertyMediaData && propertyMediaData.length > 0 && (
               <PagerView
+                key={`pager-${propertyMediaData.length}-${propertyMediaData
+                  .map((m) => m.id)
+                  .join("-")}`}
                 ref={pagerRef}
                 style={{ height: 250 }}
                 scrollEnabled={!!propertyMediaData.length}
+                initialPage={Math.min(
+                  currentPage,
+                  propertyMediaData.length - 1,
+                )}
                 onPageSelected={(e) => setCurrentPage(e.nativeEvent.position)}
                 onTouchStart={() => {
                   setAutoSlideActive(false);
                 }}
                 onTouchEnd={() => {
-                  setAutoSlideActive(true);
+                  setTimeout(() => setAutoSlideActive(true), 2000);
                 }}
               >
-                {propertyMediaData.length > 0
-                  ? propertyMediaData.map((item, index) => (
-                      <View key={`media-${item.id}`} style={{ flex: 1 }}>
-                        <View
+                {propertyMediaData.map((item, index) => (
+                  <View key={`media-${item.id}`} style={{ flex: 1 }}>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        position: "absolute",
+                        width: "100%",
+                        justifyContent: "space-between",
+                        padding: 16,
+                        zIndex: 1,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          backgroundColor: "rgba(0,0,0,0.5)",
+                          color: "white",
+                          textAlign: "center",
+                          textAlignVertical: "center",
+                          fontWeight: "bold",
+                          padding: 8,
+                          borderRadius: 50,
+                        }}
+                      >
+                        {index + 1} / {propertyMediaData.length}
+                      </Text>
+                      {propertyData.userId === currentUser?.id && (
+                        <TouchableRipple
+                          onPress={() => deleteMedia(item)}
                           style={{
-                            flexDirection: "row",
-                            position: "absolute",
-                            width: "100%",
-                            justifyContent: "space-between",
-                            padding: 16,
-                            zIndex: 1,
+                            backgroundColor: "rgba(0,0,0,0.5)",
+                            padding: 8,
+                            borderRadius: 50,
                           }}
+                          borderless
                         >
-                          <Text
-                            style={{
-                              backgroundColor: "rgba(0,0,0,0.5)",
-                              color: "white",
-                              textAlign: "center",
-                              textAlignVertical: "center",
-                              fontWeight: "bold",
-                              padding: 8,
-                              borderRadius: 50,
-                            }}
-                          >
-                            {index + 1} / {propertyMediaData.length}
-                          </Text>
-                          {propertyData.userId === currentUser?.id && (
-                            <TouchableRipple
-                              onPress={() =>
-                                deleteMedia(item).then(() => {
-                                  const deletedIndex =
-                                    propertyMediaData.findIndex(
-                                      (m) => m.id === item.id,
-                                    );
-                                  if (deletedIndex <= currentPage) {
-                                    const newPage = Math.max(
-                                      0,
-                                      currentPage - 1,
-                                    );
-                                    setCurrentPage(newPage);
-                                    pagerRef.current?.setPage(newPage);
-                                  }
-                                  propertyMediaRefetch();
-                                })
-                              }
-                              style={{
-                                backgroundColor: "rgba(0,0,0,0.5)",
-                                padding: 8,
-                                borderRadius: 50,
-                              }}
-                              borderless
-                            >
-                              <Feather
-                                name="trash-2"
-                                size={24}
-                                color={theme.colors.error}
-                              />
-                            </TouchableRipple>
-                          )}
-                        </View>
-
-                        {item.type === "VIDEO" ? (
-                          <VideoScreen videoSource={item.url} />
-                        ) : (
-                          <Image
-                            source={{ uri: item.url }}
-                            style={{ flex: 1 }}
+                          <Feather
+                            name="trash-2"
+                            size={24}
+                            color={theme.colors.error}
                           />
-                        )}
-                      </View>
-                    ))
-                  : null}
+                        </TouchableRipple>
+                      )}
+                    </View>
+
+                    {item.type === "VIDEO" ? (
+                      <VideoPlayer videoSource={item.url} />
+                    ) : (
+                      <Image source={{ uri: item.url }} style={{ flex: 1 }} />
+                    )}
+                  </View>
+                ))}
               </PagerView>
             )}
           </>
         )}
       </ScrollView>
     </View>
-  );
-}
-
-function VideoScreen({ videoSource }: { videoSource: string }) {
-  const player = useVideoPlayer(videoSource);
-
-  return (
-    <VideoView
-      style={{ flex: 1 }}
-      player={player}
-      allowsFullscreen
-      allowsPictureInPicture
-    />
   );
 }

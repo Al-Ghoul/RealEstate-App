@@ -250,12 +250,6 @@ export default function AddPropertyMedia() {
               color={theme.colors.primary}
               style={{ marginTop: 8 }}
             />
-            <Text
-              variant="bodySmall"
-              style={{ textAlign: "center", marginTop: 4 }}
-            >
-              {uploadProgress[media[currentUploadIndex]?.uri] || 0}% complete
-            </Text>
           </View>
         )}
 
@@ -287,7 +281,7 @@ export default function AddPropertyMedia() {
                   </View>
 
                   {item.type === "video" ? (
-                    <VideoScreen videoSource={item.uri} />
+                    <VideoPlayer videoSource={item.uri} />
                   ) : (
                     <Image source={{ uri: item.uri }} style={styles.media} />
                   )}
@@ -301,7 +295,7 @@ export default function AddPropertyMedia() {
                 uploadMedia(media).then(() => {
                   setMedia([]);
                   propertyMediaRefetch();
-                  backAction();
+                  router.replace(`/property/${id}`);
                 })
               }
               disabled={media.length === 0}
@@ -339,7 +333,7 @@ export default function AddPropertyMedia() {
   );
 }
 
-function VideoScreen({ videoSource }: { videoSource: string }) {
+export function VideoPlayer({ videoSource }: { videoSource: string }) {
   const player = useVideoPlayer(videoSource);
 
   return (
