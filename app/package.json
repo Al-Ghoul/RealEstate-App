@@ -34,6 +34,7 @@
     "@tanstack/react-query": "5.75.0",
     "@tanstack/react-query-persist-client": "5.75.0",
     "clsx": "2.1.1",
+    "d3-interpolate": "^3.0.1",
     "dayjs": "^1.11.13",
     "expo": "~52.0.46",
     "expo-blur": "~14.0.3",
@@ -90,6 +91,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@tanstack/eslint-plugin-query": "5.73.3",
+    "@types/d3-interpolate": "^3.0.4",
     "@types/jest": "^29.5.12",
     "@types/react": "~18.3.12",
     "@types/react-native-onboarding-swiper": "1.1.9",
