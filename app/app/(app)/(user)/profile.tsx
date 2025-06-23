@@ -14,14 +14,7 @@ import { useCallback, useRef, useState, type ReactNode } from "react";
 import { useCurrentUser, useCurrentUserProfile } from "@/lib/queries/user";
 import WaveDecoratedView from "@/components/WaveDecoratedView";
 import ProfileImage from "@/components/profile/Image";
-import {
-  Banner,
-  Button,
-  Divider,
-  ProgressBar,
-  Text,
-  useTheme,
-} from "react-native-paper";
+import { Banner, Button, Divider, Text, useTheme } from "react-native-paper";
 import { useI18nContext } from "@/i18n/i18n-react";
 import { PropertyCardSkeleton } from "@/components/property/Skeleton";
 import PropertyCard from "@/components/property/PropertyCard";
@@ -40,6 +33,13 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { LoginManager } from "react-native-fbsdk-next";
 import * as FileSystem from "expo-file-system";
 import { ProfileSkeleton } from "@/components/profile/Skeleton";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import { Image } from "expo-image";
 
 export default function ProfileScreen() {
   const theme = useTheme();
@@ -123,13 +123,21 @@ export default function ProfileScreen() {
     subscribed: isFocused,
   });
 
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const session = useAuthStore((state) => state.session);
+
+  const fillHeight = useSharedValue(0);
+  const animatedFillStyle = useAnimatedStyle(() => {
+    return {
+      height: `${fillHeight.value}%`,
+    };
+  });
   const uploadImageTaskRef = useRef<FileSystem.UploadTask | null>(null);
   const uploadUserProfileImage = useCallback(
     async (image: ImagePicker.ImagePickerAsset) => {
       setIsUploading(true);
+      fillHeight.value = 0;
+      let uploadCompleted = false;
 
       try {
         const uploadTask = FileSystem.createUploadTask(
@@ -142,31 +150,49 @@ export default function ProfileScreen() {
             mimeType: image.mimeType,
             headers: {
               Authorization: `Bearer ${session?.tokens?.accessToken}`,
+              "Accept-Language": locale,
             },
           },
           (progress) => {
-            const percent =
+            if (uploadCompleted) return;
+
+            const calculatedProgress = Math.min(
+              100,
               (progress.totalBytesSent / progress.totalBytesExpectedToSend) *
-              100;
-            setUploadProgress(percent);
+                100,
+            );
+
+            if (calculatedProgress > 5 || calculatedProgress === 100) {
+              fillHeight.value = withTiming(calculatedProgress, {
+                duration: 100,
+                easing: Easing.linear,
+              });
+            }
           },
         );
 
         uploadImageTaskRef.current = uploadTask;
         const res = await uploadTask.uploadAsync();
 
+        uploadCompleted = true;
+        fillHeight.value = withTiming(100, { duration: 200 });
+
         if (res?.status === 401) refetch();
         else if (res?.status !== 200)
           throw JSON.parse(res?.body!) as ErrorResponse;
-        else return JSON.parse(res.body) as SuccessResponse<null>;
+
+        return JSON.parse(res.body) as SuccessResponse<null>;
       } catch (error) {
+        fillHeight.value = withTiming(0, { duration: 200 });
         return Promise.reject(error);
       } finally {
-        setIsUploading(false);
-        setUploadProgress(0);
+        setTimeout(() => {
+          setIsUploading(false);
+          fillHeight.value = 0;
+        }, 500);
       }
     },
-    [session?.tokens?.accessToken, refetch],
+    [session?.tokens?.accessToken, refetch, locale, fillHeight],
   );
 
   const {
@@ -249,10 +275,11 @@ export default function ProfileScreen() {
                 flexDirection: "row",
                 gap: 8,
                 justifyContent: "center",
+                alignItems: "center",
               }}
             >
-              <View>
-                {image ? (
+              <View style={{ position: "relative", width: 64, height: 64 }}>
+                {image && (
                   <TouchableOpacity
                     onPress={() => {
                       uploadImageTaskRef.current?.cancelAsync();
@@ -264,59 +291,86 @@ export default function ProfileScreen() {
                       backgroundColor: "rgba(0, 0, 0, 0.5)",
                       borderRadius: 50,
                       position: "absolute",
-                      zIndex: 1,
+                      zIndex: 2,
                       alignItems: "center",
                       justifyContent: "center",
                     }}
                   >
                     <Feather name="x" size={24} color="white" />
                   </TouchableOpacity>
-                ) : null}
+                )}
 
                 <View
                   style={{
                     width: 64,
                     height: 64,
                     borderRadius: 50,
-                    marginVertical: "auto",
+                    overflow: "hidden",
                   }}
                 >
                   <ProfileImage
-                    source={
-                      image?.uri
-                        ? { uri: image.uri }
-                        : currentUserProfile.data?.image!
-                    }
+                    source={currentUserProfile.data?.image!}
                     blurHash={currentUserProfile?.data?.imageBlurHash!}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      position: "absolute",
+                    }}
                   />
 
-                  {!image ? (
-                    <View
-                      style={{
-                        position: "absolute",
-                        width: 24,
-                        height: 24,
-                        bottom: 0,
-                        right: 0,
-                        backgroundColor: theme.colors.onPrimary,
-                        borderRadius: 50,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
+                  {image && (
+                    <Animated.View
+                      style={[
+                        {
+                          width: "100%",
+                          position: "absolute",
+                          bottom: 0,
+                          overflow: "hidden",
+                        },
+                        animatedFillStyle,
+                      ]}
                     >
-                      <TouchableOpacity onPress={pickImage}>
-                        <MaterialCommunityIcons
-                          name="camera-plus"
-                          size={16}
-                          color={theme.colors.primary}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  ) : null}
+                      <Image
+                        source={{ uri: image.uri }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          position: "absolute",
+                          bottom: 0,
+                        }}
+                        contentFit="cover"
+                      />
+                    </Animated.View>
+                  )}
                 </View>
+
+                {!image && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      width: 24,
+                      height: 24,
+                      bottom: 0,
+                      right: 0,
+                      backgroundColor: theme.colors.onPrimary,
+                      borderRadius: 50,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      zIndex: 1,
+                    }}
+                  >
+                    <TouchableOpacity onPress={pickImage}>
+                      <MaterialCommunityIcons
+                        name="camera-plus"
+                        size={16}
+                        color={theme.colors.primary}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
 
-              <View style={{}}>
+              <View>
                 <Text
                   style={{
                     color: theme.colors.onBackground,
@@ -372,12 +426,6 @@ export default function ProfileScreen() {
               >
                 {LL.SAVE_IMAGE()}
               </Button>
-              <ProgressBar
-                visible={isUploadingImage}
-                progress={(uploadProgress || 0) / 100}
-                color={theme.colors.primary}
-                style={{ marginTop: 8 }}
-              />
             </View>
           ) : null}
         </ScrollView>
