@@ -58,7 +58,7 @@ const Input = ({
       <TextInput
         style={{
           width: "100%",
-          color: theme.colors.secondary,
+          color: theme.colors.onBackground,
           textAlign: forceRTL ? "right" : "left",
         }}
         id={id}
