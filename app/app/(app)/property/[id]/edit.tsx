@@ -126,9 +126,8 @@ export default function EditPropertyScreen() {
       formData.append(
         "location",
         JSON.stringify({
-          // NOTE: (X=longitude, Y=latitude) for PostGIS
-          x: input.location?.y,
-          y: input.location?.x,
+          x: input.location?.x,
+          y: input.location?.y,
         }),
       );
       formData.append("isPublished", input.isPublished.toString());
