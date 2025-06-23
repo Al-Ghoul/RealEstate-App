@@ -174,6 +174,8 @@ const ar = {
   // SCREENS
   HOME: "الرئيسية",
   PROFILE: "الملف الشخصي",
+  PROPERTY_DETAILS: "تفاصيل العقار",
+  USER_PROFILE: "ملف المستخدم",
 } satisfies Translation;
 
 export default ar;

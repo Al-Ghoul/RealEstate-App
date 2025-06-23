@@ -176,6 +176,8 @@ const en = {
   // SCREENS
   HOME: "Home",
   PROFILE: "Profile",
+  PROPERTY_DETAILS: "Property Details",
+  USER_PROFILE: "User Profile",
 } satisfies BaseTranslation;
 
 export default en;

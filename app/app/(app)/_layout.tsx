@@ -34,7 +34,7 @@ export default function TabLayout() {
   useEffect(() => {
     connect(
       tokens?.accessToken
-        ? `{process.env.EXPO_PUBLIC_WS_URL}?token=${tokens.accessToken}`
+        ? `${process.env.EXPO_PUBLIC_WS_URL}?token=${tokens.accessToken}`
         : null,
     );
     return () => {
@@ -193,7 +193,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="(user)/change-password"
         options={{
-          title: "Change Password",
+          title: LL.CHANGE_PASSWORD(),
           href: null,
         }}
       />
@@ -201,7 +201,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="(user)/set-password"
         options={{
-          title: "Set Password",
+          title: LL.SET_PASSWORD(),
           href: null,
         }}
       />
@@ -209,7 +209,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="property/add"
         options={{
-          title: "Add Property",
+          title: LL.ADD_PROPERTY(),
           href: null,
         }}
       />
@@ -218,7 +218,7 @@ export default function TabLayout() {
         name="property/[id]/index"
         options={{
           headerShown: true,
-          title: "Property Details",
+          title: LL.PROPERTY_DETAILS(),
           href: null,
         }}
       />
@@ -227,7 +227,7 @@ export default function TabLayout() {
         name="property/[id]/edit"
         options={{
           headerShown: true,
-          title: "Edit Property",
+          title: LL.EDIT_PROPERTY(),
           href: null,
         }}
       />
@@ -236,7 +236,7 @@ export default function TabLayout() {
         name="property/[id]/media/add"
         options={{
           headerShown: true,
-          title: "Add Media",
+          title: LL.ADD_PROPERTY_MEDIA(),
           href: null,
         }}
       />
@@ -245,7 +245,7 @@ export default function TabLayout() {
         name="(user)/user/[id]/profile/index"
         options={{
           headerShown: true,
-          title: "User Profile",
+          title: LL.USER_PROFILE(),
           href: null,
         }}
       />
@@ -254,7 +254,7 @@ export default function TabLayout() {
         name="(chat)/[id]/chat"
         options={{
           headerShown: true,
-          title: "Chat",
+          title: LL.CHAT(),
           href: null,
         }}
       />
