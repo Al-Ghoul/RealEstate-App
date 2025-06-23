@@ -1,21 +1,50 @@
 # RealEstate App
 
-This is a WIP real state Mobile App.
+This is a real state cross-platform Mobile Application for posting & listing properties.
 
 [![Dev Workflow](https://github.com/Al-Ghoul/RealEstate-App/actions/workflows/dev.yaml/badge.svg?branch=develop)](https://github.com/Al-Ghoul/RealEstate-App/actions/workflows/dev.yaml)
 
 ## Motivation
 
-This app will allow users to register, login, have a profile and be able to search for properties, view property details, and make reservations for properties. This app is integrating the [RealEstate API](https://github.com/Al-Ghoul/RealEstate-API)
+This is a side project for me to learn, improve & show my skills. This app is integrating the [RealEstate API](https://github.com/Al-Ghoul/RealEstate-API)
 
-## Screenshots
+## Preview
 
-TODO
+<details>
+  <summary>✈️ Landing & Intro</summary>
+  <video src="https://github.com/user-attachments/assets/8944fe9a-313b-4090-bc9f-3cc7cbcf5192" controls width="500"></video>
+</details>
+
+<details>
+  <summary>🔐 Auth Flow</summary>
+  <video src="https://github.com/user-attachments/assets/aa7c583d-6de5-4798-93f5-c995034b40e4" controls width="500"></video>
+</details>
+
+<details>
+  <summary>🛣️ Screens Preview</summary>
+  <video src="https://github.com/user-attachments/assets/00a3e8d6-96b1-488c-a00a-35ce00575299" controls width="500"></video>
+</details>
+
+<details>
+  <summary>🏡 Property Posting</summary>
+  <video src="https://github.com/user-attachments/assets/c5fb6453-0ae1-45f1-97d6-b35c0210af0c" controls width="500"></video>
+  <video src="https://github.com/user-attachments/assets/f0312e8b-a557-41ac-b204-295c30ce40ad" controls width="500"></video>
+  <video src="https://github.com/user-attachments/assets/62af1c5c-6df4-465d-accf-15e31cabfe83" controls width="500"></video>
+</details>
+
+<details>
+  <summary>💬 Chat</summary>
+  <video src="https://github.com/user-attachments/assets/1b3e08b2-f226-4d20-8e0d-c27989194470" controls width="500"></video>
+  <video src="https://github.com/user-attachments/assets/b08e05be-ea6c-4561-ae6a-0a710b5bd87c" controls width="500"></video>
+</details>
 
 ## Technologies
 
 - [React Native](https://reactnative.dev/)
 - [Expo](https://expo.dev/)
+- [Zustand](https://github.com/pmndrs/zustand)
+- [React Query](https://react-query.tanstack.com/)
+- [Xior](https://github.com/suhaotian/xior)
 
 Tools & Bundlers:
 
@@ -26,7 +55,14 @@ Tools & Bundlers:
 
 ## Features
 
-TODO
+- [x] Authentication (Login, Register, Logout, Reset/Change/Set Password)
+- [x] Social Authentication (Google, Facebook)
+- [x] Profile (Update, Delete)
+- [x] Property Posting (Add, Edit, Delete, List & Filter) with Geolocation, Description, Attached Media & more.
+- [x] Chat (Direct w/ the ability to Delete Messages/Chats (for both sides)) (Hand crafted UI)
+- [x] Full I18N support (Arabic, English)
+- [x] Dark/Light Mode
+- [ ] Notifications
 
 ## Installation
 
