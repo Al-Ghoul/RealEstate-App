@@ -52,6 +52,7 @@ Tools & Bundlers:
 - [Node.js](https://nodejs.org/en/)
 - [TypeScript](https://www.typescriptlang.org/)
 - [Nix](https://nixos.org/)
+- [CI/CD](https://github.com/resources/articles/devops/ci-cd)
 
 ## Features
 
@@ -63,6 +64,11 @@ Tools & Bundlers:
 - [x] Full I18N support (Arabic, English)
 - [x] Dark/Light Mode
 - [ ] Notifications
+
+## Extras
+
+- [x] [Type checks CI/CD](/nix/tests/jobs.nix#L7) – runs `tsc --noEmit`
+- [x] [Linting CI/CD](/nix/tests/jobs.nix#L29) – checks lint rules via `eslint`
 
 ## Installation
 
